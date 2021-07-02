@@ -1,70 +1,183 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-<!--
+    
+  
+  <!--
 
 Replace the strings "YourUserId" and "YourGitHubUser" in this file
 accordingly
 
 -->
-
+      
+  
   <modelVersion>4.0.0</modelVersion>
+      
+  
   <parent>
+            
+    
     <artifactId>cs410j</artifactId>
+            
+    
     <groupId>io.github.davidwhitlock.cs410J</groupId>
+            
+    
     <version>2021.3.0</version>
+          
+  
   </parent>
-  <groupId>edu.pdx.cs410J.YourUserId</groupId>
+      
+  
+  <groupId>edu.pdx.cs410J.yl6</groupId>
+      
+  
   <artifactId>PortlandStateJavaSummer2021</artifactId>
+      
+  
   <version>2021.0.0</version>
-
+      
+  
   <packaging>pom</packaging>
+      
+  
   <name>PSUJavaSummer2021</name>
+      
+  
   <description>Source code written in the Summer 2021 offering of Advanced Programming with Java</description>
-  <url>http://YourGitHubUser.github.io/PortlandStateJavaSummer2021</url>
-
+      
+  
+  <url>http://y1m1ng1in.github.io/PortlandStateJavaSummer2021</url>
+      
+  
   <modules>
+            
+    
+    <module>student</module>
+          
+    
+    <module>apptbook</module>
+      
   </modules>
-
+      
+  
   <inceptionYear>2021</inceptionYear>
+      
+  
   <organization>
+            
+    
     <name>Portland State University</name>
+            
+    
     <url>http://www.pdx.edu</url>
+          
+  
   </organization>
+      
+  
   <issueManagement>
+            
+    
     <system>github</system>
-    <url>https://github.com/YourGitHubUser/PortlandStateJavaSummer2021/issues</url>
+            
+    
+    <url>https://github.com/y1m1ng1in/PortlandStateJavaSummer2021/issues</url>
+          
+  
   </issueManagement>
+      
+  
   <licenses>
+            
+    
     <license>
+                  
+      
       <name>Apache License, Version 2.0</name>
+                  
+      
       <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+                  
+      
       <distribution>repo</distribution>
+                
+    
     </license>
+          
+  
   </licenses>
+      
+  
   <developers>
+            
+    
     <developer>
+                  
+      
       <id>whitlock</id>
+                  
+      
       <name>David Whitlock</name>
+                  
+      
       <email>whitlock@cs.pdx.edu</email>
+                  
+      
       <url>http://www.cs.pdx.edu/~whitlock</url>
+                  
+      
       <organization>PSU Department of Computer Science</organization>
+                  
+      
       <organizationUrl>http://www.cs.pdx.edu</organizationUrl>
+                  
+      
       <roles>
+                        
+        
         <role>Professor</role>
+                      
+      
       </roles>
+                  
+      
       <timezone>-7</timezone>
+                
+    
     </developer>
+          
+  
   </developers>
+      
+  
   <scm>
-    <connection>scm:git:git@github.com:YourGitHubUser/PortlandStateJavaSummer2021.git</connection>
+            
+    
+    <connection>scm:git:git@github.com:y1m1ng1in/PortlandStateJavaSummer2021.git</connection>
+          
+  
   </scm>
+      
+  
   <distributionManagement>
+            
+    
     <site>
+                  
+      
       <id>gh-pages</id>
+                  
+      
       <name>GitHub Pages</name>
-      <url>github:http://YourGitHubUser.github.io/PortlandStateJavaSummer2021/</url>
+                  
+      
+      <url>github:http://y1m1ng1in.github.io/PortlandStateJavaSummer2021/</url>
+                
+    
     </site>
+          
+  
   </distributionManagement>
+    
 
 </project>
