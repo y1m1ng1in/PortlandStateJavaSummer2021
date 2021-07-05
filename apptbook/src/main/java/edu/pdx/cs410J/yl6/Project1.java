@@ -2,51 +2,73 @@ package edu.pdx.cs410J.yl6;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HashMap;
 
 /**
  * The main class for the CS410J appointment book Project
  */
 public class Project1 {
 
+  static final String MISSING_CMD_LINE_ARGS = "Missing command line arguments";
+  static final String MISSING_DESCRIPTION = "Missing description of the appointment";
+  static final String MISSING_BEGIN_DATE = "Missing begin date of the appointment";
+  static final String MISSING_BEGIN_TIME = "Missing begin time of the appointment";
+  static final String MISSING_END_DATE = "Missing end date of the appointment";
+  static final String MISSING_END_TIME = "Missing end time of the appointment";
+  static final String MORE_ARGS = "More arguments passed in than needed";
+  static final String USAGE_MESSAGE = "usage";
+
+  static final int maximumArgs = 8;
+
+  static boolean printReadme = false;
+  static boolean printAppointment = false;
+
   public static void main(String[] args) {
-    if (args.length == 0) 
-      printErrorMessageAndExit("Missing command line arguments");
-    else if (args.length == 1) 
-      printErrorMessageAndExit("Missing description of the appointment");
-    else if (args.length == 2) 
-      printErrorMessageAndExit("Missing begin date of the appointment");
-    else if (args.length == 3) 
-      printErrorMessageAndExit("Missing begin time of the appointment");
-    else if (args.length == 4) 
-      printErrorMessageAndExit("Missing end date of the appointment");
-    else if (args.length == 5) 
-      printErrorMessageAndExit("Missing end time of the appointment");
-    
-    boolean printReadme = false;
-    boolean printAppointment = false;
-    int argStartAt = 0;
+    printReadme = false;
+    printAppointment = false;
 
-    if (args.length == 7) {
-      validateSwitch(args[0]);
-      if (args[0].equals("-print")) 
-        printAppointment = true;
-      else if (args[0].equals("-README"))
-        printReadme = true;
-      argStartAt = 1;
+    HashMap<Integer, String> exitMsgs = new HashMap<Integer, String>();
+    exitMsgs.put(-1, USAGE_MESSAGE);
+    exitMsgs.put(0, MISSING_CMD_LINE_ARGS);
+    exitMsgs.put(1, MISSING_DESCRIPTION);
+    exitMsgs.put(2, MISSING_BEGIN_DATE);
+    exitMsgs.put(3, MISSING_BEGIN_TIME);
+    exitMsgs.put(4, MISSING_END_DATE);
+    exitMsgs.put(5, MISSING_END_TIME);
+    exitMsgs.put(8, MORE_ARGS);
+
+    if (args.length < 1)
+      printErrorMessageAndExit(exitMsgs.get(0));
+
+    if (args.length == 1) {
+      if (markSwitch(args[0])) {
+        if (printReadme) {
+          printErrorMessageAndExit(exitMsgs.get(-1));
+        } else {
+          printErrorMessageAndExit(exitMsgs.get(0));
+        }
+      } else {
+        printErrorMessageAndExit(exitMsgs.get(1));
+      }
+    }
+  
+    int argStartAt = getArgumentStart(args);
+    int argNums = args.length - argStartAt;
+
+    if (printReadme) {
+      printErrorMessageAndExit(exitMsgs.get(-1));
     }
 
-    if (args.length == 8) {
-      validateSwitch(args[0]);
-      validateSwitch(args[1]);
-      if (args[0].equals(args[1]))
-        printErrorMessageAndExit("switch " + args[0] + " is duplicated");
-      printAppointment = true;
-      printReadme = true;
-      argStartAt = 2;
-    }
+    if (args.length > maximumArgs)
+      printErrorMessageAndExit(exitMsgs.get(maximumArgs));
+
+    if (argNums < 6) 
+      printErrorMessageAndExit(exitMsgs.get(argNums));
     
-    if (args.length > 8) 
-      printErrorMessageAndExit("more arguments passed in than needed");
+    if (args.length >= 7) {
+      for (int i = 0; i < args.length - 6; ++i)
+        validateSwitch(args[i]);
+    }
 
     // number of args meet requirement
     validateDate(args[argStartAt + 2]);
@@ -58,21 +80,40 @@ public class Project1 {
       = new Appointment(args[argStartAt + 2], args[argStartAt + 3], 
                         args[argStartAt + 4], args[argStartAt + 5],
                         args[argStartAt + 1]);
-
-    if (printReadme)
-      System.out.println("print usage ...");
-    
+     
     if (printAppointment)
       System.out.println(appointment.toString());
 
-    System.exit(1);
-    
+    System.exit(0);
   }
 
   private static void printErrorMessageAndExit(String message) {
     System.err.println(message);
-    // System.err.println(USAGE_MESSAGE);
     System.exit(1);
+  }
+
+  private static int getArgumentStart(String[] args) {
+    int indexStart = 0;
+    for (int i = 0; i < 2; ++i) {
+      if (markSwitch(args[indexStart]))
+        indexStart += 1; 
+      else
+        break;
+    }
+    return indexStart;
+  }
+
+  private static boolean markSwitch(String s) {
+    boolean isSwitch = false;
+    if (s.equals("-print")) {
+      printAppointment = true;
+      isSwitch = true;
+    } 
+    if (s.equals("-README")) {
+      printReadme = true;
+      isSwitch = true;
+    }
+    return isSwitch;
   }
 
   private static void validateSwitch(String s) {
