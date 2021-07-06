@@ -197,4 +197,59 @@ class Project1IT extends InvokeMainTestCase {
     assertThat(result.getTextWrittenToStandardError(), containsString("duplicated"));
     assertThat(result.getExitCode(), equalTo(1));
   }
+
+  /**
+   * Tests that invoking the main method with only one argument -README
+   */
+  @Test
+  void onlyPassInReadme() {
+    MainMethodResult result = invokeMain("-README");
+    assertThat(result.getTextWrittenToStandardError(), containsString("usage"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with only one argument which is not 
+   * a valid option. In this case, the program should treat it as "owner" argument.
+   */
+  @Test
+  void onlyPassInOneInvalidOption() {
+    MainMethodResult result = invokeMain("-READMEE");
+    assertThat(result.getTextWrittenToStandardError(), containsString("Missing description of the appointment"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with only one argument which is 
+   * a valid option. In this case, the program should treat it as an option, thus
+   * missing argument message should print.
+   */
+  @Test
+  void onlyPassInOneValidOption() {
+    MainMethodResult result = invokeMain("-print");
+    assertThat(result.getTextWrittenToStandardError(), containsString("Missing command line arguments"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with invalid option and correct argument number, in this case 
+   * even arugments are invalid, should output message about invalid option. 
+   */
+  @Test
+  void InvalidOneOptions() {
+    MainMethodResult result = invokeMain("-READMEE", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1");
+    assertThat(result.getTextWrittenToStandardError(), containsString("is not an available switch"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with invalid option and correct argument number, in this case 
+   * even arugments are invalid, should output message about invalid option. 
+   */
+  @Test
+  void InvalidTwoOptions() {
+    MainMethodResult result = invokeMain("-READMEE", "-READMEEE", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1");
+    assertThat(result.getTextWrittenToStandardError(), containsString("is not an available switch"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
 }
