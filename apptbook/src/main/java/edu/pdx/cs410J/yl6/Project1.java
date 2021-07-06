@@ -3,6 +3,10 @@ package edu.pdx.cs410J.yl6;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * The main class for the CS410J appointment book Project which parses commandline
@@ -24,7 +28,8 @@ public class Project1 {
   static final String MISSING_END_DATE = "Missing end date of the appointment";
   static final String MISSING_END_TIME = "Missing end time of the appointment";
   static final String MORE_ARGS = "More arguments passed in than needed";
-  static final String USAGE_MESSAGE = "usage";
+  static final String README = loadPlainTextFromResource("README.txt");
+  static final String USAGE = loadPlainTextFromResource("usage.txt");
 
   static final int maximumArgs = 8;
 
@@ -38,7 +43,6 @@ public class Project1 {
   static boolean printReadme = false;
   static boolean printAppointment = false;
 
-
   /**
    * Main program that parses the command line, creates a <code>Appointment</code>,
    * and prints a description of the appointment to standard out by invoking its
@@ -51,8 +55,8 @@ public class Project1 {
     printAppointment = false;
 
     HashMap<Integer, String> exitMsgs = new HashMap<Integer, String>();
-    exitMsgs.put(-1, USAGE_MESSAGE);
-    exitMsgs.put(0, MISSING_CMD_LINE_ARGS);
+    exitMsgs.put(-1, README);
+    exitMsgs.put(0, MISSING_CMD_LINE_ARGS+ '\n' + USAGE);
     exitMsgs.put(1, MISSING_DESCRIPTION);
     exitMsgs.put(2, MISSING_BEGIN_DATE);
     exitMsgs.put(3, MISSING_BEGIN_TIME);
@@ -111,6 +115,33 @@ public class Project1 {
     System.exit(0);
   }
 
+  /**
+   * Load the content of a plain text file <code>filename</code> in the resource. 
+   * If any <code>IOException</code> catched during loading via 
+   * <code>getResourceAsStream</code>, the program exits with status 1 with an error
+   * message to standard error indicates that error.
+   * 
+   * @param filename the plain text filename in the resource to be loaded
+   * @return         a string that is the content of the file <code>filename</code>.
+   */
+  private static String loadPlainTextFromResource(String filename) {
+    String content = "";
+    try {
+      InputStream is = Project1.class.getResourceAsStream(filename);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      String line = "";
+      do {
+        line = reader.readLine();
+        if (line != null) 
+        content += line + '\n';
+      } while (line != null);
+      return content;
+    } catch (IOException e) {
+      printErrorMessageAndExit("Cannot load plain text file from resource " + filename);
+      return null;
+    }
+  }
+
   /** 
    * Write <code>message</code> passed in to standard error and exit the program
    * with status 1.
@@ -146,6 +177,10 @@ public class Project1 {
    * Given a string <code>s</code>, match it with available options. If there is 
    * a match, assign its corresponding flag (one of this class field 
    * <code>printReadme</code>, <code>printAppointment</code>) to <code>true</code>.
+   * <p>
+   * This function checks any duplicated options passed in from commandline, any
+   * detected causes the program exits in status 1 with an error message indicates
+   * duplication.
    * 
    * @param s the string to be matched with all available options       
    * @return  <code>true</code> if there is a match; <code>false</code> otherwise.
@@ -153,10 +188,14 @@ public class Project1 {
   private static boolean markSwitch(String s) {
     boolean isSwitch = false;
     if (s.equals("-print")) {
+      if (printAppointment)
+        printErrorMessageAndExit("duplicated -print in options");
       printAppointment = true;
       isSwitch = true;
     } 
     if (s.equals("-README")) {
+      if (printReadme) 
+        printErrorMessageAndExit("duplicated -README in options");
       printReadme = true;
       isSwitch = true;
     }
