@@ -106,8 +106,8 @@ class Project1IT extends InvokeMainTestCase {
   void printAppointmentWithValidArguments() {
     MainMethodResult result = invokeMain("-print", "Dave", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
     assertThat(result.getTextWrittenToStandardError(), emptyString());
-    String s = "A description from 2/12/2020 12:52 until 4/5/2020 2:52\r\n";
-    assertThat(result.getTextWrittenToStandardOut(), equalTo(s));
+    String s = "A description from 2/12/2020 12:52 until 4/5/2020 2:52";
+    assertThat(result.getTextWrittenToStandardOut(), containsString(s));
     assertThat(result.getExitCode(), equalTo(0));
   }
 
@@ -185,6 +185,16 @@ class Project1IT extends InvokeMainTestCase {
   void onlyPrintReadmeWithTwoSwitchesOrderDoesNotMatter() {
     MainMethodResult result = invokeMain("-README", "-print", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1", "extra2");
     assertThat(result.getTextWrittenToStandardError(), containsString("usage"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with duplicated options 
+   */
+  @Test
+  void duplicatedOptionsPassedIn() {
+    MainMethodResult result = invokeMain("-print", "-print", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1");
+    assertThat(result.getTextWrittenToStandardError(), containsString("duplicated"));
     assertThat(result.getExitCode(), equalTo(1));
   }
 }
