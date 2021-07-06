@@ -31,7 +31,8 @@ public class Project1 {
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
 
-  static final int maximumArgs = 8;
+  static final int maximumCommandlineArgs = 8;
+  static final int maximumArgs = 6;
 
   static final int ownerArgIndex = 0;
   static final int descriptionArgIndex = 1;
@@ -85,14 +86,14 @@ public class Project1 {
     if (printReadme) 
       printErrorMessageAndExit(exitMsgs.get(-1));
 
-    if (args.length > maximumArgs)
-      printErrorMessageAndExit(exitMsgs.get(maximumArgs));
+    if (args.length > maximumCommandlineArgs)
+      printErrorMessageAndExit(exitMsgs.get(maximumCommandlineArgs));
 
-    if (argNums < 6) 
+    if (argNums < maximumArgs) 
       printErrorMessageAndExit(exitMsgs.get(argNums));
     
-    if (args.length >= 7) {
-      for (int i = 0; i < args.length - 6; ++i)
+    if (args.length >= maximumArgs + 1) {
+      for (int i = 0; i < args.length - maximumArgs; ++i)
         validateSwitch(args[i]);
     }
 
@@ -125,17 +126,16 @@ public class Project1 {
    * @return         a string that is the content of the file <code>filename</code>.
    */
   private static String loadPlainTextFromResource(String filename) {
-    String content = "";
     try {
       InputStream is = Project1.class.getResourceAsStream(filename);
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line = "";
-      do {
-        line = reader.readLine();
-        if (line != null) 
-        content += line + '\n';
-      } while (line != null);
-      return content;
+      StringBuilder sb = new StringBuilder();
+      while((line = reader.readLine()) != null) {
+        sb.append(line);
+        sb.append("\n");
+      }
+      return sb.toString();
     } catch (IOException e) {
       printErrorMessageAndExit("Cannot load plain text file from resource " + filename);
       return null;
