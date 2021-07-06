@@ -1,6 +1,8 @@
 package edu.pdx.cs410J.yl6;
 
 import edu.pdx.cs410J.InvokeMainTestCase;
+import jdk.jfr.Timestamp;
+
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -250,6 +252,48 @@ class Project1IT extends InvokeMainTestCase {
   void InvalidTwoOptions() {
     MainMethodResult result = invokeMain("-READMEE", "-READMEEE", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1");
     assertThat(result.getTextWrittenToStandardError(), containsString("is not an available switch"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with empty description.
+   */
+  @Test
+  void EmptyDescription() {
+    MainMethodResult result = invokeMain("Dave", "", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    assertThat(result.getTextWrittenToStandardError(), containsString("description should not be empty"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with description of a sequence of spaces, which should be treated
+   * as empty description.  
+   */
+  @Test
+  void EmptyDescriptionWithMultipleSpacesIsAlsoEmpty() {
+    MainMethodResult result = invokeMain("Dave", "     ", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    assertThat(result.getTextWrittenToStandardError(), containsString("description should not be empty"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with empty owner.
+   */
+  @Test
+  void EmptyOwner() {
+    MainMethodResult result = invokeMain("", "desc", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    assertThat(result.getTextWrittenToStandardError(), containsString("owner should not be empty"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  /**
+   * Tests that invoking the main method with owner of a sequence of spaces, which should be treated
+   * as empty owner.  
+   */
+  @Test
+  void EmptyOwnerWithMultipleSpacesIsAlsoEmpty() {
+    MainMethodResult result = invokeMain("       ", "desc", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    assertThat(result.getTextWrittenToStandardError(), containsString("owner should not be empty"));
     assertThat(result.getExitCode(), equalTo(1));
   }
 }

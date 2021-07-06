@@ -98,6 +98,8 @@ public class Project1 {
     }
 
     // number of args meet requirement
+    validateNonemptyStringField(args[argStartAt + ownerArgIndex], "owner");
+    validateNonemptyStringField(args[argStartAt + descriptionArgIndex], "description");
     validateDate(args[argStartAt + beginDateArgIndex]);
     validateDate(args[argStartAt + endDateArgIndex]);
     validateTime(args[argStartAt + beginTimeArgIndex]);
@@ -212,6 +214,20 @@ public class Project1 {
   private static void validateSwitch(String s) {
     if (!s.equals("-print") && !s.equals("-README")) 
       printErrorMessageAndExit(s + " is not an available switch");
+  }
+
+  /**
+   * Given a string <code>s</code>, check if it is empty after removing leading 
+   * and tailing spaces. If it is empty, exit the program with status 1 with error message
+   * indicates that field <code>fieldName</code> is empty.  
+   * 
+   * @param s         the string to check whether it is empty after being trimed.
+   * @param fieldName the name of the field to display in the message to the standard error.
+   */
+  private static void validateNonemptyStringField(String s, String fieldName) {
+    String trimed = s.trim();
+    if (trimed.equals(""))
+      printErrorMessageAndExit("Field " + fieldName + " should not be empty");
   }
 
   /** 
