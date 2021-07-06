@@ -5,7 +5,15 @@ import java.util.regex.Pattern;
 import java.util.HashMap;
 
 /**
- * The main class for the CS410J appointment book Project
+ * The main class for the CS410J appointment book Project which parses commandline
+ * arguments, processes arguments to construct an appointment, and based on the options
+ * to either print the appointment, or print readme, or print nothing.
+ * <p>
+ * The class assumes that options are always followed by arguments. There are two valid
+ * options available: -print, -README. This means that the parsing process will greedily
+ * match commandline arguments from 0 index to higher index until either a invalid option 
+ * detected, or all the available options matched, the rest of the commandline arguments
+ * are treated as arguments for appointment. 
  */
 public class Project1 {
 
@@ -20,9 +28,24 @@ public class Project1 {
 
   static final int maximumArgs = 8;
 
+  static final int ownerArgIndex = 0;
+  static final int descriptionArgIndex = 1;
+  static final int beginDateArgIndex = 2;
+  static final int beginTimeArgIndex = 3;
+  static final int endDateArgIndex = 4;
+  static final int endTimeArgIndex = 5;
+
   static boolean printReadme = false;
   static boolean printAppointment = false;
 
+
+  /**
+   * Main program that parses the command line, creates a <code>Appointment</code>,
+   * and prints a description of the appointment to standard out by invoking its
+   * <code>toString</code> method if <code>-print</code> option is enabled, or only
+   * prints readme information to standard error once <code>-README</code> 
+   * option is enabled.
+   */
   public static void main(String[] args) {
     printReadme = false;
     printAppointment = false;
@@ -52,12 +75,11 @@ public class Project1 {
       }
     }
   
-    int argStartAt = getArgumentStart(args);
+    int argStartAt = detectAndMarkSwitches(args);
     int argNums = args.length - argStartAt;
 
-    if (printReadme) {
+    if (printReadme) 
       printErrorMessageAndExit(exitMsgs.get(-1));
-    }
 
     if (args.length > maximumArgs)
       printErrorMessageAndExit(exitMsgs.get(maximumArgs));
@@ -71,15 +93,17 @@ public class Project1 {
     }
 
     // number of args meet requirement
-    validateDate(args[argStartAt + 2]);
-    validateDate(args[argStartAt + 4]);
-    validateTime(args[argStartAt + 3]);
-    validateTime(args[argStartAt + 5]);
+    validateDate(args[argStartAt + beginDateArgIndex]);
+    validateDate(args[argStartAt + endDateArgIndex]);
+    validateTime(args[argStartAt + beginTimeArgIndex]);
+    validateTime(args[argStartAt + endTimeArgIndex]);
     
     Appointment appointment 
-      = new Appointment(args[argStartAt + 2], args[argStartAt + 3], 
-                        args[argStartAt + 4], args[argStartAt + 5],
-                        args[argStartAt + 1]);
+      = new Appointment(args[argStartAt + beginDateArgIndex], 
+                        args[argStartAt + beginTimeArgIndex], 
+                        args[argStartAt + endDateArgIndex], 
+                        args[argStartAt + endTimeArgIndex],
+                        args[argStartAt + descriptionArgIndex]);
      
     if (printAppointment)
       System.out.println(appointment.toString());
@@ -87,12 +111,27 @@ public class Project1 {
     System.exit(0);
   }
 
+  /** 
+   * Write <code>message</code> passed in to standard error and exit the program
+   * with status 1.
+   * 
+   * @param message the error message to be written to standard error       
+   */
   private static void printErrorMessageAndExit(String message) {
     System.err.println(message);
     System.exit(1);
   }
 
-  private static int getArgumentStart(String[] args) {
+  /** 
+   * Given an array of arguments <code>args</code>, starting from index 0 to higher 
+   * index, greedily match each argument in <code>args</code> until either an argument
+   * that does not belong to valid options occurs, or all the available options 
+   * are matched. 
+   * 
+   * @param args  the array of whole commandline arguments       
+   * @return      an integer indicates the number of options detected
+   */
+  private static int detectAndMarkSwitches(String[] args) {
     int indexStart = 0;
     for (int i = 0; i < 2; ++i) {
       if (markSwitch(args[indexStart]))
@@ -103,6 +142,14 @@ public class Project1 {
     return indexStart;
   }
 
+  /** 
+   * Given a string <code>s</code>, match it with available options. If there is 
+   * a match, assign its corresponding flag (one of this class field 
+   * <code>printReadme</code>, <code>printAppointment</code>) to <code>true</code>.
+   * 
+   * @param s the string to be matched with all available options       
+   * @return  <code>true</code> if there is a match; <code>false</code> otherwise.
+   */
   private static boolean markSwitch(String s) {
     boolean isSwitch = false;
     if (s.equals("-print")) {
@@ -116,11 +163,30 @@ public class Project1 {
     return isSwitch;
   }
 
+  /** 
+   * Given a string <code>s</code>, match it with all available options, if there
+   * isn't a match, exit the program with status 1 with error message indicates that 
+   * the option is invalid. 
+   * 
+   * @param s the string to be matched with all available options       
+   */
   private static void validateSwitch(String s) {
     if (!s.equals("-print") && !s.equals("-README")) 
       printErrorMessageAndExit(s + " is not an available switch");
   }
 
+  /** 
+   * Given a string <code>s</code>, match it with date format mm/dd/yyyy, where
+   * mm and dd can be either 1 digit or 2 digit, yyyy must be 4 digit, each field
+   * must be delimited by "/". 
+   * <p>
+   * If the string does not match the above pattern, the program exits with status
+   * 1 with an error message indicates format error. If the mm or dd field does not live
+   * in the range 1 - 12, 1 - 31, respectively, then the program exits with status 1
+   * with an error message indicates value out-of-range error. 
+   *
+   * @param s the string to be matched with above described pattern.     
+   */
   private static void validateDate(String s) {
     String ptn = "([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})";
     Pattern r = Pattern.compile(ptn);
@@ -137,6 +203,18 @@ public class Project1 {
       printErrorMessageAndExit(day + " is not a valid day");
   }
 
+  /** 
+   * Given a string <code>s</code>, match it with time format hh:mm, where hh and mm
+   * can be either 1 digit or 2 digit, each field must be delimited by ":". 
+   * 
+   * <p>
+   * If the string does not match the above pattern, the program exits with status
+   * 1 with an error message indicates format error. If the hh or mm field does not live
+   * in the range 0 - 23, 0 - 59, respectively, then the program exits with status 1
+   * with an error message indicates value out-of-range error. 
+   *
+   * @param s the string to be matched with above described pattern.     
+   */
   private static void validateTime(String s) {
     String ptn = "([0-9]{1,2}):([0-9]{1,2})";
     Pattern r = Pattern.compile(ptn);
