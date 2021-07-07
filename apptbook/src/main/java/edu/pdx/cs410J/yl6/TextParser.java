@@ -36,8 +36,6 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
     this.sb = new StringBuilder();
     this.appointmentArguments = new String[3];
     this.currentArgIndex = 0;
-
-    ClassLoader cl = ClassLoader.getSystemClassLoader();
     this.bookClass = bookClass;
     this.apptClass = apptClass;
   }
@@ -70,6 +68,13 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
           placeArgumentAndResetStringBuilder();
           this.currentArgIndex = 0;
           book.addAppointment(buildAppointment());
+        } else if (c == '\\') { // the char after '\' must not be a delimiter
+          next = reader.read(); 
+          if (next != -1) {
+            this.sb.append((char) next);
+          } else {
+            break;
+          }
         } else {
           this.sb.append(c);
         }
@@ -95,6 +100,13 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
       c = (char) next;
       if (c == '&') {
         break;
+      } else if (c == '\\') {
+        next = reader.read();
+        if (next != -1) {
+          c = (char) next;
+        } else {
+          break;
+        }
       }
       this.sb.append(c);
     }

@@ -23,17 +23,17 @@ public class TextDumper<T extends AbstractAppointmentBook, E extends AbstractApp
       Writer writer = new FileWriter(this.filename);
       Collection<E> appts = book.getAppointments();
       String owner = book.getOwnerName();
-      writer.write(owner);
+      writer.write(addEscapeCharacter(owner));
       writer.write('&');
       for (E appt: appts) {
         String begin = appt.getBeginTimeString();
         String end = appt.getEndTimeString();
         String description = appt.getDescription();
-        writer.write(begin);
+        writer.write(addEscapeCharacter(begin));
         writer.write('#');
-        writer.write(end);
+        writer.write(addEscapeCharacter(end));
         writer.write('#');
-        writer.write(description);
+        writer.write(addEscapeCharacter(description));
         writer.write('&');
       }
       writer.flush();
@@ -41,5 +41,17 @@ public class TextDumper<T extends AbstractAppointmentBook, E extends AbstractApp
     } catch (IOException ex) {
       throw ex;
     }
+  }
+
+  private String addEscapeCharacter(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < s.length(); ++i) {
+      char c = s.charAt(i);
+      if (c == '#' || c == '&' || c == '\\') {
+        sb.append('\\');
+      } 
+      sb.append(c);
+    }
+    return sb.toString();
   }
 }

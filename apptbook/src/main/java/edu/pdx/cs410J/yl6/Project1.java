@@ -211,17 +211,20 @@ public class Project1 {
   private static int detectAndMarkSwitches(String[] args) {
     int indexStart = 0;
     while (indexStart < args.length) {
-      if (markSwitch(args[indexStart])) {
+      if (markSwitch(args[indexStart])) { // is a valid, unique option
         int argNum = optionArgumentNumberMap.get(args[indexStart]);
-        if (indexStart + argNum < args.length && argNum > 0) {
+        
+        if (indexStart + argNum < args.length && argNum > 0) { // have enough arguments
           ArrayList optionArg = optionArgumentMap.get(args[indexStart]);
-          for (int i = 1; i <= argNum; ++i) {
-            optionArg.add(i, args[indexStart + i]);
+          for (int i = 0; i < argNum; ++i) {
+            optionArg.add(i, args[indexStart + i + 1]);
           }
         } else if (indexStart + argNum >= args.length) {
+          // required argument number exceeds the number of actual arguments passed in
           printErrorMessageAndExit(MISSING_OPTION_ARG + args[indexStart]);
         }
-        indexStart += argNum + 1;
+
+        indexStart += argNum + 1; // the next index is the one after all the arguments 
       } else {
         break;
       }
