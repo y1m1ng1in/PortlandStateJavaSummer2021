@@ -35,7 +35,7 @@ public class Project1 {
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
 
-  static final int maximumCommandlineArgs = 10;
+  static final int maxArgumentPlusOptionAllowed = 10;
   static final int requiredArgumentNum = 6;
 
   static final int ownerArgIndex = 0;
@@ -83,36 +83,20 @@ public class Project1 {
     exitMsgs.put(3, MISSING_BEGIN_TIME);
     exitMsgs.put(4, MISSING_END_DATE);
     exitMsgs.put(5, MISSING_END_TIME);
-    exitMsgs.put(maximumCommandlineArgs, MORE_ARGS);
+    exitMsgs.put(maxArgumentPlusOptionAllowed, MORE_ARGS);
 
-    if (args.length < 1)
-      printErrorMessageAndExit(exitMsgs.get(0));
-
-    if (args.length == 1) {
-      if (markSwitch(args[0])) {
-        if (optionEnableStatusMap.get(optionReadme)) {
-          printErrorMessageAndExit(exitMsgs.get(-1));
-        } else {
-          printErrorMessageAndExit(exitMsgs.get(0));
-        }
-      } else {
-        printErrorMessageAndExit(exitMsgs.get(1));
-      }
-    }
-  
     int argStartAt = detectAndMarkSwitches(args);
     int actualArgumentNum = args.length - argStartAt;
 
     if (optionEnableStatusMap.get(optionReadme)) {
       printErrorMessageAndExit(exitMsgs.get(-1));
     }
-    if (args.length > maximumCommandlineArgs) {
-      printErrorMessageAndExit(exitMsgs.get(maximumCommandlineArgs));
+    if (args.length > maxArgumentPlusOptionAllowed) {
+      printErrorMessageAndExit(exitMsgs.get(maxArgumentPlusOptionAllowed));
     }
     if (actualArgumentNum < requiredArgumentNum) {
       printErrorMessageAndExit(exitMsgs.get(actualArgumentNum));
-    }
-      
+    } 
     if (actualArgumentNum > requiredArgumentNum) {
       printErrorMessageAndExit(args[argStartAt] + " is not an available switch");
     }
