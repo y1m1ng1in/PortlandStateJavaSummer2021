@@ -2,6 +2,7 @@ package edu.pdx.cs410J.yl6;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,11 +31,12 @@ public class Project1 {
   static final String MISSING_END_DATE = "Missing end date of the appointment";
   static final String MISSING_END_TIME = "Missing end time of the appointment";
   static final String MORE_ARGS = "More arguments passed in than needed";
+  static final String MISSING_FILENAME = "Missing file of the appointment book to load";
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
 
-  static final int maximumCommandlineArgs = 8;
-  static final int maximumArgs = 6;
+  static final int maximumCommandlineArgs = 10;
+  static final int requiredArgumentNum = 6;
 
   static final int ownerArgIndex = 0;
   static final int descriptionArgIndex = 1;
@@ -43,8 +45,16 @@ public class Project1 {
   static final int endDateArgIndex = 4;
   static final int endTimeArgIndex = 5;
 
-  static boolean printReadme = false;
-  static boolean printAppointment = false;
+  static final String optionReadme = "-README";
+  static final String optionPrintAppointment = "-print";
+  static final String optionLoadFile = "-textFile";
+
+  static final String[] options = { 
+      optionReadme, optionPrintAppointment, optionLoadFile
+  };
+
+  static HashMap<String, Boolean> optionStatus;
+  static HashMap<String, ArrayList<String>> optionArgs;
 
   /**
    * Main program that parses the command line, creates a <code>Appointment</code>,
@@ -54,8 +64,12 @@ public class Project1 {
    * option is enabled.
    */
   public static void main(String[] args) {
-    printReadme = false;
-    printAppointment = false;
+    optionStatus = new HashMap<>();
+    optionArgs = new HashMap<>();
+    for (String opt : options) {
+      optionStatus.put(opt, false);
+      optionArgs.put(opt, new ArrayList<String>());
+    }
 
     HashMap<Integer, String> exitMsgs = new HashMap<Integer, String>();
     exitMsgs.put(-1, README);
@@ -65,14 +79,14 @@ public class Project1 {
     exitMsgs.put(3, MISSING_BEGIN_TIME);
     exitMsgs.put(4, MISSING_END_DATE);
     exitMsgs.put(5, MISSING_END_TIME);
-    exitMsgs.put(8, MORE_ARGS);
+    exitMsgs.put(maximumCommandlineArgs, MORE_ARGS);
 
     if (args.length < 1)
       printErrorMessageAndExit(exitMsgs.get(0));
 
     if (args.length == 1) {
       if (markSwitch(args[0])) {
-        if (printReadme) {
+        if (optionStatus.get(optionReadme)) {
           printErrorMessageAndExit(exitMsgs.get(-1));
         } else {
           printErrorMessageAndExit(exitMsgs.get(0));
@@ -83,21 +97,20 @@ public class Project1 {
     }
   
     int argStartAt = detectAndMarkSwitches(args);
-    int argNums = args.length - argStartAt;
+    int actualArgumentNum = args.length - argStartAt;
 
-    if (printReadme) {
+    if (optionStatus.get(optionReadme)) {
       printErrorMessageAndExit(exitMsgs.get(-1));
     }
     if (args.length > maximumCommandlineArgs) {
       printErrorMessageAndExit(exitMsgs.get(maximumCommandlineArgs));
     }
-    if (argNums < maximumArgs) {
-      printErrorMessageAndExit(exitMsgs.get(argNums));
+    if (actualArgumentNum < requiredArgumentNum) {
+      printErrorMessageAndExit(exitMsgs.get(actualArgumentNum));
     }
       
-    if (args.length >= maximumArgs + 1) {
-      for (int i = 0; i < args.length - maximumArgs; ++i)
-        validateSwitch(args[i]);
+    if (actualArgumentNum > requiredArgumentNum) {
+      printErrorMessageAndExit(args[argStartAt] + " is not an available switch");
     }
 
     // number of args meet requirement
@@ -107,32 +120,39 @@ public class Project1 {
     validateDate(args[argStartAt + endDateArgIndex]);
     validateTime(args[argStartAt + beginTimeArgIndex]);
     validateTime(args[argStartAt + endTimeArgIndex]);
-    
-    TextParser<AppointmentBook, Appointment> textParser 
-        = new TextParser("test.txt", AppointmentBook.class, Appointment.class);
 
     try {
-      AppointmentBook<Appointment> book = textParser.parse();
+      AppointmentBook<Appointment> book;
+      String apptbookFile = "";
+      
       Appointment appointment 
           = new Appointment(args[argStartAt + beginDateArgIndex], 
                             args[argStartAt + beginTimeArgIndex], 
                             args[argStartAt + endDateArgIndex], 
                             args[argStartAt + endTimeArgIndex],
                             args[argStartAt + descriptionArgIndex]);
-      TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper("test.txt");
 
+      if (optionStatus.get(optionLoadFile)) {
+        apptbookFile = optionArgs.get(optionLoadFile).get(0);
+        TextParser<AppointmentBook, Appointment> textParser 
+            = new TextParser(apptbookFile, args[argStartAt + ownerArgIndex], 
+                AppointmentBook.class, Appointment.class);
+        book = textParser.parse();       
+      } else {
+        book = new AppointmentBook(args[argStartAt + ownerArgIndex]);
+      }
       book.addAppointment(appointment);
-
-      textDumper.dump(book);
-
-      if (printAppointment) {
+      
+      if (optionStatus.get(optionLoadFile)) {
+        TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper(apptbookFile);
+        textDumper.dump(book);
+      }
+      if (optionStatus.get(optionPrintAppointment)) {
         System.out.println(appointment.toString());
       }
-    } catch(ParserException ex) {
-      System.err.println(ex);
-    } catch (IOException ex) {
-      System.err.println(ex);
-    }
+    } catch(ParserException | IOException ex) {
+      printErrorMessageAndExit(ex.getMessage());
+    } 
 
     System.exit(0);
   }
@@ -185,9 +205,24 @@ public class Project1 {
    */
   private static int detectAndMarkSwitches(String[] args) {
     int indexStart = 0;
-    for (int i = 0; i < 2; ++i) {
+    while (indexStart < args.length) {
       if (markSwitch(args[indexStart])) {
-        indexStart += 1; 
+        switch (args[indexStart]) {
+          case optionReadme:
+          case optionPrintAppointment:
+            indexStart += 1;
+            break;
+          case optionLoadFile:
+            if (indexStart + 1 < args.length) {
+              ArrayList optionLoadFileArgs = optionArgs.get(optionLoadFile);
+              optionLoadFileArgs.add(0, args[indexStart + 1]);
+              indexStart += 2;
+            } else {
+              printErrorMessageAndExit(MISSING_FILENAME);
+            }
+            break;
+          default:
+        }
       } else {
         break;
       }
@@ -208,35 +243,14 @@ public class Project1 {
    * @return  <code>true</code> if there is a match; <code>false</code> otherwise.
    */
   private static boolean markSwitch(String s) {
-    boolean isSwitch = false;
-    if (s.equals("-print")) {
-      if (printAppointment) {
-        printErrorMessageAndExit("duplicated -print in options");
+    boolean isSwitch = optionStatus.containsKey(s);
+    if (isSwitch) {
+      if (optionStatus.get(s)) {
+        printErrorMessageAndExit("duplicated " + s + "in options");
       }
-      printAppointment = true;
-      isSwitch = true;
-    } 
-    if (s.equals("-README")) {
-      if (printReadme) {
-        printErrorMessageAndExit("duplicated -README in options");
-      }
-      printReadme = true;
-      isSwitch = true;
+      optionStatus.put(s, true);
     }
     return isSwitch;
-  }
-
-  /** 
-   * Given a string <code>s</code>, match it with all available options, if there
-   * isn't a match, exit the program with status 1 with error message indicates that 
-   * the option is invalid. 
-   * 
-   * @param s the string to be matched with all available options       
-   */
-  private static void validateSwitch(String s) {
-    if (!s.equals("-print") && !s.equals("-README")) {
-      printErrorMessageAndExit(s + " is not an available switch");
-    }
   }
 
   /**

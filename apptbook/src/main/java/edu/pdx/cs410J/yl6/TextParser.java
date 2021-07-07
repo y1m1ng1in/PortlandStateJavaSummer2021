@@ -2,6 +2,7 @@ package edu.pdx.cs410J.yl6;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
@@ -13,8 +14,9 @@ import edu.pdx.cs410J.AbstractAppointmentBook;
 public class TextParser<T extends AbstractAppointmentBook, E extends AbstractAppointment> 
     implements AppointmentBookParser<T> {
   private String filename;
+  private String owner;
   private StringBuilder sb;
-  private String [] appointmentArguments;
+  private String[] appointmentArguments;
   private int currentArgIndex;
   private Class<T> bookClass;
   private Class<E> apptClass;
@@ -23,12 +25,14 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
       "End of file reached before the last appointment been parsed completely";
   static final String EOF_REACHED_PARSE_OWNER = 
       "End of file reached before owner been parsed completely";
+  static final String OWNER_MISMATCH = "Owner parsed from file is mismatched with argument: ";
   static final String CANNOT_FIND_FILE = "Cannot find file: ";
   static final String IOEXCEPTION_OCCUR = "IOException occurs during parsing with message: ";
   static final String PROGRAM_INTERNAL_ERROR = "Program internal error: ";
 
-  public TextParser(String filename, Class<T> bookClass, Class<E> apptClass) {
+  public TextParser(String filename, String owner, Class<T> bookClass, Class<E> apptClass) {
     this.filename = filename;
+    this.owner = owner;
     this.sb = new StringBuilder();
     this.appointmentArguments = new String[3];
     this.currentArgIndex = 0;
@@ -41,7 +45,16 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
   public T parse() throws ParserException {
     int next;
     char c = ' ';
+
     try {
+      File f = new File(this.filename);
+      if (!f.isFile()) {
+        f.createNewFile();
+        return this.bookClass
+            .getDeclaredConstructor(String.class)
+            .newInstance(this.owner);
+      }
+
       Reader reader = new FileReader(this.filename);
       String owner = parseOwner(reader);
       T book = this.bookClass
@@ -66,8 +79,8 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
       }
       reader.close();
       return book;
-    } catch (FileNotFoundException ex) {
-      throw new ParserException(CANNOT_FIND_FILE + this.filename);
+    } catch (ParserException ex) {
+      throw ex;
     } catch (IOException ex) {
       throw new ParserException(IOEXCEPTION_OCCUR + ex.getMessage());
     } catch (Exception ex) {
@@ -89,13 +102,16 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
       throw new ParserException(EOF_REACHED_PARSE_OWNER);
     }
     String owner = this.sb.toString();
+    if (!owner.equals(this.owner)) {
+      throw new ParserException(OWNER_MISMATCH + owner + " versus " + this.owner);
+    }
     this.sb.setLength(0);
     return owner;
   }
 
   private E buildAppointment() throws ParserException {
-    String [] beginData = this.appointmentArguments[0].split("\\s");
-    String [] endData = this.appointmentArguments[1].split("\\s");
+    String[] beginData = this.appointmentArguments[0].split("\\s");
+    String[] endData = this.appointmentArguments[1].split("\\s");
     String description = this.appointmentArguments[2];
     try {
       return this.apptClass
