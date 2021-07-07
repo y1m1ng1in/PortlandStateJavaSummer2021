@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import edu.pdx.cs410J.ParserException;
-
 /**
  * The main class for the CS410J appointment book Project which parses commandline
  * arguments, processes arguments to construct an appointment, and based on the options
@@ -35,7 +33,7 @@ public class Project1 {
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
 
-  static final int maxArgumentPlusOptionAllowed = 10;
+  static final int maxArgumentPlusOptionAllowed = 8;
   static final int requiredArgumentNum = 6;
 
   static final int ownerArgIndex = 0;
@@ -47,12 +45,9 @@ public class Project1 {
 
   static final String optionReadme = "-README";
   static final String optionPrintAppointment = "-print";
-  static final String optionLoadFile = "-textFile";
 
-  static final String[] options = { 
-      optionReadme, optionPrintAppointment, optionLoadFile
-  };
-  static final int[] optionArgRequirement = { 0, 0, 1 };
+  static final String[] options = { optionReadme, optionPrintAppointment };
+  static final int[] optionArgRequirement = { 0, 0 };
 
   static HashMap<String, Boolean> optionEnableStatusMap;
   static HashMap<String, ArrayList<String>> optionArgumentMap;
@@ -109,38 +104,19 @@ public class Project1 {
     validateTime(args[argStartAt + beginTimeArgIndex]);
     validateTime(args[argStartAt + endTimeArgIndex]);
 
-    try {
-      AppointmentBook<Appointment> book;
-      String apptbookFile = "";
-      
-      Appointment appointment 
-          = new Appointment(args[argStartAt + beginDateArgIndex], 
-                            args[argStartAt + beginTimeArgIndex], 
-                            args[argStartAt + endDateArgIndex], 
-                            args[argStartAt + endTimeArgIndex],
-                            args[argStartAt + descriptionArgIndex]);
+    Appointment appointment 
+        = new Appointment(args[argStartAt + beginDateArgIndex], 
+                          args[argStartAt + beginTimeArgIndex], 
+                          args[argStartAt + endDateArgIndex], 
+                          args[argStartAt + endTimeArgIndex],
+                          args[argStartAt + descriptionArgIndex]);
 
-      if (optionEnableStatusMap.get(optionLoadFile)) {
-        apptbookFile = optionArgumentMap.get(optionLoadFile).get(0);
-        TextParser<AppointmentBook, Appointment> textParser 
-            = new TextParser(apptbookFile, args[argStartAt + ownerArgIndex], 
-                  AppointmentBook.class, Appointment.class);
-        book = textParser.parse();       
-      } else {
-        book = new AppointmentBook(args[argStartAt + ownerArgIndex]);
-      }
-      book.addAppointment(appointment);
-      
-      if (optionEnableStatusMap.get(optionLoadFile)) {
-        TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper(apptbookFile);
-        textDumper.dump(book);
-      }
-      if (optionEnableStatusMap.get(optionPrintAppointment)) {
-        System.out.println(appointment.toString());
-      }
-    } catch(ParserException | IOException ex) {
-      printErrorMessageAndExit(ex.getMessage());
-    } 
+    AppointmentBook<Appointment> book = new AppointmentBook(args[argStartAt + ownerArgIndex]);
+    book.addAppointment(appointment);
+    
+    if (optionEnableStatusMap.get(optionPrintAppointment)) {
+      System.out.println(appointment.toString());
+    }
 
     System.exit(0);
   }
