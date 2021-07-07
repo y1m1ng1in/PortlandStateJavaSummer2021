@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import edu.pdx.cs410J.ParserException;
+
 /**
  * The main class for the CS410J appointment book Project which parses commandline
  * arguments, processes arguments to construct an appointment, and based on the options
@@ -83,15 +85,16 @@ public class Project1 {
     int argStartAt = detectAndMarkSwitches(args);
     int argNums = args.length - argStartAt;
 
-    if (printReadme) 
+    if (printReadme) {
       printErrorMessageAndExit(exitMsgs.get(-1));
-
-    if (args.length > maximumCommandlineArgs)
+    }
+    if (args.length > maximumCommandlineArgs) {
       printErrorMessageAndExit(exitMsgs.get(maximumCommandlineArgs));
-
-    if (argNums < maximumArgs) 
+    }
+    if (argNums < maximumArgs) {
       printErrorMessageAndExit(exitMsgs.get(argNums));
-    
+    }
+      
     if (args.length >= maximumArgs + 1) {
       for (int i = 0; i < args.length - maximumArgs; ++i)
         validateSwitch(args[i]);
@@ -105,15 +108,31 @@ public class Project1 {
     validateTime(args[argStartAt + beginTimeArgIndex]);
     validateTime(args[argStartAt + endTimeArgIndex]);
     
-    Appointment appointment 
-      = new Appointment(args[argStartAt + beginDateArgIndex], 
-                        args[argStartAt + beginTimeArgIndex], 
-                        args[argStartAt + endDateArgIndex], 
-                        args[argStartAt + endTimeArgIndex],
-                        args[argStartAt + descriptionArgIndex]);
-     
-    if (printAppointment)
-      System.out.println(appointment.toString());
+    TextParser<AppointmentBook, Appointment> textParser 
+        = new TextParser("test.txt", AppointmentBook.class, Appointment.class);
+
+    try {
+      AppointmentBook<Appointment> book = textParser.parse();
+      Appointment appointment 
+          = new Appointment(args[argStartAt + beginDateArgIndex], 
+                            args[argStartAt + beginTimeArgIndex], 
+                            args[argStartAt + endDateArgIndex], 
+                            args[argStartAt + endTimeArgIndex],
+                            args[argStartAt + descriptionArgIndex]);
+      TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper("test.txt");
+
+      book.addAppointment(appointment);
+
+      textDumper.dump(book);
+
+      if (printAppointment) {
+        System.out.println(appointment.toString());
+      }
+    } catch(ParserException ex) {
+      System.err.println(ex);
+    } catch (IOException ex) {
+      System.err.println(ex);
+    }
 
     System.exit(0);
   }
@@ -167,10 +186,11 @@ public class Project1 {
   private static int detectAndMarkSwitches(String[] args) {
     int indexStart = 0;
     for (int i = 0; i < 2; ++i) {
-      if (markSwitch(args[indexStart]))
+      if (markSwitch(args[indexStart])) {
         indexStart += 1; 
-      else
+      } else {
         break;
+      }
     }
     return indexStart;
   }
@@ -190,14 +210,16 @@ public class Project1 {
   private static boolean markSwitch(String s) {
     boolean isSwitch = false;
     if (s.equals("-print")) {
-      if (printAppointment)
+      if (printAppointment) {
         printErrorMessageAndExit("duplicated -print in options");
+      }
       printAppointment = true;
       isSwitch = true;
     } 
     if (s.equals("-README")) {
-      if (printReadme) 
+      if (printReadme) {
         printErrorMessageAndExit("duplicated -README in options");
+      }
       printReadme = true;
       isSwitch = true;
     }
@@ -212,8 +234,9 @@ public class Project1 {
    * @param s the string to be matched with all available options       
    */
   private static void validateSwitch(String s) {
-    if (!s.equals("-print") && !s.equals("-README")) 
+    if (!s.equals("-print") && !s.equals("-README")) {
       printErrorMessageAndExit(s + " is not an available switch");
+    }
   }
 
   /**
@@ -226,8 +249,9 @@ public class Project1 {
    */
   private static void validateNonemptyStringField(String s, String fieldName) {
     String trimed = s.trim();
-    if (trimed.equals(""))
+    if (trimed.equals("")) {
       printErrorMessageAndExit("Field " + fieldName + " should not be empty");
+    }
   }
 
   /** 
@@ -247,15 +271,18 @@ public class Project1 {
     Pattern r = Pattern.compile(ptn);
     Matcher m = r.matcher(s);
     
-    if (!m.matches())
+    if (!m.matches()) {
       printErrorMessageAndExit("date " + s + " format does not meet requirement");
+    }
     
     int month = Integer.parseInt(m.group(1));
     int day = Integer.parseInt(m.group(2));
-    if (month > 12)
+    if (month > 12) {
       printErrorMessageAndExit(month + " is not a valid month");
-    if (day > 31)
+    }
+    if (day > 31) {
       printErrorMessageAndExit(day + " is not a valid day");
+    }
   }
 
   /** 
@@ -275,15 +302,18 @@ public class Project1 {
     Pattern r = Pattern.compile(ptn);
     Matcher m = r.matcher(s);
     
-    if (!m.matches())
+    if (!m.matches()) {
       printErrorMessageAndExit("time " + s + " format does not meet requirement");
+    }
 
     int hour = Integer.parseInt(m.group(1));
     int minute = Integer.parseInt(m.group(2));
-    if (hour >= 24)
+    if (hour >= 24) {
       printErrorMessageAndExit(hour + " is not a valid hour");
-    if (minute > 59)
+    }
+    if (minute > 59) {
       printErrorMessageAndExit(minute + " is not a valid minute");
+    }
   }
 
 }
