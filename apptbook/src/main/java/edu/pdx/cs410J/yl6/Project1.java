@@ -31,7 +31,7 @@ public class Project1 {
   static final String MISSING_END_DATE = "Missing end date of the appointment";
   static final String MISSING_END_TIME = "Missing end time of the appointment";
   static final String MORE_ARGS = "More arguments passed in than needed";
-  static final String MISSING_FILENAME = "Missing file of the appointment book to load";
+  static final String MISSING_OPTION_ARG = "Missing argument of option ";
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
 
@@ -52,9 +52,11 @@ public class Project1 {
   static final String[] options = { 
       optionReadme, optionPrintAppointment, optionLoadFile
   };
+  static final int[] optionArgRequirement = { 0, 0, 1 };
 
-  static HashMap<String, Boolean> optionStatus;
-  static HashMap<String, ArrayList<String>> optionArgs;
+  static HashMap<String, Boolean> optionEnableStatusMap;
+  static HashMap<String, ArrayList<String>> optionArgumentMap;
+  static HashMap<String, Integer> optionArgumentNumberMap;
 
   /**
    * Main program that parses the command line, creates a <code>Appointment</code>,
@@ -64,11 +66,13 @@ public class Project1 {
    * option is enabled.
    */
   public static void main(String[] args) {
-    optionStatus = new HashMap<>();
-    optionArgs = new HashMap<>();
-    for (String opt : options) {
-      optionStatus.put(opt, false);
-      optionArgs.put(opt, new ArrayList<String>());
+    optionEnableStatusMap = new HashMap<>();
+    optionArgumentMap = new HashMap<>();
+    optionArgumentNumberMap = new HashMap<>();
+    for (int i = 0; i < options.length; ++i) {
+      optionEnableStatusMap.put(options[i], false);
+      optionArgumentMap.put(options[i], new ArrayList<String>());
+      optionArgumentNumberMap.put(options[i], optionArgRequirement[i]);
     }
 
     HashMap<Integer, String> exitMsgs = new HashMap<Integer, String>();
@@ -86,7 +90,7 @@ public class Project1 {
 
     if (args.length == 1) {
       if (markSwitch(args[0])) {
-        if (optionStatus.get(optionReadme)) {
+        if (optionEnableStatusMap.get(optionReadme)) {
           printErrorMessageAndExit(exitMsgs.get(-1));
         } else {
           printErrorMessageAndExit(exitMsgs.get(0));
@@ -99,7 +103,7 @@ public class Project1 {
     int argStartAt = detectAndMarkSwitches(args);
     int actualArgumentNum = args.length - argStartAt;
 
-    if (optionStatus.get(optionReadme)) {
+    if (optionEnableStatusMap.get(optionReadme)) {
       printErrorMessageAndExit(exitMsgs.get(-1));
     }
     if (args.length > maximumCommandlineArgs) {
@@ -132,22 +136,22 @@ public class Project1 {
                             args[argStartAt + endTimeArgIndex],
                             args[argStartAt + descriptionArgIndex]);
 
-      if (optionStatus.get(optionLoadFile)) {
-        apptbookFile = optionArgs.get(optionLoadFile).get(0);
+      if (optionEnableStatusMap.get(optionLoadFile)) {
+        apptbookFile = optionArgumentMap.get(optionLoadFile).get(0);
         TextParser<AppointmentBook, Appointment> textParser 
             = new TextParser(apptbookFile, args[argStartAt + ownerArgIndex], 
-                AppointmentBook.class, Appointment.class);
+                  AppointmentBook.class, Appointment.class);
         book = textParser.parse();       
       } else {
         book = new AppointmentBook(args[argStartAt + ownerArgIndex]);
       }
       book.addAppointment(appointment);
       
-      if (optionStatus.get(optionLoadFile)) {
+      if (optionEnableStatusMap.get(optionLoadFile)) {
         TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper(apptbookFile);
         textDumper.dump(book);
       }
-      if (optionStatus.get(optionPrintAppointment)) {
+      if (optionEnableStatusMap.get(optionPrintAppointment)) {
         System.out.println(appointment.toString());
       }
     } catch(ParserException | IOException ex) {
@@ -198,7 +202,8 @@ public class Project1 {
    * Given an array of arguments <code>args</code>, starting from index 0 to higher 
    * index, greedily match each argument in <code>args</code> until either an argument
    * that does not belong to valid options occurs, or all the available options 
-   * are matched. 
+   * are matched. This method adds arguments belong to the option to 
+   * <code>optionArgumentMap</code> structure. 
    * 
    * @param args  the array of whole commandline arguments       
    * @return      an integer indicates the number of options detected
@@ -207,22 +212,16 @@ public class Project1 {
     int indexStart = 0;
     while (indexStart < args.length) {
       if (markSwitch(args[indexStart])) {
-        switch (args[indexStart]) {
-          case optionReadme:
-          case optionPrintAppointment:
-            indexStart += 1;
-            break;
-          case optionLoadFile:
-            if (indexStart + 1 < args.length) {
-              ArrayList optionLoadFileArgs = optionArgs.get(optionLoadFile);
-              optionLoadFileArgs.add(0, args[indexStart + 1]);
-              indexStart += 2;
-            } else {
-              printErrorMessageAndExit(MISSING_FILENAME);
-            }
-            break;
-          default:
+        int argNum = optionArgumentNumberMap.get(args[indexStart]);
+        if (indexStart + argNum < args.length && argNum > 0) {
+          ArrayList optionArg = optionArgumentMap.get(args[indexStart]);
+          for (int i = 1; i <= argNum; ++i) {
+            optionArg.add(i, args[indexStart + i]);
+          }
+        } else if (indexStart + argNum >= args.length) {
+          printErrorMessageAndExit(MISSING_OPTION_ARG + args[indexStart]);
         }
+        indexStart += argNum + 1;
       } else {
         break;
       }
@@ -243,12 +242,12 @@ public class Project1 {
    * @return  <code>true</code> if there is a match; <code>false</code> otherwise.
    */
   private static boolean markSwitch(String s) {
-    boolean isSwitch = optionStatus.containsKey(s);
+    boolean isSwitch = optionEnableStatusMap.containsKey(s);
     if (isSwitch) {
-      if (optionStatus.get(s)) {
+      if (optionEnableStatusMap.get(s)) {
         printErrorMessageAndExit("duplicated " + s + "in options");
       }
-      optionStatus.put(s, true);
+      optionEnableStatusMap.put(s, true);
     }
     return isSwitch;
   }
