@@ -102,29 +102,34 @@ public class Project1 {
     }
 
     // number of args meet requirement
+    DateStringValidator dateValidator = 
+        new DateStringValidator("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})");
+    TimeStringValidator timeValidator =
+        new TimeStringValidator("([0-9]{1,2}):([0-9]{1,2})");
+    
     validateNonemptyStringField(args[argStartAt + ownerArgIndex], "owner");
     validateNonemptyStringField(args[argStartAt + descriptionArgIndex], "description");
-    validateDate(args[argStartAt + beginDateArgIndex]);
-    validateDate(args[argStartAt + endDateArgIndex]);
-    validateTime(args[argStartAt + beginTimeArgIndex]);
-    validateTime(args[argStartAt + endTimeArgIndex]);
+    validateStringFieldWithPattern(dateValidator, args[argStartAt + beginDateArgIndex]);
+    validateStringFieldWithPattern(timeValidator, args[argStartAt + beginTimeArgIndex]);
+    validateStringFieldWithPattern(dateValidator, args[argStartAt + endDateArgIndex]);
+    validateStringFieldWithPattern(timeValidator, args[argStartAt + endTimeArgIndex]);
 
     try {
       AppointmentBook<Appointment> book;
       String apptbookFile = "";
       
-      Appointment appointment 
-          = new Appointment(args[argStartAt + beginDateArgIndex], 
-                            args[argStartAt + beginTimeArgIndex], 
-                            args[argStartAt + endDateArgIndex], 
-                            args[argStartAt + endTimeArgIndex],
-                            args[argStartAt + descriptionArgIndex]);
+      Appointment appointment =
+          new Appointment(args[argStartAt + beginDateArgIndex], 
+                          args[argStartAt + beginTimeArgIndex], 
+                          args[argStartAt + endDateArgIndex], 
+                          args[argStartAt + endTimeArgIndex],
+                          args[argStartAt + descriptionArgIndex]);
 
       if (optionEnableStatusMap.get(optionLoadFile)) {
         apptbookFile = optionArgumentMap.get(optionLoadFile).get(0);
-        TextParser<AppointmentBook, Appointment> textParser 
-            = new TextParser(apptbookFile, args[argStartAt + ownerArgIndex], 
-                  AppointmentBook.class, Appointment.class);
+        TextParser<AppointmentBook, Appointment> textParser =
+            new TextParser(apptbookFile, args[argStartAt + ownerArgIndex], 
+                AppointmentBook.class, Appointment.class);
         book = textParser.parse();       
       } else {
         book = new AppointmentBook(args[argStartAt + ownerArgIndex]);
@@ -239,6 +244,14 @@ public class Project1 {
     return isSwitch;
   }
 
+  private static void validateStringFieldWithPattern(
+      AbstractValidator validator, 
+      String s) {
+    if (!validator.isValid(s)) {
+      printErrorMessageAndExit(validator.getErrorMessage());
+    } 
+  }
+
   /**
    * Given a string <code>s</code>, check if it is empty after removing leading 
    * and tailing spaces. If it is empty, exit the program with status 1 with error message
@@ -251,68 +264,6 @@ public class Project1 {
     String trimed = s.trim();
     if (trimed.equals("")) {
       printErrorMessageAndExit("Field " + fieldName + " should not be empty");
-    }
-  }
-
-  /** 
-   * Given a string <code>s</code>, match it with date format mm/dd/yyyy, where
-   * mm and dd can be either 1 digit or 2 digit, yyyy must be 4 digit, each field
-   * must be delimited by "/". 
-   * <p>
-   * If the string does not match the above pattern, the program exits with status
-   * 1 with an error message indicates format error. If the mm or dd field does not live
-   * in the range 1 - 12, 1 - 31, respectively, then the program exits with status 1
-   * with an error message indicates value out-of-range error. 
-   *
-   * @param s the string to be matched with above described pattern.     
-   */
-  private static void validateDate(String s) {
-    String ptn = "([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})";
-    Pattern r = Pattern.compile(ptn);
-    Matcher m = r.matcher(s);
-    
-    if (!m.matches()) {
-      printErrorMessageAndExit("date " + s + " format does not meet requirement");
-    }
-    
-    int month = Integer.parseInt(m.group(1));
-    int day = Integer.parseInt(m.group(2));
-    if (month > 12) {
-      printErrorMessageAndExit(month + " is not a valid month");
-    }
-    if (day > 31) {
-      printErrorMessageAndExit(day + " is not a valid day");
-    }
-  }
-
-  /** 
-   * Given a string <code>s</code>, match it with time format hh:mm, where hh and mm
-   * can be either 1 digit or 2 digit, each field must be delimited by ":". 
-   * 
-   * <p>
-   * If the string does not match the above pattern, the program exits with status
-   * 1 with an error message indicates format error. If the hh or mm field does not live
-   * in the range 0 - 23, 0 - 59, respectively, then the program exits with status 1
-   * with an error message indicates value out-of-range error. 
-   *
-   * @param s the string to be matched with above described pattern.     
-   */
-  private static void validateTime(String s) {
-    String ptn = "([0-9]{1,2}):([0-9]{1,2})";
-    Pattern r = Pattern.compile(ptn);
-    Matcher m = r.matcher(s);
-    
-    if (!m.matches()) {
-      printErrorMessageAndExit("time " + s + " format does not meet requirement");
-    }
-
-    int hour = Integer.parseInt(m.group(1));
-    int minute = Integer.parseInt(m.group(2));
-    if (hour >= 24) {
-      printErrorMessageAndExit(hour + " is not a valid hour");
-    }
-    if (minute > 59) {
-      printErrorMessageAndExit(minute + " is not a valid minute");
     }
   }
 

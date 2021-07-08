@@ -30,14 +30,19 @@ public class TextParser<T extends AbstractAppointmentBook, E extends AbstractApp
   static final String IOEXCEPTION_OCCUR = "IOException occurs during parsing with message: ";
   static final String PROGRAM_INTERNAL_ERROR = "Program internal error: ";
 
-  public TextParser(String filename, String owner, Class<T> bookClass, Class<E> apptClass) {
+  public TextParser(
+      String filename, 
+      String owner, 
+      Class<T> bookClass,
+      Class<E> apptClass) {
     this.filename = filename;
     this.owner = owner;
+    this.bookClass = bookClass;
+    this.apptClass = apptClass;
+
     this.sb = new StringBuilder();
     this.appointmentArguments = new String[3];
     this.currentArgIndex = 0;
-    this.bookClass = bookClass;
-    this.apptClass = apptClass;
   }
   
   public T parse() throws ParserException {
