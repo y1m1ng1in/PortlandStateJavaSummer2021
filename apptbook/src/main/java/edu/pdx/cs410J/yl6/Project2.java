@@ -14,15 +14,16 @@ import edu.pdx.cs410J.ParserException;
 /**
  * The main class for the CS410J appointment book Project which parses commandline
  * arguments, processes arguments to construct an appointment, and based on the options
- * to either print the appointment, or print readme, or print nothing.
+ * to print the appointment, print readme, import and export existing appointment book
+ * from external file. 
  * <p>
- * The class assumes that options are always followed by arguments. There are two valid
- * options available: -print, -README. This means that the parsing process will greedily
- * match commandline arguments from 0 index to higher index until either a invalid option 
- * detected, or all the available options matched, the rest of the commandline arguments
- * are treated as arguments for appointment. 
+ * The class assumes that options are always followed by arguments. There are 3 valid
+ * options available: -print, -README, and -textFile filename. This means that the 
+ * parsing process will greedily match commandline arguments from 0 index to higher index 
+ * until either a invalid option detected, or all the available options matched, the rest 
+ * of the commandline arguments are treated as arguments for appointment. 
  */
-public class Project1 {
+public class Project2 {
 
   static final String MISSING_CMD_LINE_ARGS = "Missing command line arguments";
   static final String MISSING_DESCRIPTION = "Missing description of the appointment";
@@ -102,10 +103,8 @@ public class Project1 {
     }
 
     // number of args meet requirement
-    DateStringValidator dateValidator = 
-        new DateStringValidator("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})");
-    TimeStringValidator timeValidator =
-        new TimeStringValidator("([0-9]{1,2}):([0-9]{1,2})");
+    DateStringValidator dateValidator = new DateStringValidator();
+    TimeStringValidator timeValidator = new TimeStringValidator();
     
     validateNonemptyStringField(args[argStartAt + ownerArgIndex], "owner");
     validateNonemptyStringField(args[argStartAt + descriptionArgIndex], "description");
@@ -161,7 +160,7 @@ public class Project1 {
    */
   private static String loadPlainTextFromResource(String filename) {
     try {
-      InputStream is = Project1.class.getResourceAsStream(filename);
+      InputStream is = Project2.class.getResourceAsStream(filename);
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line = "";
       StringBuilder sb = new StringBuilder();
@@ -244,6 +243,14 @@ public class Project1 {
     return isSwitch;
   }
 
+  /**
+   * Given a string <code>s</code>, check if it is valid via <code>validator</code>. 
+   * If it is invalid, exit the program with status 1 with error message generated 
+   * by <code>validator</code>.
+   * 
+   * @param validator object that is any concrete subclass of <code>AbstractValidator</code>.
+   * @param s         the string that is to be validated. 
+   */
   private static void validateStringFieldWithPattern(
       AbstractValidator validator, 
       String s) {

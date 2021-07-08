@@ -42,7 +42,7 @@ public class AppointmentTest {
    * Tests that get begin time returns null since not implemented.
    */
   @Test
-  void forProject1ItIsOkayIfGetBeginTimeReturnsNull() {
+  void forProject2ItIsOkayIfGetBeginTimeReturnsNull() {
     Appointment appointment = new Appointment("3/14/2020","4:29","3/14/2020","4:50","dummy");
     assertThat(appointment.getBeginTime(), is(nullValue()));
   }

@@ -11,15 +11,15 @@ import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration tests for the {@link Project1} main class.
+ * Integration tests for the {@link Project2} main class.
  */
-class Project1IT extends InvokeMainTestCase {
+class Project2IT extends InvokeMainTestCase {
 
   /**
-   * Invokes the main method of {@link Project1} with the given arguments.
+   * Invokes the main method of {@link Project2} with the given arguments.
    */
   private MainMethodResult invokeMain(String... args) {
-    return invokeMain( Project1.class, args );
+    return invokeMain( Project2.class, args );
   }
 
   /**
