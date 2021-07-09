@@ -20,7 +20,7 @@ import edu.pdx.cs410J.AbstractAppointmentBook;
  * <p>
  * TextParser encapsulates method <code>parse</code> which parses owner of appointment
  * book from specified file, then parses each appointment. It is assumed that the owner 
- * and the first appointment is delimited by '&', each appointment is delimited by '&'
+ * and the first appointment is delimited by '&amp;', each appointment is delimited by '&amp;'
  * from other appointments. Each field of appointment is delimited by '#'.
  * <p>
  * TextParser intends to build a <code>T</code> by adding each parsed <code>E</code>. 
@@ -90,10 +90,10 @@ public class TextParser<T extends AbstractAppointmentBook,
   /** 
    * Parse the file and build an appointment book. The procedure is that parse owner of the 
    * appointment book first, then parse appointments. If end-of-file reached before owner 
-   * name is completely parsed (encountered a '&' which does not follow a '\'), or before a 
+   * name is completely parsed (encountered a '&amp;' which does not follow a '\'), or before a 
    * complete appointment is parsed (<code>expectedNumberofField</code> number of fields are 
    * parsed completely, which means for each field a '#' which does not follow a '\' 
-   * encountered; also encountered a '&' which does not follow a '\' after all fields parsed), 
+   * encountered; also encountered a '&amp;' which does not follow a '\' after all fields parsed), 
    * then <code>ParserException</code> is thrown. 
    * <p>
    * Also, <code>validators</code> passed in from constructor apply, where ith validator 

@@ -17,8 +17,8 @@ import edu.pdx.cs410J.AbstractAppointmentBook;
  * <p>
  * TextDumper encapsulates method <code>dump</code> which writes owner of appointment
  * book to specified file, followed by <code>E</code>'s fields delimited by '#', each
- * <code>E</code> is delimited by '&'. Between the owner and the first appointment 
- * written, it is delimited by '&', too.
+ * <code>E</code> is delimited by '&amp;'. Between the owner and the first appointment 
+ * written, it is delimited by '&amp;', too.
  * <p>
  * TextDumper also detects any character that conflicts with delimiters, thus it adds 
  * '\' before any conflicted character, also adds '\' before '\'. 
@@ -44,8 +44,8 @@ public class TextDumper<T extends AbstractAppointmentBook,
 
   /**
    * Write <code>book</code> to file. The owner of the <code>book</code> is followed by 
-   * each appointments, delimited by '&'. Between appointment and appointment, it is also
-   * delimited by '&'. Each field of an appointment is delimited by '#'. The order of the 
+   * each appointments, delimited by '&amp;'. Between appointment and appointment, it is also
+   * delimited by '&amp;'. Each field of an appointment is delimited by '#'. The order of the 
    * field is determined by what is returned from <code>getStringFields</code>, which must
    * be implemented in any <code>E</code> from low index to high index. Any character 
    * conflicts with delimiter is added a '\' before it, also '\' is added a '\' before it. 
