@@ -1,5 +1,7 @@
 [![Java CI with Maven](https://github.com/y1m1ng1in/PortlandStateJavaSummer2021/actions/workflows/maven.yml/badge.svg)](https://github.com/y1m1ng1in/PortlandStateJavaSummer2021/actions/workflows/maven.yml)
 
+[![Coverage](.github/badges/jacoco.svg)](https://github.com/USERNAME/REPOSITORY/actions/workflows/build.yml)
+
 # Getting Started with Advanced Programming with Java
 
 This repository helps students in [Advanced Programming with
