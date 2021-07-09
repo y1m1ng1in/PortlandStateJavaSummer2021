@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
  * field indicates value out-of-range error.   
  */
 public class TimeStringValidator extends AbstractValidator {
+  
   static final int MAX_HOUR = 23;
   static final int MAX_MINUTE = 59;
   static final String pattern = "([0-9]{1,2}):([0-9]{1,2})";

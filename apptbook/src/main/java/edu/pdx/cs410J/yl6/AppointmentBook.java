@@ -12,6 +12,7 @@ import java.util.ArrayList;
  * appointment, and get owner name of the appointment book via provided public methods.
  */
 public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppointmentBook<T> {
+  
   private ArrayList<T> appts = new ArrayList<T>();
   private String owner;
   

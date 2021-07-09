@@ -1,7 +1,5 @@
 package edu.pdx.cs410J.yl6;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.BufferedReader;
@@ -126,9 +124,16 @@ public class Project2 {
 
       if (optionEnableStatusMap.get(optionLoadFile)) {
         apptbookFile = optionArgumentMap.get(optionLoadFile).get(0);
+        AbstractValidator[] validators = {
+          dateValidator, timeValidator, dateValidator, timeValidator, null
+        };
         TextParser<AppointmentBook, Appointment> textParser =
-            new TextParser(apptbookFile, args[argStartAt + ownerArgIndex], 
-                AppointmentBook.class, Appointment.class);
+            new TextParser(apptbookFile, 
+                           args[argStartAt + ownerArgIndex], 
+                           AppointmentBook.class, 
+                           Appointment.class, 
+                           validators, 
+                           appointment.getExpectedNumberOfField());
         book = textParser.parse();       
       } else {
         book = new AppointmentBook(args[argStartAt + ownerArgIndex]);

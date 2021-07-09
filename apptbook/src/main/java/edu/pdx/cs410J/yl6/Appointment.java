@@ -8,12 +8,14 @@ import edu.pdx.cs410J.AbstractAppointment;
  * and time. The begin date and time, and end date and time can be any string, 
  * it leaves the client program to specify a typical format for its uses.
  */
-public class Appointment extends AbstractAppointment {
+public class Appointment extends AbstractAppointment implements PlainTextRepresentable {
+  
   private String beginTime;
   private String endTime;
   private String beginDate;
   private String endDate;
   private String description;
+  static final int numberOfField = 5;
 
   /**
    * Create a appointment. 
@@ -66,6 +68,22 @@ public class Appointment extends AbstractAppointment {
   @Override
   public String getDescription() {
     return this.description;
+  }
+
+  @Override
+  public String[] getStringFields() {
+    String[] fields = new String[numberOfField];
+    fields[0] = this.beginDate;
+    fields[1] = this.beginTime;
+    fields[2] = this.endDate;
+    fields[3] = this.endTime;
+    fields[4] = this.description;
+    return fields;
+  }
+
+  @Override
+  public int getExpectedNumberOfField() {
+    return numberOfField;
   }
 
 }
