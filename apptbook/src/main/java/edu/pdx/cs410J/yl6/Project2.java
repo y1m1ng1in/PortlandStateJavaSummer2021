@@ -103,13 +103,19 @@ public class Project2 {
     // number of args meet requirement
     DateStringValidator dateValidator = new DateStringValidator();
     TimeStringValidator timeValidator = new TimeStringValidator();
+    NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
+    NonemptyStringValidator descriptionValidator = 
+        new NonemptyStringValidator("description");
+
+    AbstractValidator[] commandLineArgumentValidators = { 
+        ownerValidator, descriptionValidator, dateValidator, timeValidator,
+        dateValidator, timeValidator
+    };
     
-    validateNonemptyStringField(args[argStartAt + ownerArgIndex], "owner");
-    validateNonemptyStringField(args[argStartAt + descriptionArgIndex], "description");
-    validateStringFieldWithPattern(dateValidator, args[argStartAt + beginDateArgIndex]);
-    validateStringFieldWithPattern(timeValidator, args[argStartAt + beginTimeArgIndex]);
-    validateStringFieldWithPattern(dateValidator, args[argStartAt + endDateArgIndex]);
-    validateStringFieldWithPattern(timeValidator, args[argStartAt + endTimeArgIndex]);
+    for (int i = 0; i < requiredArgumentNum; ++i) {
+      validateArgumentByValidator(commandLineArgumentValidators[i],
+                                     args[argStartAt + i]);
+    }
 
     try {
       AppointmentBook<Appointment> book;
@@ -125,7 +131,7 @@ public class Project2 {
       if (optionEnableStatusMap.get(optionLoadFile)) {
         apptbookFile = optionArgumentMap.get(optionLoadFile).get(0);
         AbstractValidator[] validators = {
-          dateValidator, timeValidator, dateValidator, timeValidator, null
+          dateValidator, timeValidator, dateValidator, timeValidator, descriptionValidator
         };
         TextParser<AppointmentBook, Appointment> textParser =
             new TextParser(apptbookFile, 
@@ -256,27 +262,12 @@ public class Project2 {
    * @param validator object that is any concrete subclass of <code>AbstractValidator</code>.
    * @param s         the string that is to be validated. 
    */
-  private static void validateStringFieldWithPattern(
+  private static void validateArgumentByValidator(
       AbstractValidator validator, 
       String s) {
     if (!validator.isValid(s)) {
       printErrorMessageAndExit(validator.getErrorMessage());
     } 
-  }
-
-  /**
-   * Given a string <code>s</code>, check if it is empty after removing leading 
-   * and tailing spaces. If it is empty, exit the program with status 1 with error message
-   * indicates that field <code>fieldName</code> is empty.  
-   * 
-   * @param s         the string to check whether it is empty after being trimed.
-   * @param fieldName the name of the field to display in the message to the standard error.
-   */
-  private static void validateNonemptyStringField(String s, String fieldName) {
-    String trimed = s.trim();
-    if (trimed.equals("")) {
-      printErrorMessageAndExit("Field " + fieldName + " should not be empty");
-    }
   }
 
 }

@@ -26,7 +26,7 @@ import edu.pdx.cs410J.AbstractAppointmentBook;
  * TextParser intends to build a <code>T</code> by adding each parsed <code>E</code>. 
  * <code>E</code> is built by passing in <code>expectedNumberofField</code> number of 
  * strings to <code>E</code>'s constuctor (which means that E must support such 
- * constrution, otherwise exception will raise). The order of arguments passed into 
+ * construction, otherwise exception will raise). The order of arguments passed into 
  * <code>E</code>'s constuctor is same as the order appear in the file for each appointment.
  * <code>expectedNumberofField</code> is specified via <code>TextParser</code> constructor.
  */
