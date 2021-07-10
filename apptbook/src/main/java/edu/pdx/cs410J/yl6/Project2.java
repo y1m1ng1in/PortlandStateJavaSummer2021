@@ -35,7 +35,6 @@ public class Project2 {
   static final String USAGE = loadPlainTextFromResource("usage.txt");
   static HashMap<Integer, String> exitMsgs;
 
-  static final int maxArgumentPlusOptionAllowed = 10;
   static final int requiredArgumentNum = 6;
 
   static final int ownerArgIndex = 0;
@@ -45,19 +44,6 @@ public class Project2 {
   static final int endDateArgIndex = 4;
   static final int endTimeArgIndex = 5;
 
-  static final String optionReadme = "-README";
-  static final String optionPrintAppointment = "-print";
-  static final String optionLoadFile = "-textFile";
-
-  static final String[] options = { 
-      optionReadme, optionPrintAppointment, optionLoadFile
-  };
-  static final int[] optionArgRequirement = { 0, 0, 1 };
-
-  static HashMap<String, Boolean> optionEnableStatusMap;
-  static HashMap<String, ArrayList<String>> optionArgumentMap;
-  static HashMap<String, Integer> optionArgumentNumberMap;
-
   /**
    * Main program that parses the command line, creates a <code>Appointment</code>,
    * and prints a description of the appointment to standard out by invoking its
@@ -66,37 +52,23 @@ public class Project2 {
    * option is enabled.
    */
   public static void main(String[] args) {
-    optionEnableStatusMap = new HashMap<>();
-    optionArgumentMap = new HashMap<>();
-    optionArgumentNumberMap = new HashMap<>();
-    for (int i = 0; i < options.length; ++i) {
-      optionEnableStatusMap.put(options[i], false);
-      optionArgumentMap.put(options[i], new ArrayList<String>());
-      optionArgumentNumberMap.put(options[i], optionArgRequirement[i]);
-    }
+    ArgumentParser argparser = new ArgumentParser()
+        .addOption("-print", 0)
+        .addOption("-textFile", 1)
+        .addOption("-README", 0)
+        .addArgument("owner")
+        .addArgument("description of the appointment")
+        .addArgument("begin date of the appointment")
+        .addArgument("begin time of the appointment")
+        .addArgument("end date of the appointment")
+        .addArgument("end time of the appointment")
+        .setReadme(README)
+        .setUsage(USAGE);
 
-    exitMsgs = new HashMap<Integer, String>();
-    exitMsgs.put(-1, README);
-    exitMsgs.put(0, MISSING_CMD_LINE_ARGS+ '\n' + USAGE);
-    exitMsgs.put(1, MISSING_DESCRIPTION);
-    exitMsgs.put(2, MISSING_BEGIN_DATE);
-    exitMsgs.put(3, MISSING_BEGIN_TIME);
-    exitMsgs.put(4, MISSING_END_DATE);
-    exitMsgs.put(5, MISSING_END_TIME);
-    exitMsgs.put(maxArgumentPlusOptionAllowed, MORE_ARGS);
-
-    int argStartAt = detectAndMarkSwitches(args);
-    int actualArgumentNum = args.length - argStartAt;
-
-    if (args.length > maxArgumentPlusOptionAllowed) {
-      printErrorMessageAndExit(exitMsgs.get(maxArgumentPlusOptionAllowed));
+    if (!argparser.parse(args)) {
+      printErrorMessageAndExit(argparser.getErrorMessage());
     }
-    if (actualArgumentNum < requiredArgumentNum) {
-      printErrorMessageAndExit(exitMsgs.get(actualArgumentNum));
-    } 
-    if (actualArgumentNum > requiredArgumentNum) {
-      printErrorMessageAndExit(args[argStartAt] + " is not an available switch");
-    }
+    String[] arguments = argparser.getArguments();
 
     // number of args meet requirement
     DateStringValidator dateValidator = new DateStringValidator();
@@ -111,8 +83,7 @@ public class Project2 {
     };
     
     for (int i = 0; i < requiredArgumentNum; ++i) {
-      validateArgumentByValidator(commandLineArgumentValidators[i],
-                                     args[argStartAt + i]);
+      validateArgumentByValidator(commandLineArgumentValidators[i], arguments[i]);
     }
 
     try {
@@ -120,35 +91,35 @@ public class Project2 {
       String apptbookFile = "";
       
       Appointment appointment =
-          new Appointment(args[argStartAt + beginDateArgIndex], 
-                          args[argStartAt + beginTimeArgIndex], 
-                          args[argStartAt + endDateArgIndex], 
-                          args[argStartAt + endTimeArgIndex],
-                          args[argStartAt + descriptionArgIndex]);
+          new Appointment(arguments[beginDateArgIndex], 
+                          arguments[beginTimeArgIndex], 
+                          arguments[endDateArgIndex], 
+                          arguments[endTimeArgIndex],
+                          arguments[descriptionArgIndex]);
 
-      if (optionEnableStatusMap.get(optionLoadFile)) {
-        apptbookFile = optionArgumentMap.get(optionLoadFile).get(0);
+      if (argparser.isEnabled("-textFile")) {
+        apptbookFile = argparser.getOptionArguments("-textFile").get(0);
         AbstractValidator[] validators = {
           dateValidator, timeValidator, dateValidator, timeValidator, descriptionValidator
         };
         TextParser<AppointmentBook, Appointment> textParser =
             new TextParser(apptbookFile, 
-                           args[argStartAt + ownerArgIndex], 
+                           arguments[ownerArgIndex], 
                            AppointmentBook.class, 
                            Appointment.class, 
                            validators, 
                            appointment.getExpectedNumberOfField());
         book = textParser.parse();       
       } else {
-        book = new AppointmentBook(args[argStartAt + ownerArgIndex]);
+        book = new AppointmentBook(arguments[ownerArgIndex]);
       }
       book.addAppointment(appointment);
       
-      if (optionEnableStatusMap.get(optionLoadFile)) {
+      if (argparser.isEnabled("-textFile")) {
         TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper(apptbookFile);
         textDumper.dump(book);
       }
-      if (optionEnableStatusMap.get(optionPrintAppointment)) {
+      if (argparser.isEnabled("-print")) {
         System.out.println(appointment.toString());
       }
     } catch(ParserException | IOException ex) {
@@ -193,66 +164,6 @@ public class Project2 {
   private static void printErrorMessageAndExit(String message) {
     System.err.println(message);
     System.exit(1);
-  }
-
-  /** 
-   * Given an array of arguments <code>args</code>, starting from index 0 to higher 
-   * index, greedily match each argument in <code>args</code> until either an argument
-   * that does not belong to valid options occurs, or all the available options 
-   * are matched. This method adds arguments belong to the option to 
-   * <code>optionArgumentMap</code> structure. 
-   * 
-   * @param args  the array of whole commandline arguments       
-   * @return      an integer indicates the number of options detected
-   */
-  private static int detectAndMarkSwitches(String[] args) {
-    int indexStart = 0;
-    while (indexStart < args.length) {
-      if (markSwitch(args[indexStart])) { // is a valid, unique option
-        int argNum = optionArgumentNumberMap.get(args[indexStart]);
-        
-        if (indexStart + argNum < args.length && argNum > 0) { // have enough arguments
-          ArrayList optionArg = optionArgumentMap.get(args[indexStart]);
-          for (int i = 0; i < argNum; ++i) {
-            optionArg.add(i, args[indexStart + i + 1]);
-          }
-        } else if (indexStart + argNum >= args.length) {
-          // required argument number exceeds the number of actual arguments passed in
-          printErrorMessageAndExit(MISSING_OPTION_ARG + args[indexStart]);
-        }
-
-        indexStart += argNum + 1; // the next index is the one after all the arguments 
-      } else {
-        break;
-      }
-    }
-    return indexStart;
-  }
-
-  /** 
-   * Given a string <code>s</code>, match it with available options. If there is 
-   * a match, assign its corresponding flag (one of this class field 
-   * <code>printReadme</code>, <code>printAppointment</code>) to <code>true</code>.
-   * <p>
-   * This function checks any duplicated options passed in from commandline, any
-   * detected causes the program exits in status 1 with an error message indicates
-   * duplication.
-   * 
-   * @param s the string to be matched with all available options       
-   * @return  <code>true</code> if there is a match; <code>false</code> otherwise.
-   */
-  private static boolean markSwitch(String s) {
-    boolean isSwitch = optionEnableStatusMap.containsKey(s);
-    if (isSwitch) {
-      if (s.equals(optionReadme)) {
-        printErrorMessageAndExit(exitMsgs.get(-1));
-      } 
-      if (optionEnableStatusMap.get(s)) {
-        printErrorMessageAndExit("duplicated " + s + " in options");
-      }
-      optionEnableStatusMap.put(s, true);
-    }
-    return isSwitch;
   }
 
   /**
