@@ -144,10 +144,12 @@ public class Project2 {
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line = "";
       StringBuilder sb = new StringBuilder();
+
       while((line = reader.readLine()) != null) {
         sb.append(line);
         sb.append("\n");
       }
+      
       return sb.toString();
     } catch (IOException e) {
       printErrorMessageAndExit("Cannot load plain text file from resource " + filename);

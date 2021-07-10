@@ -179,6 +179,7 @@ public class TextParser<T extends AbstractAppointmentBook,
   private String parseOwner(Reader reader) throws IOException, ParserException {
     char c = ' ';
     int next;
+
     parsing: while ((next = reader.read()) != -1) {
       c = (char) next;
       switch (c) {
@@ -198,11 +199,13 @@ public class TextParser<T extends AbstractAppointmentBook,
     if (c != '&') {
       throw new ParserException(EOF_REACHED_PARSE_OWNER);
     }
+
     String owner = this.sb.toString();
     if (!owner.equals(this.owner)) {
       throw new ParserException(OWNER_MISMATCH + owner + " versus " + this.owner);
     }
     this.sb.setLength(0);
+    
     return owner;
   }
   

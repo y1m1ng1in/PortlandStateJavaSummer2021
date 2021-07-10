@@ -61,6 +61,7 @@ public class TextDumper<T extends AbstractAppointmentBook,
       Writer writer = new FileWriter(this.filename);
       Collection<E> appts = book.getAppointments();
       String owner = book.getOwnerName();
+
       writer.write(addEscapeCharacter(owner));
       writer.write('&');
       for (E appt: appts) {
@@ -74,6 +75,7 @@ public class TextDumper<T extends AbstractAppointmentBook,
           }
         }
       }
+      
       writer.flush();
       writer.close();
     } catch (IOException ex) {
@@ -90,6 +92,7 @@ public class TextDumper<T extends AbstractAppointmentBook,
    */
   private String addEscapeCharacter(String s) {
     StringBuilder sb = new StringBuilder();
+
     for (int i = 0; i < s.length(); ++i) {
       char c = s.charAt(i);
       if (c == '#' || c == '&' || c == '\\') {

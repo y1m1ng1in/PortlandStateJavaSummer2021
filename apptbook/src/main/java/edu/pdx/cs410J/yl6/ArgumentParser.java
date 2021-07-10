@@ -71,6 +71,7 @@ public class ArgumentParser {
 
   public boolean parse(String[] args) {
     int argStartAt = parseOptions(args);
+
     if (this.optionEnableStatusMap.get(optionReadme)) {
       this.errorMessage = this.readme;
       return false;
@@ -78,6 +79,7 @@ public class ArgumentParser {
     if (argStartAt < 0) {
       return false;
     }
+
     int actualArgumentNum = args.length - argStartAt;
     
     if (args.length > this.maxArgumentPlusOptionAllowed) {
@@ -96,46 +98,50 @@ public class ArgumentParser {
       this.errorMessage = args[argStartAt] + " is not an available switch";
       return false;
     }
+
     this.arguments = new String[this.requiredArgumentNum];
+
     for (int i = argStartAt; i < args.length; ++i) {
       this.arguments[i - argStartAt] = args[i];
     }
+
     return true;
   }
 
   private int parseOptions(String[] args) {
     int indexStart = 0;
-    boolean detectedDuplicates = false;
+
     while (indexStart < args.length) {
       int markResult = markOptionAsEnable(args[indexStart]);
-      if (markResult == 1) { 
-        // is a valid option
-        int argNum = this.optionArgumentNumberMap.get(args[indexStart]);
-        if (indexStart + argNum < args.length && argNum > 0) { 
-          // have enough arguments
-          ArrayList optionArg = this.optionArgumentMap.get(args[indexStart]);
-          for (int i = 0; i < argNum; ++i) {
-            optionArg.add(i, args[indexStart + i + 1]);
-          }
-        } else if (indexStart + argNum >= args.length) {
-          // required argument number exceeds the number of actual arguments passed in
-          this.errorMessage = MISSING_OPTION_ARG + args[indexStart];
-          return -1;
-        }
-        indexStart += argNum + 1; // the next index is the one after all the arguments 
-      } 
+
       if (markResult == -1) {
         // duplicated option detected, but not sure if we have -README behind
-        detectedDuplicates = true;
-        indexStart += 1;
-      } else if (markResult == 0) {
-        // non-option occurred, break the loop and ready for parsing arguments
+        lookForReadmeOptionBehind(args, indexStart + 1);
+        return -1;
+      }
+      if (markResult == 0) {
+        // break the while loop once a non-option detected, current indexStart points
+        // to the first argument
         break;
-      } 
+      }
+
+      // the rest handles the option which is valid and unique in args[0..indexStart]
+      int argNum = this.optionArgumentNumberMap.get(args[indexStart]);
+
+      if (indexStart + argNum >= args.length) {
+        // required argument number exceeds the number of actual arguments passed in
+        this.errorMessage = MISSING_OPTION_ARG + args[indexStart];
+        return -1;
+      }
+      
+      // have enough arguments
+      ArrayList optionArg = this.optionArgumentMap.get(args[indexStart]);
+      for (int i = 0; i < argNum; ++i) {
+        optionArg.add(i, args[indexStart + i + 1]);
+      }  
+      indexStart += argNum + 1; // the next index is the one after all the arguments 
     }
-    if (detectedDuplicates) {
-      return -1;
-    }
+
     return indexStart;
   }
 
@@ -147,15 +153,23 @@ public class ArgumentParser {
    *          0 otherwise.
    */
   private int markOptionAsEnable(String s) {
-    if (this.optionEnableStatusMap.containsKey(s)) {
-      if (!s.equals(optionReadme) && this.optionEnableStatusMap.get(s)) {
-        this.errorMessage = "duplicated " + s + " in options";
-        return -1;
-      }
-      this.optionEnableStatusMap.put(s, true);
-      return 1;
+    if (!this.optionEnableStatusMap.containsKey(s)) {
+      return 0;
     }
-    return 0;
+    if (!s.equals(optionReadme) && this.optionEnableStatusMap.get(s)) {
+      this.errorMessage = "duplicated " + s + " in options";
+      return -1;
+    }
+    this.optionEnableStatusMap.put(s, true);
+    return 1;
+  }
+
+  private void lookForReadmeOptionBehind(String[] args, int start) {
+    for (int i = start; i < args.length; ++i) {
+      if (args[i].equals(optionReadme)) {
+        this.optionEnableStatusMap.put(optionReadme, true);
+      }
+    }
   }
 
   public String getErrorMessage() {

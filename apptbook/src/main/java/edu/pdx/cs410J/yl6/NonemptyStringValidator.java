@@ -35,6 +35,7 @@ public class NonemptyStringValidator extends AbstractValidator {
   @Override
   public boolean isValid(String s) {
     String trimed = s.trim();
+    
     if (trimed.equals("")) {
       this.message = "Field " + this.fieldName + " should not be empty";
       return false;
