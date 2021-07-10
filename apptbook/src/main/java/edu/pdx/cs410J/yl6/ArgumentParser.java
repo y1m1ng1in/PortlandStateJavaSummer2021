@@ -30,6 +30,7 @@ public class ArgumentParser {
     this.readme = "not specified yet";
     this.maxArgumentPlusOptionAllowed = 0;
     this.requiredArgumentNum = 0;
+    addOption(optionReadme, 0);
   }
 
   public ArgumentParser addArgument(String arg) {
@@ -133,7 +134,7 @@ public class ArgumentParser {
         this.errorMessage = MISSING_OPTION_ARG + args[indexStart];
         return -1;
       }
-      
+
       // have enough arguments
       ArrayList optionArg = this.optionArgumentMap.get(args[indexStart]);
       for (int i = 0; i < argNum; ++i) {

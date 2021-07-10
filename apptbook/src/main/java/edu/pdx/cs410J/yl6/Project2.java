@@ -55,7 +55,6 @@ public class Project2 {
     ArgumentParser argparser = new ArgumentParser()
         .addOption("-print", 0)
         .addOption("-textFile", 1)
-        .addOption("-README", 0)
         .addArgument("owner")
         .addArgument("description of the appointment")
         .addArgument("begin date of the appointment")
@@ -68,9 +67,9 @@ public class Project2 {
     if (!argparser.parse(args)) {
       printErrorMessageAndExit(argparser.getErrorMessage());
     }
+
     String[] arguments = argparser.getArguments();
 
-    // number of args meet requirement
     DateStringValidator dateValidator = new DateStringValidator();
     TimeStringValidator timeValidator = new TimeStringValidator();
     NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
@@ -149,7 +148,7 @@ public class Project2 {
         sb.append(line);
         sb.append("\n");
       }
-      
+
       return sb.toString();
     } catch (IOException e) {
       printErrorMessageAndExit("Cannot load plain text file from resource " + filename);
