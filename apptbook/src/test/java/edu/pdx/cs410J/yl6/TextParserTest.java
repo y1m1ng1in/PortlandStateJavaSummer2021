@@ -176,4 +176,50 @@ public class TextParserTest {
         containsString("Owner parsed from file is mismatched with argument"));
   }
 
+  @Test
+  void fileNotExist() throws IOException, ParserException {
+    TextParser<AppointmentBook, Appointment> textParser =
+      new TextParser("notexist.txt", "owner1", AppointmentBook.class, Appointment.class, 
+                     createValidators(), 5);
+    AppointmentBook book = textParser.parse();
+    assertThat(book.getAppointments().size(), equalTo(0));
+    File f = new File("notexist.txt");
+    f.delete();
+  }
+
+  @Test
+  void validatorViolationCase1() throws IOException, ParserException {
+    createFileWithText(
+        "yml&22/2/2020#2:22#2/3/2020#3:33#descrp&");
+    TextParser<AppointmentBook, Appointment> textParser =
+      new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
+                     createValidators(), 5);
+    Exception exception = assertThrows(ParserException.class, textParser::parse);
+    assertThat(exception.getMessage(), 
+        containsString("is not a valid month"));
+  }
+
+  @Test
+  void validatorViolationCase2() throws IOException, ParserException {
+    createFileWithText(
+        "yml&02/02/2020#02:60#2/3/2020#3:33#descrp&");
+    TextParser<AppointmentBook, Appointment> textParser =
+      new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
+                     createValidators(), 5);
+    Exception exception = assertThrows(ParserException.class, textParser::parse);
+    assertThat(exception.getMessage(), 
+        containsString("is not a valid minute"));
+  }
+
+  @Test
+  void ownerCannotParsedCompletely() throws IOException, ParserException {
+    createFileWithText(
+        "owner name reached end of file without unescaped chars");
+    TextParser<AppointmentBook, Appointment> textParser =
+      new TextParser(testFile, "owner", AppointmentBook.class, Appointment.class, 
+                     createValidators(), 5);
+    Exception exception = assertThrows(ParserException.class, textParser::parse);
+    assertThat(exception.getMessage(), 
+        equalTo("End of file reached before owner been parsed completely"));
+  }
 }

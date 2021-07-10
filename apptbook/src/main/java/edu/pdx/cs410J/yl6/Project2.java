@@ -33,6 +33,7 @@ public class Project2 {
   static final String MISSING_OPTION_ARG = "Missing argument of option ";
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
+  static HashMap<Integer, String> exitMsgs;
 
   static final int maxArgumentPlusOptionAllowed = 10;
   static final int requiredArgumentNum = 6;
@@ -74,7 +75,7 @@ public class Project2 {
       optionArgumentNumberMap.put(options[i], optionArgRequirement[i]);
     }
 
-    HashMap<Integer, String> exitMsgs = new HashMap<Integer, String>();
+    exitMsgs = new HashMap<Integer, String>();
     exitMsgs.put(-1, README);
     exitMsgs.put(0, MISSING_CMD_LINE_ARGS+ '\n' + USAGE);
     exitMsgs.put(1, MISSING_DESCRIPTION);
@@ -87,9 +88,6 @@ public class Project2 {
     int argStartAt = detectAndMarkSwitches(args);
     int actualArgumentNum = args.length - argStartAt;
 
-    if (optionEnableStatusMap.get(optionReadme)) {
-      printErrorMessageAndExit(exitMsgs.get(-1));
-    }
     if (args.length > maxArgumentPlusOptionAllowed) {
       printErrorMessageAndExit(exitMsgs.get(maxArgumentPlusOptionAllowed));
     }
@@ -246,8 +244,11 @@ public class Project2 {
   private static boolean markSwitch(String s) {
     boolean isSwitch = optionEnableStatusMap.containsKey(s);
     if (isSwitch) {
+      if (s.equals(optionReadme)) {
+        printErrorMessageAndExit(exitMsgs.get(-1));
+      } 
       if (optionEnableStatusMap.get(s)) {
-        printErrorMessageAndExit("duplicated " + s + "in options");
+        printErrorMessageAndExit("duplicated " + s + " in options");
       }
       optionEnableStatusMap.put(s, true);
     }
