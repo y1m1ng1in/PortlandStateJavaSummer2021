@@ -9,7 +9,7 @@ error and exits the program with status 1; if the number of arguments is
 correct and the arguments are valid, then the program creates the 
 appointment and exits with status 0.
 
-usage: java edu.pdx.cs410J.yl6.Project2 [options] <args>
+usage: java edu.pdx.cs410J.yl6.Project2 [ options ] <args>
   args are (in this order):
     owner               The person who owns the appt book
     description         A description of the appointment

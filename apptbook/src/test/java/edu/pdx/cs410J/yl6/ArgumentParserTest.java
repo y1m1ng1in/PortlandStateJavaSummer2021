@@ -264,5 +264,69 @@ public class ArgumentParserTest {
     assertThat(x3, equalTo(a3));
   }
 
+  @Test
+  void testCaseMoreArgumentsThanNeeded() {
+    ArgumentParser argparser = constructThreeOptionsWithSixArgs(5, 8, 4);
+    String[] passin = {                            
+      "-bar", "bar1", "bar2", "bar3", "bar4", "bar5", "bar6", "bar7", "bar8", 
+      "-foo", "foo1", "foo2", "foo3", "foo4", "foo5", 
+      "baz1", "baz2", "baz3", "baz4",    
+      "a1", "a2", "a3", "a4", "a5", "a6"
+    };
+    boolean rt = argparser.parse(passin);
+    assertThat(rt, equalTo(false));
+    assertThat(argparser.getErrorMessage(), equalTo(
+        "The following option(s) cannot be recognized:\n  * baz1\n  * baz2\n  * baz3\n  * baz4\n"));
+  }
+
+  @Test
+  void testCaseMissingArguments() {
+    ArgumentParser argparser = constructThreeOptionsWithSixArgs(5, 8, 4);
+    String[] passin = {                            
+      "-bar", "bar1", "bar2", "bar3", "bar4", "bar5", "bar6", "bar7", "bar8", 
+      "-foo", "foo1", "foo2", "foo3", "foo4", "foo5", 
+      "-baz", "baz1", "baz2", "baz3", "baz4",    
+      "a1", "a2"
+    };
+    boolean rt = argparser.parse(passin);
+    assertThat(rt, equalTo(false));
+    assertThat(argparser.getErrorMessage(), 
+        equalTo(
+            "The following argument(s) are missing:\n  * arg3\n  * arg4\n  * arg5\n  * arg6\n"));
+  }
+  
+
+  @Test
+  void testCaseMoreArgumentsThanMax() {
+    ArgumentParser argparser = constructThreeOptionsWithSixArgs(5, 8, 4);
+    String[] passin = {                            
+      "-bar", "bar1", "bar2", "bar3", "bar4", "bar5", "bar6", "bar7", "bar8", 
+      "-foo", "foo1", "foo2", "foo3", "foo4", "foo5", 
+      "-baz", "baz1", "baz2", "baz3", "baz4",    
+      "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9"
+    };
+    boolean rt = argparser.parse(passin);
+    assertThat(rt, equalTo(false));
+    assertThat(argparser.getErrorMessage(), 
+        equalTo(
+            "The following argument(s) passed in are extraneous:\n  * a7\n  * a8\n  * a9\n"));
+  }
+
+  @Test
+  void MoreArgsTreatedAsOptions() {
+    ArgumentParser argparser = constructThreeOptionsWithSixArgs(5, 8, 4);
+    String[] passin = {                            
+      "-foo", "foo1", "foo2", "foo3", "foo4", "foo5", 
+      "-baz", "baz1", "baz2", "baz3", "baz4",    
+      "a1", "a2", "a3", // total args not exceeding maximum opt+arg allowed, treat 
+                        // these three as option              
+      "a4", "a5", "a6", "a7", "a8", "a9"
+    };
+    boolean rt = argparser.parse(passin);
+    assertThat(rt, equalTo(false));
+    assertThat(argparser.getErrorMessage(), 
+        equalTo(
+            "The following option(s) cannot be recognized:\n  * a1\n  * a2\n  * a3\n"));
+  }
 
 }

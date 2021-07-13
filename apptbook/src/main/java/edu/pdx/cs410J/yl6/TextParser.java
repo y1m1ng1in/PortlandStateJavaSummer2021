@@ -42,6 +42,7 @@ public class TextParser<T extends AbstractAppointmentBook,
   private Class<T> bookClass;
   private Class<E> apptClass;
   private AbstractValidator[] validators;
+  private AbstractValidator ownerValidator;
   private final int expectedNumberofField;
 
   static final String EOF_REACHED_PARSE_ARG = 
@@ -55,6 +56,8 @@ public class TextParser<T extends AbstractAppointmentBook,
   static final String CANNOT_FIND_FILE = "Cannot find file: ";
   static final String IOEXCEPTION_OCCUR = "IOException occurs during parsing with message: ";
   static final String PROGRAM_INTERNAL_ERROR = "Program internal error: ";
+  static final String MORE_FIELD_THAN_NEEDED = 
+      "An extraneous field encountered to build appointment from file";
 
   /**
    * Create a TextParser instance. 
@@ -67,6 +70,9 @@ public class TextParser<T extends AbstractAppointmentBook,
    *        the <code>Class</code> of appointment book
    * @param apptClass             
    *        the <code>Class</code> of appointment
+   * @param ownerValidator
+   *        the validator that derived from <code>AbstractValidator</code> applied to be 
+   *        applied to owner field of the appointment book
    * @param validators            
    *        an array of validators that derived from <code>AbstractValidator</code> to be 
    *        applied for each field of each appointment got parsed, where ith validator 
@@ -74,12 +80,19 @@ public class TextParser<T extends AbstractAppointmentBook,
    * @param expectedNumberofField 
    *        the number of fields expect to be parsed for every appointment
    */
-  public TextParser(String filename, String owner, Class<T> bookClass, Class<E> apptClass,
-                    AbstractValidator[] validators, int expectedNumberofField) {
+  public TextParser(
+      String filename, 
+      String owner, 
+      Class<T> bookClass, 
+      Class<E> apptClass,
+      AbstractValidator ownerValidator, 
+      AbstractValidator[] validators, 
+      int expectedNumberofField) {
     this.filename = filename;
     this.owner = owner;
     this.bookClass = bookClass;
     this.apptClass = apptClass;
+    this.ownerValidator = ownerValidator;
     this.validators = validators;
     this.expectedNumberofField = expectedNumberofField;
     this.sb = new StringBuilder();
@@ -127,6 +140,9 @@ public class TextParser<T extends AbstractAppointmentBook,
         c = (char) next;
         switch (c) {
           case '#':
+            if (this.currentArgIndex == this.expectedNumberofField) {
+              throw new ParserException(MORE_FIELD_THAN_NEEDED);
+            }
             placeArgumentAndResetStringBuilder();
             this.currentArgIndex += 1;
             break;
@@ -201,6 +217,8 @@ public class TextParser<T extends AbstractAppointmentBook,
     }
 
     String owner = this.sb.toString();
+    
+    validateField(this.ownerValidator, owner);
     if (!owner.equals(this.owner)) {
       throw new ParserException(OWNER_MISMATCH + owner + " versus " + this.owner);
     }

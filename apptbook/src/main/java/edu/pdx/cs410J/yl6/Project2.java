@@ -105,7 +105,8 @@ public class Project2 {
             new TextParser(apptbookFile, 
                            arguments[ownerArgIndex], 
                            AppointmentBook.class, 
-                           Appointment.class, 
+                           Appointment.class,
+                           ownerValidator, 
                            validators, 
                            appointment.getExpectedNumberOfField());
         book = textParser.parse();       
