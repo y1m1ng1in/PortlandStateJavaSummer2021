@@ -38,11 +38,11 @@ import java.util.List;
  * where i is the indexing of available option, and opt(i) is expected number of 
  * arguments for ith option. 
  * <p>
- * If we have an array args[0 .. N] with size N, then if N < M, args[0 .. d] contains 
- * valid options and their arguments, and d + A < N, then args[d .. N-A] are treated as 
+ * If we have an array args[0 .. N] with size N, then if N &lt; M, args[0 .. d] contains 
+ * valid options and their arguments, and d + A &lt; N, then args[d .. N-A] are treated as 
  * invalid option which shall be reported as error message. 
  * <p>
- * If N >= M, then args[d+A .. N] are treated as extraneous arguments which shall be 
+ * If N &gt;= M, then args[d+A .. N] are treated as extraneous arguments which shall be 
  * reported as error message.
  */
 public class ArgumentParser {
