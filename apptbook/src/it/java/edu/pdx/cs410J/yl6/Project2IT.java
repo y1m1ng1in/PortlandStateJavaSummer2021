@@ -32,6 +32,7 @@ class Project2IT extends InvokeMainTestCase {
 
   void createFileWithText(String content) throws IOException, ParserException {
     File f = new File(testFile);
+    f.createNewFile();
     Writer writer = new FileWriter(f);
     writer.write(content);
     writer.flush();
@@ -395,8 +396,6 @@ class Project2IT extends InvokeMainTestCase {
     String expected = "yml&2/12/2020#12:52#4/5/2020#2:52#A description&";
     assertThat(s, containsString(expected));
     assertThat(result.getExitCode(), equalTo(0));
-    File f = new File("nonexists.txt");
-    f.delete();
   }
 
   @Test
