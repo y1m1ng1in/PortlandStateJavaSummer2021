@@ -469,6 +469,16 @@ class Project2IT extends InvokeMainTestCase {
   }
 
   @Test
+  void fileWithFewArgumentsForAppointment() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020#12:52#4/5/2020#2:52#A description1&02/02/2020#12:52 4/5/2020#2:52#A description1&02/02/2020#12:52#4/5/2020#2:52#A description1&");
+    MainMethodResult result = invokeMain(
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
+    String expected = "Not enough fields to build appointment from file expect 5, but got 4";
+    assertThat(result.getTextWrittenToStandardError(), containsString(expected));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  @Test
   void fileWithMoreArgumentsForAppointment() throws IOException, ParserException {
     createFileWithText("yml&02/02/2020#12:52#4/5/2020#2:52#A description112/12/2022#12:52#4/5/2023#2:52#A description2&");
     MainMethodResult result = invokeMain(
