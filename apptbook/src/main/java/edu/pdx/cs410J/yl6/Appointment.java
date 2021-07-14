@@ -70,6 +70,16 @@ public class Appointment extends AbstractAppointment implements PlainTextReprese
     return this.description;
   }
 
+  /**
+   * Get an array of strings that will be dumped to plain text file
+   * in the order from low index to high index of the returned array.
+   * The delimiter between fields is determined by the invoking dumper 
+   * class. 
+   * 
+   * @return an array of strings that are to be dumped to plain text 
+   *         where the order is same as from low index to high index
+   *         of this array
+   */
   @Override
   public String[] getStringFields() {
     String[] fields = new String[numberOfField];
@@ -81,6 +91,13 @@ public class Appointment extends AbstractAppointment implements PlainTextReprese
     return fields;
   }
 
+  /**
+   * Get an integer that represents the number of fields is expected to 
+   * be parsed from plain text file
+   * 
+   * @return an integer that represents the number of fields is expected to 
+   *         be parsed from plain text file
+   */
   @Override
   public int getExpectedNumberOfField() {
     return numberOfField;
