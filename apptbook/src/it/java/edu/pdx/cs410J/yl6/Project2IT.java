@@ -79,8 +79,10 @@ class Project2IT extends InvokeMainTestCase {
     assertThat(s, containsString("* description of the appointment"));
     assertThat(s, containsString("* begin date of the appointment"));
     assertThat(s, containsString("* begin time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of begin time of the appointment")); 
     assertThat(s, containsString("* end date of the appointment"));
     assertThat(s, containsString("* end time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
     assertThat(s, not(containsString("* owner")));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -97,8 +99,10 @@ class Project2IT extends InvokeMainTestCase {
     assertThat(s, not(containsString("* description of the appointment")));
     assertThat(s, containsString("* begin date of the appointment"));
     assertThat(s, containsString("* begin time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of begin time of the appointment"));
     assertThat(s, containsString("* end date of the appointment"));
     assertThat(s, containsString("* end time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
     assertThat(s, not(containsString("* owner")));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -115,11 +119,30 @@ class Project2IT extends InvokeMainTestCase {
     assertThat(s, not(containsString("* description of the appointment")));
     assertThat(s, not(containsString("* begin date of the appointment")));
     assertThat(s, containsString("* begin time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of begin time of the appointment"));
     assertThat(s, containsString("* end date of the appointment"));
     assertThat(s, containsString("* end time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
     assertThat(s, not(containsString("* owner")));
     assertThat(result.getExitCode(), equalTo(1));
   }
+
+  @Test
+  void missingBeginMark() {
+    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52");
+    String s = result.getTextWrittenToStandardError();
+    assertThat(s, containsString("The following argument(s) are missing:\n"));
+    assertThat(s, not(containsString("* description of the appointment")));
+    assertThat(s, not(containsString("* begin date of the appointment")));
+    assertThat(s, not(containsString("* begin time of the appointment")));
+    assertThat(s, containsString("* am/pm marker of begin time of the appointment"));
+    assertThat(s, containsString("* end date of the appointment"));
+    assertThat(s, containsString("* end time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
+    assertThat(s, not(containsString("* owner")));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
 
   /**
    * Tests that invoking the main method with 4 arguments issues an error
@@ -127,14 +150,16 @@ class Project2IT extends InvokeMainTestCase {
    */ 
   @Test
   void missingEndDate() {
-    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52");
+    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52", "am");
     String s = result.getTextWrittenToStandardError();
     assertThat(s, containsString("The following argument(s) are missing:\n"));
     assertThat(s, not(containsString("* description of the appointment")));
     assertThat(s, not(containsString("* begin date of the appointment")));
     assertThat(s, not(containsString("* begin time of the appointment")));
+    assertThat(s, not(containsString("* am/pm marker of begin time of the appointment")));
     assertThat(s, containsString("* end date of the appointment"));
     assertThat(s, containsString("* end time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
     assertThat(s, not(containsString("* owner")));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -145,25 +170,43 @@ class Project2IT extends InvokeMainTestCase {
    */ 
   @Test
   void missingEndTime() {
-    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52", "42/52/2020");
+    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52", "am", "42/52/2020");
     String s = result.getTextWrittenToStandardError();
     assertThat(s, containsString("The following argument(s) are missing:\n"));
     assertThat(s, not(containsString("* description of the appointment")));
     assertThat(s, not(containsString("* begin date of the appointment")));
     assertThat(s, not(containsString("* begin time of the appointment")));
+    assertThat(s, not(containsString("* am/pm marker of begin time of the appointment")));
     assertThat(s, not(containsString("* end date of the appointment")));
     assertThat(s, containsString("* end time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
+    assertThat(s, not(containsString("* owner")));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  @Test
+  void missingEndMark() {
+    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52", "am", "42/52/2020", "1:1");
+    String s = result.getTextWrittenToStandardError();
+    assertThat(s, containsString("The following argument(s) are missing:\n"));
+    assertThat(s, not(containsString("* description of the appointment")));
+    assertThat(s, not(containsString("* begin date of the appointment")));
+    assertThat(s, not(containsString("* begin time of the appointment")));
+    assertThat(s, not(containsString("* am/pm marker of begin time of the appointment")));
+    assertThat(s, not(containsString("* end date of the appointment")));
+    assertThat(s, not(containsString("* end time of the appointment")));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
     assertThat(s, not(containsString("* owner")));
     assertThat(result.getExitCode(), equalTo(1));
   }
 
   /**
    * Tests that invoking the main method with more arguments than needed
-   * When there are 7 arguments passed in, they are treated as 1 option followed by 6 arguments
+   * When there are 9 arguments passed in, they are treated as 1 option followed by 8 arguments
    */
   @Test
   void moreArgumentsThanNeeded() {
-    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1", "extra2");
+    MainMethodResult result = invokeMain("Dave", "A description", "42/52/2020", "42:52", "am", "42/52/2020", "42:52", "am", "extra1");
     String s = result.getTextWrittenToStandardError();
     assertThat(s, containsString("The following option(s) cannot be recognized:\n  * Dave\n"));
     assertThat(result.getExitCode(), equalTo(1));
@@ -176,9 +219,9 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void printAppointmentWithValidArguments() {
-    MainMethodResult result = invokeMain("-print", "Dave", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
+    MainMethodResult result = invokeMain("-print", "Dave", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "pm");
     assertThat(result.getTextWrittenToStandardError(), emptyString());
-    String s = "A description from 2/12/2020 12:52 until 4/5/2020 2:52";
+    String s = "A description from 2/12/2020 12:52 am until 4/5/2020 2:52 pm";
     assertThat(result.getTextWrittenToStandardOut(), containsString(s));
     assertThat(result.getExitCode(), equalTo(0));
   }
@@ -188,8 +231,8 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void invalidRangeOfBeginDate() {
-    MainMethodResult result = invokeMain("-print", "Dave", "A description", "32/12/2020", "12:52", "4/5/2020", "2:52");
-    assertThat(result.getTextWrittenToStandardError(), containsString("not a valid month"));
+    MainMethodResult result = invokeMain("-print", "Dave", "A description", "22/12/2020", "12:52", "am", "4/5/2020", "2:52", "pm");
+    assertThat(result.getTextWrittenToStandardError(), containsString("Unparseable date"));
     assertThat(result.getTextWrittenToStandardOut(), emptyString());
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -199,8 +242,8 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void invalidRangeOfBeginTime() {
-    MainMethodResult result = invokeMain("-print", "Dave", "A description", "12/12/2020", "120:52", "4/5/2020", "2:52");
-    assertThat(result.getTextWrittenToStandardError(), containsString("format does not meet requirement"));
+    MainMethodResult result = invokeMain("-print", "Dave", "A description", "12/12/2020", "120:52", "am", "4/5/2020", "2:52", "pm");
+    assertThat(result.getTextWrittenToStandardError(), containsString("Unparseable date"));
     assertThat(result.getTextWrittenToStandardOut(), emptyString());
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -210,8 +253,8 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void invalidDelimiterFormatBeginDate() {
-    MainMethodResult result = invokeMain("-print", "Dave", "A description", "12-12-2020", "120:52", "4/5/2020", "2:52");
-    assertThat(result.getTextWrittenToStandardError(), containsString("format does not meet requirement"));
+    MainMethodResult result = invokeMain("-print", "Dave", "A description", "12-12-2020", "120:52", "am", "4/5/2020", "2:52", "pm");
+    assertThat(result.getTextWrittenToStandardError(), containsString("Unparseable date"));
     assertThat(result.getTextWrittenToStandardOut(), emptyString());
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -221,8 +264,8 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void invalidStringFormatBeginDate() {
-    MainMethodResult result = invokeMain("-print", "Dave", "A description", "begindate", "120:52", "4/5/2020", "2:52");
-    assertThat(result.getTextWrittenToStandardError(), containsString("format does not meet requirement"));
+    MainMethodResult result = invokeMain("-print", "Dave", "A description", "begindate", "120:52", "am", "4/5/2020", "2:52", "pm");
+    assertThat(result.getTextWrittenToStandardError(), containsString("Unparseable date"));
     assertThat(result.getTextWrittenToStandardOut(), emptyString());
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -265,7 +308,7 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void duplicatedOptionsPassedIn() {
-    MainMethodResult result = invokeMain("-print", "-print", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1");
+    MainMethodResult result = invokeMain("-print", "-print", "Dave", "A description", "begindate", "12:52", "am", "4/5/2020", "2:52", "pm");
     assertThat(result.getTextWrittenToStandardError(), containsString("duplicated"));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -292,8 +335,10 @@ class Project2IT extends InvokeMainTestCase {
     assertThat(s, containsString("* description of the appointment"));
     assertThat(s, containsString("* begin date of the appointment"));
     assertThat(s, containsString("* begin time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of begin time of the appointment")); 
     assertThat(s, containsString("* end date of the appointment"));
     assertThat(s, containsString("* end time of the appointment"));
+    assertThat(s, containsString("* am/pm marker of end time of the appointment"));
     assertThat(s, not(containsString("* owner")));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -316,7 +361,7 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void InvalidOneOptions() {
-    MainMethodResult result = invokeMain("-READMEE", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1");
+    MainMethodResult result = invokeMain("-READMEE", "Dave", "A description", "42/52/2020", "42:52", "am", "42/52/2020", "extra1", "am");
     String s = result.getTextWrittenToStandardError();
     assertThat(s, containsString("The following option(s) cannot be recognized:\n  * -READMEE\n"));
     assertThat(result.getExitCode(), equalTo(1));
@@ -328,7 +373,8 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void InvalidTwoOptions() {
-    MainMethodResult result = invokeMain("-READMEE", "-READMEEE", "Dave", "A description", "42/52/2020", "42:52", "42/52/2020", "extra1");
+    MainMethodResult result = invokeMain(
+        "-READMEE", "-READMEEE", "Dave", "A description", "42/52/2020", "42:52", "am", "42/52/2020", "extra1", "am");
     String s = result.getTextWrittenToStandardError();
     assertThat(s, containsString("The following option(s) cannot be recognized:\n  * -READMEE\n  * -READMEEE\n"));
     assertThat(result.getExitCode(), equalTo(1));
@@ -339,7 +385,7 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void EmptyDescription() {
-    MainMethodResult result = invokeMain("Dave", "", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    MainMethodResult result = invokeMain("Dave", "", "12/22/2020", "2:52", "AM", "12/5/2020", "3:50", "PM");
     assertThat(result.getTextWrittenToStandardError(), containsString("description should not be empty"));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -350,7 +396,7 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void EmptyDescriptionWithMultipleSpacesIsAlsoEmpty() {
-    MainMethodResult result = invokeMain("Dave", "     ", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    MainMethodResult result = invokeMain("Dave", "     ", "12/22/2020", "2:52", "AM", "12/5/2020", "3:50", "PM");
     assertThat(result.getTextWrittenToStandardError(), containsString("description should not be empty"));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -360,7 +406,7 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void EmptyOwner() {
-    MainMethodResult result = invokeMain("", "desc", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    MainMethodResult result = invokeMain("", "desc", "12/22/2020", "2:52", "AM", "12/5/2020", "3:50", "PM");
     assertThat(result.getTextWrittenToStandardError(), containsString("owner should not be empty"));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -371,19 +417,19 @@ class Project2IT extends InvokeMainTestCase {
    */
   @Test
   void EmptyOwnerWithMultipleSpacesIsAlsoEmpty() {
-    MainMethodResult result = invokeMain("       ", "desc", "12/22/2020", "2:52", "12/5/2020", "3:50");
+    MainMethodResult result = invokeMain("       ", "desc", "12/22/2020", "2:52", "AM", "12/5/2020", "3:50", "PM");
     assertThat(result.getTextWrittenToStandardError(), containsString("owner should not be empty"));
     assertThat(result.getExitCode(), equalTo(1));
   }
 
   @Test
   void ValidArgsWithFile() throws IOException, ParserException {
-    createFileWithText("yml&02/02/2020#12:52#4/5/2020#2:52#A description1&");
+    createFileWithText("yml&02/02/2020 12:52 am#4/5/2020 2:52 pm#A description1&");
     MainMethodResult result = invokeMain(
-        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "pm");
     String s = readFile(testFile);
     String expected = 
-        "yml&02/02/2020#12:52#4/5/2020#2:52#A description1&2/12/2020#12:52#4/5/2020#2:52#A description&";
+        "yml&02/02/2020 12:52 am#4/5/2020 2:52 pm#A description1&2/12/2020 12:52 am#4/5/2020 2:52 pm#A description&";
     assertThat(s, equalTo(expected));
     assertThat(result.getExitCode(), equalTo(0));
   }
@@ -391,9 +437,9 @@ class Project2IT extends InvokeMainTestCase {
   @Test
   void ValidArgWithNonexistFile() throws IOException {
     MainMethodResult result = invokeMain(
-      "-textFile", "nonexists.txt", "yml", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
+      "-textFile", "nonexists.txt", "yml", "A description", "2/12/2020", "12:52", "pm", "4/5/2020", "2:52", "AM");
     String s = readFile("nonexists.txt");
-    String expected = "yml&2/12/2020#12:52#4/5/2020#2:52#A description&";
+    String expected = "yml&2/12/2020 12:52 pm#4/5/2020 2:52 AM#A description&";
     assertThat(s, containsString(expected));
     assertThat(result.getExitCode(), equalTo(0));
   }
@@ -450,9 +496,9 @@ class Project2IT extends InvokeMainTestCase {
 
   @Test
   void fileMissingOwnername() throws IOException, ParserException {
-    createFileWithText("&02/02/2020#12:52#4/5/2020#2:52#A description1&");
+    createFileWithText("&02/02/2020 12:52 am#4/5/2020 2:52 pm#A description1&");
     MainMethodResult result = invokeMain(
-        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "PM", "4/5/2020", "2:52", "AM");
     String expected = "Field owner should not be empty";
     assertThat(result.getTextWrittenToStandardError(), containsString(expected));
     assertThat(result.getExitCode(), equalTo(1));
@@ -460,9 +506,9 @@ class Project2IT extends InvokeMainTestCase {
 
   @Test
   void fileWithOnlySpacesOwnername() throws IOException, ParserException {
-    createFileWithText("    &02/02/2020#12:52#4/5/2020#2:52#A description1&");
+    createFileWithText("    &02/02/2020 12:52 pm#4/5/2020 2:52 pm#A description1&");
     MainMethodResult result = invokeMain(
-        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "am");
     String expected = "Field owner should not be empty";
     assertThat(result.getTextWrittenToStandardError(), containsString(expected));
     assertThat(result.getExitCode(), equalTo(1));
@@ -470,10 +516,10 @@ class Project2IT extends InvokeMainTestCase {
 
   @Test
   void fileWithFewArgumentsForAppointment() throws IOException, ParserException {
-    createFileWithText("yml&02/02/2020#12:52#4/5/2020#2:52#A description1&02/02/2020#12:52 4/5/2020#2:52#A description1&02/02/2020#12:52#4/5/2020#2:52#A description1&");
+    createFileWithText("yml&02/02/2020 12:52 am#4/5/2020 2:52 am#A description1&02/02/2020 12:52 am 4/5/2020 2:52 am#A description1&02/02/2020#12:52#4/5/2020#2:52#A description1&");
     MainMethodResult result = invokeMain(
-        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
-    String expected = "Not enough fields to build appointment from file expect 5, but got 4";
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "pm");
+    String expected = "Not enough fields to build appointment from file expect 3, but got 2";
     assertThat(result.getTextWrittenToStandardError(), containsString(expected));
     assertThat(result.getExitCode(), equalTo(1));
   }
@@ -482,7 +528,7 @@ class Project2IT extends InvokeMainTestCase {
   void fileWithMoreArgumentsForAppointment() throws IOException, ParserException {
     createFileWithText("yml&02/02/2020#12:52#4/5/2020#2:52#A description112/12/2022#12:52#4/5/2023#2:52#A description2&");
     MainMethodResult result = invokeMain(
-        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "4/5/2020", "2:52");
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "am");
     String expected = "An extraneous field encountered to build appointment from file";
     assertThat(result.getTextWrittenToStandardError(), containsString(expected));
     assertThat(result.getExitCode(), equalTo(1));

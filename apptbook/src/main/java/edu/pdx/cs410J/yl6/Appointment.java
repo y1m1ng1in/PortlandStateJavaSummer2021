@@ -23,6 +23,13 @@ public class Appointment extends AbstractAppointment
   private Date end;
   static final int numberOfField = 3;
 
+  /**
+   * 
+   * @param begin
+   * @param end
+   * @param description
+   * @throws AppointmentInvalidFieldException
+   */
   public Appointment(String begin, String end, String description) 
       throws AppointmentInvalidFieldException {
     DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
