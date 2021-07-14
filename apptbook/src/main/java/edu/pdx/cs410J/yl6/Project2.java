@@ -50,9 +50,11 @@ public class Project2 {
   /**
    * Main program that parses the command line, creates a <code>Appointment</code>,
    * and prints a description of the appointment to standard out by invoking its
-   * <code>toString</code> method if <code>-print</code> option is enabled, or only
-   * prints readme information to standard error once <code>-README</code> 
-   * option is enabled.
+   * <code>toString</code> method if <code>-print</code> option is enabled; or parses 
+   * an external file to create an appointment book, adds new created appointment to 
+   * the book, then dumps updated book back to the file, if <code>-textFile file</code>
+   * is enabled; or only prints readme information to standard error once 
+   * <code>-README</code> option is enabled.
    */
   public static void main(String[] args) {
     ArgumentParser argparser = new ArgumentParser()
