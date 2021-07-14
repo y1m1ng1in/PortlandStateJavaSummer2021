@@ -25,7 +25,7 @@ public class AppointmentTest {
   @Test
   void getBeginTimeStringNeedsToBeImplemented() throws ParseException, AppointmentInvalidFieldException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
-    assertThat(appointment.getBeginTimeString(), equalTo("3/14/2020 4:29 pm"));
+    assertThat(appointment.getBeginTimeString(), equalTo("3/14/20, 4:29 PM"));
   }
 
   /**
@@ -34,7 +34,7 @@ public class AppointmentTest {
   @Test
   void getEndTimeStringNeedsToBeImplemented() throws ParseException, AppointmentInvalidFieldException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
-    assertThat(appointment.getEndTimeString(), equalTo("3/14/2020 4:50 pm"));
+    assertThat(appointment.getEndTimeString(), equalTo("3/14/20, 4:50 PM"));
   }
 
   /**

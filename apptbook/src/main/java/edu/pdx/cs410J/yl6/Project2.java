@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 
 import edu.pdx.cs410J.ParserException;
 
@@ -134,6 +135,10 @@ public class Project2 {
       if (argparser.isEnabled("-print")) {
         System.out.println(appointment.toString());
       }
+
+      PrintStream writer = System.out;
+      PrettyPrinter<AppointmentBook, Appointment> printer = new PrettyPrinter(writer);
+      printer.dump(book);
     } catch(ParserException | IOException ex) {
       printErrorMessageAndExit(ex.getMessage());
     } catch(Exception ex) {

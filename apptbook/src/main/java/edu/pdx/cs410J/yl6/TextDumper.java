@@ -57,30 +57,26 @@ public class TextDumper<T extends AbstractAppointmentBook,
    */
   @Override
   public void dump(T book) throws IOException {
-    try {
-      Writer writer = new FileWriter(this.filename);
-      Collection<E> appts = book.getAppointments();
-      String owner = book.getOwnerName();
+    Writer writer = new FileWriter(this.filename);
+    Collection<E> appts = book.getAppointments();
+    String owner = book.getOwnerName();
 
-      writer.write(addEscapeCharacter(owner));
-      writer.write('&');
-      for (E appt: appts) {
-        String[] appointmentFields = appt.getStringFields();
-        for (int i = 0; i < appointmentFields.length; ++i) {
-          writer.write(addEscapeCharacter(appointmentFields[i]));
-          if (i + 1 == appointmentFields.length) {
-            writer.write('&');
-          } else {
-            writer.write('#');
-          }
+    writer.write(addEscapeCharacter(owner));
+    writer.write('&');
+    for (E appt: appts) {
+      String[] appointmentFields = appt.getStringFields();
+      for (int i = 0; i < appointmentFields.length; ++i) {
+        writer.write(addEscapeCharacter(appointmentFields[i]));
+        if (i + 1 == appointmentFields.length) {
+          writer.write('&');
+        } else {
+          writer.write('#');
         }
       }
-      
-      writer.flush();
-      writer.close();
-    } catch (IOException ex) {
-      throw ex;
     }
+    
+    writer.flush();
+    writer.close();
   }
 
   /**

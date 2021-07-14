@@ -14,7 +14,7 @@ import edu.pdx.cs410J.AbstractAppointment;
  * it leaves the client program to specify a typical format for its uses.
  */
 public class Appointment extends AbstractAppointment 
-    implements PlainTextRepresentable, Comparable<Appointment> {
+    implements PlainTextRepresentable, PrettyPrintable, Comparable<Appointment> {
   
   private String beginString;
   private String endString;
@@ -55,7 +55,7 @@ public class Appointment extends AbstractAppointment
    */ 
   @Override
   public String getBeginTimeString() {
-    return this.beginString;
+    return DateFormat.getInstance().format(this.begin);
   }
 
   /**
@@ -67,7 +67,7 @@ public class Appointment extends AbstractAppointment
    */
   @Override
   public String getEndTimeString() {
-    return this.endString;
+    return DateFormat.getInstance().format(this.end);
   }
 
   /**
@@ -81,6 +81,9 @@ public class Appointment extends AbstractAppointment
     return this.description;
   }
 
+  /**
+   * 
+   */
   @Override
   public String[] getStringFields() {
     String[] fields = new String[numberOfField];
@@ -90,6 +93,9 @@ public class Appointment extends AbstractAppointment
     return fields;
   }
 
+  /**
+   * 
+   */
   @Override
   public int getExpectedNumberOfField() {
     return numberOfField;
@@ -109,6 +115,9 @@ public class Appointment extends AbstractAppointment
     return this.end;
   }
 
+  /**
+   * 
+   */
   @Override
   public int compareTo(Appointment appt) {
     if (this.begin.equals(appt.begin) && this.end.equals(appt.end)) {
@@ -118,6 +127,16 @@ public class Appointment extends AbstractAppointment
       return this.end.compareTo(appt.end);
     }
     return this.begin.compareTo(appt.begin);
+  }
+
+  @Override
+  public String[] getPrettyPrinterFields() {
+    String[] fields = new String[numberOfField + 1];
+    fields[0] = getBeginTimeString();
+    fields[1] = getEndTimeString();
+    fields[2] = this.description;
+    fields[3] = String.valueOf(((int) (this.end.getTime() - this.begin.getTime()) / 60000));
+    return fields;
   }
 
 }

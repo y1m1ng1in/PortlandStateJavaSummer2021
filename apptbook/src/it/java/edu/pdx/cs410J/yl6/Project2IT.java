@@ -221,7 +221,7 @@ class Project2IT extends InvokeMainTestCase {
   void printAppointmentWithValidArguments() {
     MainMethodResult result = invokeMain("-print", "Dave", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "pm");
     assertThat(result.getTextWrittenToStandardError(), emptyString());
-    String s = "A description from 2/12/2020 12:52 am until 4/5/2020 2:52 pm";
+    String s = "A description from 2/12/20, 12:52 AM until 4/5/20, 2:52 PM";
     assertThat(result.getTextWrittenToStandardOut(), containsString(s));
     assertThat(result.getExitCode(), equalTo(0));
   }
