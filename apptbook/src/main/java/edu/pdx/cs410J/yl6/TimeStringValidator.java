@@ -18,7 +18,8 @@ import java.util.regex.Pattern;
  */
 public class TimeStringValidator extends AbstractValidator {
   
-  static final int MAX_HOUR = 23;
+  static final int MIN_HOUR = 1;
+  static final int MAX_HOUR = 12;
   static final int MAX_MINUTE = 59;
   static final String pattern = "([0-9]{1,2}):([0-9]{1,2})";
   private String message;
@@ -44,7 +45,7 @@ public class TimeStringValidator extends AbstractValidator {
 
     int hour = Integer.parseInt(m.group(1));
     int minute = Integer.parseInt(m.group(2));
-    if (hour > MAX_HOUR) {
+    if (hour > MAX_HOUR || hour < MIN_HOUR) {
       this.message = hour + " is not a valid hour";
       return false;
     }

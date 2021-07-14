@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.Reader;
+import java.text.ParseException;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
@@ -35,26 +36,26 @@ public class TextDumperTest {
   }
 
   @Test
-  void writeOneAppt() throws IOException {
+  void writeOneAppt() throws IOException, ParseException, AppointmentInvalidFieldException {
     Appointment appt = new Appointment(
-        "12/12/2020", "120:52", "4/5/2020", "2:52", "A description");
+        "12/12/2019 12:52 am", "4/5/2020 2:52 pm", "A description");
     AppointmentBook book = new AppointmentBook("yml");
     book.addAppointment(appt);
     TextDumper<AppointmentBook, Appointment> td = new TextDumper<>(testFile);
     td.dump(book);
     String content = readFile();
-    String exp = "yml&12/12/2020#120:52#4/5/2020#2:52#A description&";
+    String exp = "yml&12/12/2019 12:52 am#4/5/2020 2:52 pm#A description&";
     assertThat(content, equalTo(exp));
   }
 
   @Test
-  void writeThreeAppt() throws IOException {
+  void writeThreeAppt() throws IOException, ParseException, AppointmentInvalidFieldException {
     Appointment appt = new Appointment(
-        "12/12/2020", "120:52", "4/5/2020", "2:52", "A description");
+        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "A description");
     Appointment appt1 = new Appointment(
-        "12/12/2020", "120:52", "4/5/2020", "2:52", "A d#e#s#c#r#i#p#t#i#o#n");
+        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "A d#e#s#c#r#i#p#t#i#o#n");
     Appointment appt2 = new Appointment(
-        "12/12/2020", "120:52", "4/5/2020", "2:52", "##A \\\\de&&sc&&ri&&ption&&");
+        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "##A \\\\de&&sc&&ri&&ption&&");
     AppointmentBook book = new AppointmentBook("y#m&l");
     book.addAppointment(appt);
     book.addAppointment(appt1);
@@ -62,9 +63,9 @@ public class TextDumperTest {
     TextDumper<AppointmentBook, Appointment> td = new TextDumper<>(testFile);
     td.dump(book);
     String content = readFile();
-    String exp = "y\\#m\\&l&12/12/2020#120:52#4/5/2020#2:52#A description&" +
-                 "12/12/2020#120:52#4/5/2020#2:52#A d\\#e\\#s\\#c\\#r\\#i\\#p\\#t\\#i\\#o\\#n&" + 
-                 "12/12/2020#120:52#4/5/2020#2:52#\\#\\#A \\\\\\\\de\\&\\&sc\\&\\&ri\\&\\&ption\\&\\&&";
+    String exp = "y\\#m\\&l&12/12/2020 12:52 pm#4/5/2021 2:52 am#A description&" +
+                 "12/12/2020 12:52 pm#4/5/2021 2:52 am#A d\\#e\\#s\\#c\\#r\\#i\\#p\\#t\\#i\\#o\\#n&" + 
+                 "12/12/2020 12:52 pm#4/5/2021 2:52 am#\\#\\#A \\\\\\\\de\\&\\&sc\\&\\&ri\\&\\&ption\\&\\&&";
     assertThat(content, equalTo(exp));
   }
 

@@ -118,69 +118,40 @@ public class TextParser<T extends AbstractAppointmentBook,
    *                         detected when applying validators
    */
   public T parse() throws ParserException {
-    int next;
-    char c = ' ';
+    File f;
+    Reader reader;
+    T book;
+    String owner;
 
     try {
-      File f = new File(this.filename);
+      // create a new file and return if file is not exist
+      f = new File(this.filename);
       if (!f.isFile()) {
-        f.createNewFile();
         return this.bookClass
             .getDeclaredConstructor(String.class)
             .newInstance(this.owner);
       }
+      reader = new FileReader(this.filename);
 
-      Reader reader = new FileReader(this.filename);
-      String owner = parseOwner(reader);
-      T book = this.bookClass
+      // parse owner and create book
+      owner = parseOwner(reader);
+      book = this.bookClass
           .getDeclaredConstructor(String.class)
           .newInstance(owner);
 
-      parsing: while ((next = reader.read()) != -1) {
-        c = (char) next;
-        switch (c) {
-          case '#':
-            if (this.currentArgIndex == this.expectedNumberofField) {
-              throw new ParserException(MORE_FIELD_THAN_NEEDED);
-            }
-            placeArgumentAndResetStringBuilder();
-            this.currentArgIndex += 1;
-            break;
+      // fill appoinments in to the book
+      book = parseAppointments(reader, book);
 
-          case '&':
-            placeArgumentAndResetStringBuilder();
-            if (this.currentArgIndex != this.expectedNumberofField - 1) {
-              throw new ParserException(
-                  NOT_ENOUGH_FIELD + " expect " + this.expectedNumberofField + 
-                  ", but got " + (this.currentArgIndex + 1));
-            }
-            this.currentArgIndex = 0;
-            book.addAppointment(buildAppointment());
-            break;
-
-          case '\\':
-            next = reader.read(); 
-            if (next != -1) {
-              this.sb.append((char) next);
-            } 
-            break;
-
-          default:
-            this.sb.append(c);
-        }
-      }
-      if (c != '&' || this.currentArgIndex != 0) {
-        throw new ParserException(EOF_REACHED_PARSE_ARG);
-      }
       reader.close();
-      return book;
     } catch (ParserException ex) {
       throw ex;
     } catch (IOException ex) {
-      throw new ParserException(IOEXCEPTION_OCCUR + ex.getMessage());
+      throw new ParserException(ex.getMessage());
     } catch (Exception ex) {
-      throw new ParserException(PROGRAM_INTERNAL_ERROR + ex.toString());
-    } 
+      throw new ParserException(PROGRAM_INTERNAL_ERROR + ex.getMessage());
+    }
+
+    return book;
   }
   
   /** 
@@ -226,7 +197,60 @@ public class TextParser<T extends AbstractAppointmentBook,
     
     return owner;
   }
-  
+
+  /**
+   * 
+   * @param reader
+   * @param book
+   * @return
+   * @throws ParserException
+   * @throws IOException
+   */
+  private T parseAppointments(Reader reader, T book) throws ParserException, IOException {
+    int next;
+    char c = ' ';
+
+    parsing: while ((next = reader.read()) != -1) {
+      c = (char) next;
+      switch (c) {
+        case '#':
+          if (this.currentArgIndex == this.expectedNumberofField) {
+            throw new ParserException(MORE_FIELD_THAN_NEEDED);
+          }
+          placeArgumentAndResetStringBuilder();
+          this.currentArgIndex += 1;
+          break;
+
+        case '&':
+          placeArgumentAndResetStringBuilder();
+          if (this.currentArgIndex != this.expectedNumberofField - 1) {
+            throw new ParserException(
+                NOT_ENOUGH_FIELD + " expect " + this.expectedNumberofField + 
+                ", but got " + (this.currentArgIndex + 1));
+          }
+          this.currentArgIndex = 0;
+          book.addAppointment(buildAppointment());
+          break;
+
+        case '\\':
+          next = reader.read(); 
+          if (next != -1) {
+            this.sb.append((char) next);
+          } 
+          break;
+
+        default:
+          this.sb.append(c);
+      }
+    }
+
+    if (c != '&' || this.currentArgIndex != 0) {
+      throw new ParserException(EOF_REACHED_PARSE_ARG);
+    }
+
+    return book;
+  }
+
   /** 
    * Construct a appointment instance from fields parsed from file. 
    * 
@@ -234,19 +258,21 @@ public class TextParser<T extends AbstractAppointmentBook,
    * @throws ParserException violation detected from validators
    */
   private E buildAppointment() throws ParserException {
+    for (int i = 0; i < expectedNumberofField; ++i) {
+      validateField(this.validators[i], this.appointmentArguments[i]);
+    }
+
+    Class[] ts = new Class[this.expectedNumberofField];
+    Arrays.fill(ts, String.class);
+
+    // All the error due to invalid fields parsed from file should be catched
+    // above, any exception get caught is error caused by programmer
     try {
-      for (int i = 0; i < expectedNumberofField; ++i) {
-        validateField(this.validators[i], this.appointmentArguments[i]);
-      }
-      Class[] ts = new Class[this.expectedNumberofField];
-      Arrays.fill(ts, String.class);
       return this.apptClass
           .getDeclaredConstructor(ts)
           .newInstance((Object[]) this.appointmentArguments);
-    } catch (ParserException ex) {
-      throw ex;
     } catch (Exception ex) {
-      throw new ParserException(PROGRAM_INTERNAL_ERROR + ex.toString());
+      throw new ParserException(PROGRAM_INTERNAL_ERROR + ex.getMessage());
     }
   }
 

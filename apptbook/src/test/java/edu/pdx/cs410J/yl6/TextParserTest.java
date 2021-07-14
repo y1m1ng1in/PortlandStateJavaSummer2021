@@ -31,11 +31,10 @@ public class TextParserTest {
   }
 
   AbstractValidator[] createValidators() {
-    DateStringValidator dateValidator = new DateStringValidator();
-    TimeStringValidator timeValidator = new TimeStringValidator();
     NonemptyStringValidator descriptionValidator = new NonemptyStringValidator("description");
+    DateTimeStringValidator dtValidator = new DateTimeStringValidator("M/d/yyyy h:m a");
     AbstractValidator[] validators = {
-      dateValidator, timeValidator, dateValidator, timeValidator, descriptionValidator
+      dtValidator, dtValidator, descriptionValidator
     };
     return validators;
   }
@@ -45,17 +44,17 @@ public class TextParserTest {
    */
   @Test
   void wellFormattedWithOneAppt() throws IOException, ParserException {
-    createFileWithText("yml&2/2/2020#2:22#2/3/2020#3:33#descrp&");
+    createFileWithText("yml&2/2/2020 2:22 am#2/3/2020 3:33 am#descrp&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
-                     new NonemptyStringValidator("owner"), createValidators(), 5);
+                     new NonemptyStringValidator("owner"), createValidators(), 3);
     AppointmentBook<Appointment> book = textParser.parse();  
     Appointment inBook = book.getAppointments().get(0);
     
     String s = inBook.getBeginTimeString();
-    assertThat(s, equalTo("2/2/2020 2:22"));
+    assertThat(s, equalTo("2/2/2020 2:22 am"));
     s = inBook.getEndTimeString();
-    assertThat(s, equalTo("2/3/2020 3:33"));
+    assertThat(s, equalTo("2/3/2020 3:33 am"));
     s = inBook.getDescription();
     assertThat(s, equalTo("descrp"));
   }
@@ -63,25 +62,25 @@ public class TextParserTest {
   @Test
   void wellFormattedWithTwoAppts() throws IOException, ParserException {
     createFileWithText(
-        "yml&2/2/2020#2:22#2/3/2020#3:33#descrp&11/14/2021#12:30#11/15/2021#14:45#desc  des ddd &");
+        "yml&2/2/2020 2:22 pm#2/3/2020 3:33 pm#descrp&11/14/2021 12:30 am#11/15/2021 2:45 pm#desc  des ddd &");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     AppointmentBook<Appointment> book = textParser.parse();  
     Appointment inBook1 = book.getAppointments().get(0);
     Appointment inBook2 = book.getAppointments().get(1);
 
     String s = inBook1.getBeginTimeString();
-    assertThat(s, equalTo("2/2/2020 2:22"));
+    assertThat(s, equalTo("2/2/2020 2:22 pm"));
     s = inBook1.getEndTimeString();
-    assertThat(s, equalTo("2/3/2020 3:33"));
+    assertThat(s, equalTo("2/3/2020 3:33 pm"));
     s = inBook1.getDescription();
     assertThat(s, equalTo("descrp"));
 
     s = inBook2.getBeginTimeString();
-    assertThat(s, equalTo("11/14/2021 12:30"));
+    assertThat(s, equalTo("11/14/2021 12:30 am"));
     s = inBook2.getEndTimeString();
-    assertThat(s, equalTo("11/15/2021 14:45"));
+    assertThat(s, equalTo("11/15/2021 2:45 pm"));
     s = inBook2.getDescription();
     assertThat(s, equalTo("desc  des ddd "));
   }
@@ -89,17 +88,17 @@ public class TextParserTest {
   @Test
   void wellFormattedWithEscapedCharWithOneAppt() throws IOException, ParserException {
     createFileWithText(
-        "\\#\\#\\#\\&\\&\\&\\#\\#\\#&2/2/2020#2:22#2/3/2020#3:33#\\&\\&des\\&c\\&\\&\\&\\&&");
+        "\\#\\#\\#\\&\\&\\&\\#\\#\\#&2/2/2020 2:22 pm#2/3/2020 3:33 pm#\\&\\&des\\&c\\&\\&\\&\\&&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "###&&&###", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     AppointmentBook<Appointment> book = textParser.parse();  
     Appointment inBook1 = book.getAppointments().get(0);
 
     String s = inBook1.getBeginTimeString();
-    assertThat(s, equalTo("2/2/2020 2:22"));
+    assertThat(s, equalTo("2/2/2020 2:22 pm"));
     s = inBook1.getEndTimeString();
-    assertThat(s, equalTo("2/3/2020 3:33"));
+    assertThat(s, equalTo("2/3/2020 3:33 pm"));
     s = inBook1.getDescription();
     assertThat(s, equalTo("&&des&c&&&&"));
   }
@@ -107,10 +106,10 @@ public class TextParserTest {
   @Test
   void missingAmpersandInTheEnd() throws IOException, ParserException {
     createFileWithText(
-        "\\#\\#\\#\\\\\\\\\\#\\#\\#&2/2/2020#2:22#2/3/2020#3:33#\\&\\&des\\&c\\&\\&\\&\\");
+        "\\#\\#\\#\\\\\\\\\\#\\#\\#&2/2/2020 2:22 pm#2/3/2020 3:33 pm#\\&\\&des\\&c\\&\\&\\&\\");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "###\\\\###", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
         equalTo("End of file reached before the last appointment been parsed completely"));
@@ -122,10 +121,10 @@ public class TextParserTest {
         "\\#\\#\\#\\\\\\\\\\#\\#\\#&2/2/2020 2:22 2/3/2020 3:33#\\&\\&des\\&c\\&\\&\\&\\&&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "###\\\\###", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
-        equalTo("Not enough fields to build appointment from file expect 5, but got 2"));
+        equalTo("Not enough fields to build appointment from file expect 3, but got 2"));
   }
 
   @Test
@@ -134,7 +133,7 @@ public class TextParserTest {
         "2/2/2020 2:22 2/3/2020 3:33#\\&\\&des\\&c\\&\\&\\&\\&&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "###\\\\###", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
         equalTo("Prohibited character # occurs when parsing owner name."));
@@ -147,10 +146,10 @@ public class TextParserTest {
         "owner&&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "owner", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
-        equalTo("Not enough fields to build appointment from file expect 5, but got 1"));
+        equalTo("Not enough fields to build appointment from file expect 3, but got 1"));
   }
 
   @Test
@@ -159,7 +158,7 @@ public class TextParserTest {
         "owner&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "owner", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
         equalTo("End of file reached before the last appointment been parsed completely"));
@@ -171,7 +170,7 @@ public class TextParserTest {
         "owner&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "owner1", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
         containsString("Owner parsed from file is mismatched with argument"));
@@ -181,7 +180,7 @@ public class TextParserTest {
   void fileNotExist() throws IOException, ParserException {
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser("notexist.txt", "owner1", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     AppointmentBook book = textParser.parse();
     assertThat(book.getAppointments().size(), equalTo(0));
     File f = new File("notexist.txt");
@@ -191,25 +190,25 @@ public class TextParserTest {
   @Test
   void validatorViolationCase1() throws IOException, ParserException {
     createFileWithText(
-        "yml&22/2/2020#2:22#2/3/2020#3:33#descrp&");
+        "yml&22/2/2020 2:22 pm#2/3/2020 3:33 pm#descrp&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
-        containsString("is not a valid month"));
+        containsString("Unparseable date"));
   }
 
   @Test
   void validatorViolationCase2() throws IOException, ParserException {
     createFileWithText(
-        "yml&02/02/2020#02:60#2/3/2020#3:33#descrp&");
+        "yml&02/02/2020 02:60 am#2/3/2020 3:33 am#descrp&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
-        containsString("is not a valid minute"));
+        containsString("Unparseable date"));
   }
 
   @Test
@@ -218,7 +217,7 @@ public class TextParserTest {
         "owner name reached end of file without unescaped chars");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "owner", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
         equalTo("End of file reached before owner been parsed completely"));
@@ -227,12 +226,12 @@ public class TextParserTest {
   @Test
   void untestedCase1() throws IOException, ParserException {
     createFileWithText(
-      "yml&2/2/2020#3:40#2/4/2020#04:3#test file with dir&" +
-      "1/09/2020#3:40#2/04/2020#04:3#" +
-      "test accessing file with dir02/09/2020#3:40#2/04/2020#04:3#test accessing file with dir&");
+      "yml&2/2/2020 3:40 am#2/4/2020 04:3 am#test file with dir&" +
+      "1/09/2020 3:40 am#2/04/2020 04:3 am#" +
+      "test accessing file with dir02/09/2020 3:40 pm#2/04/2020 04:3 pm#test accessing file with dir&");
     TextParser<AppointmentBook, Appointment> textParser =
       new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
-                      new NonemptyStringValidator("owner"), createValidators(), 5);
+                      new NonemptyStringValidator("owner"), createValidators(), 3);
     Exception exception = assertThrows(ParserException.class, textParser::parse);
     assertThat(exception.getMessage(), 
         equalTo("An extraneous field encountered to build appointment from file"));

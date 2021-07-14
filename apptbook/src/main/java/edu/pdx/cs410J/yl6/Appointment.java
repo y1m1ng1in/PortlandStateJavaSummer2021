@@ -1,5 +1,10 @@
 package edu.pdx.cs410J.yl6;
 
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.text.ParseException;
+
 import edu.pdx.cs410J.AbstractAppointment;
 
 /**
@@ -8,30 +13,29 @@ import edu.pdx.cs410J.AbstractAppointment;
  * and time. The begin date and time, and end date and time can be any string, 
  * it leaves the client program to specify a typical format for its uses.
  */
-public class Appointment extends AbstractAppointment implements PlainTextRepresentable {
+public class Appointment extends AbstractAppointment 
+    implements PlainTextRepresentable, Comparable<Appointment> {
   
-  private String beginTime;
-  private String endTime;
-  private String beginDate;
-  private String endDate;
+  private String beginString;
+  private String endString;
   private String description;
-  static final int numberOfField = 5;
+  private Date begin;
+  private Date end;
+  static final int numberOfField = 3;
 
-  /**
-   * Create a appointment. 
-   * 
-   * @param beginDate   a string of the begin date of the appointment
-   * @param beginTime   a string of the begin time of the appointment
-   * @param endDate     a string of the end date of the appointment
-   * @param endTime     a string of the end time of the appointment
-   * @param description a description of the appointment
-   */
-  public Appointment(String beginDate, String beginTime, 
-                     String endDate, String endTime, String description) {
-    this.beginDate = beginDate;
-    this.beginTime = beginTime;
-    this.endDate = endDate;
-    this.endTime = endTime;
+  public Appointment(String begin, String end, String description) 
+      throws AppointmentInvalidFieldException {
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+    df.setLenient(false);
+    try {
+      this.begin = df.parse(begin);
+      this.end = df.parse(end);
+    } catch (ParseException ex) {
+      throw new AppointmentInvalidFieldException(ex.getMessage());
+    }
+
+    this.beginString = begin;
+    this.endString = end;
     this.description = description;
   }
 
@@ -44,7 +48,7 @@ public class Appointment extends AbstractAppointment implements PlainTextReprese
    */ 
   @Override
   public String getBeginTimeString() {
-    return this.beginDate + " " + this.beginTime;
+    return this.beginString;
   }
 
   /**
@@ -56,7 +60,7 @@ public class Appointment extends AbstractAppointment implements PlainTextReprese
    */
   @Override
   public String getEndTimeString() {
-    return this.endDate + " " + this.endTime;
+    return this.endString;
   }
 
   /**
@@ -73,17 +77,40 @@ public class Appointment extends AbstractAppointment implements PlainTextReprese
   @Override
   public String[] getStringFields() {
     String[] fields = new String[numberOfField];
-    fields[0] = this.beginDate;
-    fields[1] = this.beginTime;
-    fields[2] = this.endDate;
-    fields[3] = this.endTime;
-    fields[4] = this.description;
+    fields[0] = this.beginString;
+    fields[1] = this.endString;
+    fields[2] = this.description;
     return fields;
   }
 
   @Override
   public int getExpectedNumberOfField() {
     return numberOfField;
+  }
+
+  /**
+   * Returns the {@link Date} that this appointment begins.
+   */
+  public Date getBeginTime() {
+    return this.begin;
+  }
+
+  /**
+   * Returns the {@link Date} that this appointment ends.
+   */
+  public Date getEndTime() {
+    return this.end;
+  }
+
+  @Override
+  public int compareTo(Appointment appt) {
+    if (this.begin.equals(appt.begin) && this.end.equals(appt.end)) {
+      return this.description.compareTo(appt.description);
+    }
+    if (this.begin.equals(appt.begin)) {
+      return this.end.compareTo(appt.end);
+    }
+    return this.begin.compareTo(appt.begin);
   }
 
 }

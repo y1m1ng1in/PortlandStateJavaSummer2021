@@ -26,31 +26,31 @@ public class TimeStringValidatorTest {
   @Test
   void validStringCase3() {
     TimeStringValidator v = new TimeStringValidator();
-    assertThat(v.isValid("00:00"), equalTo(true));
+    assertThat(v.isValid("00:00"), equalTo(false));
   }
 
   @Test
   void validStringCase4() {
     TimeStringValidator v = new TimeStringValidator();
-    assertThat(v.isValid("0:0"), equalTo(true));
+    assertThat(v.isValid("0:0"), equalTo(false));
   }
 
   @Test
   void validStringCase5() {
     TimeStringValidator v = new TimeStringValidator();
-    assertThat(v.isValid("00:0"), equalTo(true));
+    assertThat(v.isValid("00:0"), equalTo(false));
   }
 
   @Test
   void validStringCase6() {
     TimeStringValidator v = new TimeStringValidator();
-    assertThat(v.isValid("0:00"), equalTo(true));
+    assertThat(v.isValid("0:00"), equalTo(false));
   }
 
   @Test
   void validStringCase7() {
     TimeStringValidator v = new TimeStringValidator();
-    assertThat(v.isValid("23:59"), equalTo(true));
+    assertThat(v.isValid("23:59"), equalTo(false));
   }
 
   @Test
@@ -64,14 +64,14 @@ public class TimeStringValidatorTest {
   void outofrangeCase2() {
     TimeStringValidator v = new TimeStringValidator();
     assertThat(v.isValid("23:60"), equalTo(false));
-    assertThat(v.getErrorMessage(), containsString("is not a valid minute"));
+    assertThat(v.getErrorMessage(), containsString("is not a valid hour"));
   }
 
   @Test
   void outofrangeCase3() {
     TimeStringValidator v = new TimeStringValidator();
     assertThat(v.isValid("23:80"), equalTo(false));
-    assertThat(v.getErrorMessage(), containsString("is not a valid minute"));
+    assertThat(v.getErrorMessage(), containsString("is not a valid hour"));
   }
 
   @Test

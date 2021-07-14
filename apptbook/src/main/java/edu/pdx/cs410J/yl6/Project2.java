@@ -41,8 +41,10 @@ public class Project2 {
   static final int descriptionArgIndex = 1;
   static final int beginDateArgIndex = 2;
   static final int beginTimeArgIndex = 3;
-  static final int endDateArgIndex = 4;
-  static final int endTimeArgIndex = 5;
+  static final int beginTimeMarkerArgIndex = 4;
+  static final int endDateArgIndex = 5;
+  static final int endTimeArgIndex = 6;
+  static final int endTimeMarkerArgIndex = 7;
 
   /**
    * Main program that parses the command line, creates a <code>Appointment</code>,
@@ -59,48 +61,54 @@ public class Project2 {
         .addArgument("description of the appointment")
         .addArgument("begin date of the appointment")
         .addArgument("begin time of the appointment")
+        .addArgument("am/pm marker of begin time of the appointment")
         .addArgument("end date of the appointment")
         .addArgument("end time of the appointment")
+        .addArgument("am/pm marker of end time of the appointment")
         .setReadme(README)
         .setUsage(USAGE);
 
     if (!argparser.parse(args)) {
       printErrorMessageAndExit(argparser.getErrorMessage());
     }
-
+    // number of commandline args is valid
     String[] arguments = argparser.getArguments();
 
-    DateStringValidator dateValidator = new DateStringValidator();
-    TimeStringValidator timeValidator = new TimeStringValidator();
+    // create related validators to validate content of each commandline arg
+    DateTimeStringValidator dtValidator = new DateTimeStringValidator("M/d/yyyy h:m a");
     NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
     NonemptyStringValidator descriptionValidator = 
         new NonemptyStringValidator("description");
 
+    // combine date and time as a string
+    String begin = String.join(" ", arguments[beginDateArgIndex], 
+                               arguments[beginTimeArgIndex], 
+                               arguments[beginTimeMarkerArgIndex]);
+    String end = String.join(" ", arguments[endDateArgIndex], 
+                             arguments[endTimeArgIndex], 
+                             arguments[endTimeMarkerArgIndex]);
+
     AbstractValidator[] commandLineArgumentValidators = { 
-        ownerValidator, descriptionValidator, dateValidator, timeValidator,
-        dateValidator, timeValidator
+        ownerValidator, descriptionValidator, dtValidator, dtValidator
+    };
+    String[] toValidate = {
+      arguments[ownerArgIndex], arguments[descriptionArgIndex], begin, end
     };
     
-    for (int i = 0; i < requiredArgumentNum; ++i) {
-      validateArgumentByValidator(commandLineArgumentValidators[i], arguments[i]);
+    for (int i = 0; i < toValidate.length; ++i) {
+      validateArgumentByValidator(commandLineArgumentValidators[i], toValidate[i]);
     }
 
     try {
-      AppointmentBook<Appointment> book;
-      String apptbookFile = "";
-      
-      Appointment appointment =
-          new Appointment(arguments[beginDateArgIndex], 
-                          arguments[beginTimeArgIndex], 
-                          arguments[endDateArgIndex], 
-                          arguments[endTimeArgIndex],
-                          arguments[descriptionArgIndex]);
+      // create an appointment
+      Appointment appointment = new Appointment(begin, end, arguments[descriptionArgIndex]);
 
+      // load appointment book from file or create new appointment book
+      String apptbookFile = "";
+      AppointmentBook<Appointment> book;
       if (argparser.isEnabled("-textFile")) {
         apptbookFile = argparser.getOptionArguments("-textFile").get(0);
-        AbstractValidator[] validators = {
-          dateValidator, timeValidator, dateValidator, timeValidator, descriptionValidator
-        };
+        AbstractValidator[] validators = { dtValidator, dtValidator, descriptionValidator };
         TextParser<AppointmentBook, Appointment> textParser =
             new TextParser(apptbookFile, 
                            arguments[ownerArgIndex], 
@@ -113,8 +121,12 @@ public class Project2 {
       } else {
         book = new AppointmentBook(arguments[ownerArgIndex]);
       }
+
+      // add created appointment to book
       book.addAppointment(appointment);
       
+      // based on option enabled, dump updated appointment, or print created appointment,
+      // or both
       if (argparser.isEnabled("-textFile")) {
         TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper(apptbookFile);
         textDumper.dump(book);
@@ -124,7 +136,9 @@ public class Project2 {
       }
     } catch(ParserException | IOException ex) {
       printErrorMessageAndExit(ex.getMessage());
-    } 
+    } catch(Exception ex) {
+      printErrorMessageAndExit("program internal error " + ex.getMessage());
+    }
 
     System.exit(0);
   }

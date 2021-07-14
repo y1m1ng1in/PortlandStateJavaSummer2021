@@ -7,6 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
+import java.text.ParseException;
 
 /**
  * Unit tests for the {@link AppointmentBook} class.
@@ -27,9 +28,9 @@ public class AppointmentBookTest {
    * return a collection of appointments with size 1 with same added content.
    */
   @Test
-  void addOneAppointment() {
+  void addOneAppointment() throws ParseException, AppointmentInvalidFieldException {
     AppointmentBook book = new AppointmentBook("a owner");
-    Appointment appointment = new Appointment("3/14/2020","4:29","3/14/2020","4:50","dummy");
+    Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
     book.addAppointment(appointment);
     ArrayList<Appointment> toCompare = new ArrayList();
     toCompare.add(appointment);
@@ -41,10 +42,10 @@ public class AppointmentBookTest {
    * return a collection of appointments with size 2 with same added content.
    */
   @Test
-  void addTwoAppointments() {
+  void addTwoAppointments() throws ParseException, AppointmentInvalidFieldException {
     AppointmentBook book = new AppointmentBook("a owner");
-    Appointment appointment1 = new Appointment("3/14/2020","4:29","3/14/2020","4:50","dummy1");
-    Appointment appointment2 = new Appointment("3/18/2020","4:49","3/19/2020","4:50","dummy2");
+    Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
+    Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     ArrayList<Appointment> toCompare = new ArrayList();
@@ -58,11 +59,11 @@ public class AppointmentBookTest {
    * return a collection of appointments with size 3 with same added content.
    */
   @Test
-  void addThreeAppointments() {
+  void addThreeAppointments() throws ParseException, AppointmentInvalidFieldException {
     AppointmentBook book = new AppointmentBook("a owner");
-    Appointment appointment1 = new Appointment("3/14/2020","4:29","3/14/2020","4:50","dummy1");
-    Appointment appointment2 = new Appointment("3/18/2020","4:49","3/19/2020","4:50","dummy2");
-    Appointment appointment3 = new Appointment("3/20/2021","4:49","3/19/2020","14:50","dummy3");
+    Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
+    Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");
+    Appointment appointment3 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy3");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     book.addAppointment(appointment3);
