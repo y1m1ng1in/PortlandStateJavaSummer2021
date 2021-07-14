@@ -135,7 +135,14 @@ public class Appointment extends AbstractAppointment
     fields[0] = getBeginTimeString();
     fields[1] = getEndTimeString();
     fields[2] = this.description;
-    fields[3] = String.valueOf(((int) (this.end.getTime() - this.begin.getTime()) / 60000));
+
+    long duration = (int) ((this.end.getTime() - this.begin.getTime()) / 60000);
+    if (duration <= 1) {
+      fields[3] = String.valueOf(duration) + " minute";
+    } else {
+      fields[3] = String.valueOf(duration) + " minutes";
+    }
+    
     return fields;
   }
 

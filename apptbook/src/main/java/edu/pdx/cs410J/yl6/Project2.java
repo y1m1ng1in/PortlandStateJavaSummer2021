@@ -136,13 +136,18 @@ public class Project2 {
         System.out.println(appointment.toString());
       }
 
+      String[] fields = new String[4];
+      fields[0] = "Begin at";
+      fields[1] = "End at";
+      fields[2] = "Description";
+      fields[3] = "Duration";
       PrintStream writer = System.out;
-      PrettyPrinter<AppointmentBook, Appointment> printer = new PrettyPrinter(writer);
+      PrettyPrinter<AppointmentBook, Appointment> printer = new PrettyPrinter(writer, fields);
       printer.dump(book);
     } catch(ParserException | IOException ex) {
       printErrorMessageAndExit(ex.getMessage());
     } catch(Exception ex) {
-      printErrorMessageAndExit("program internal error " + ex.getMessage());
+      printErrorMessageAndExit("program internal error " + ex.getMessage() + "\n" + ex.toString());
     }
 
     System.exit(0);
