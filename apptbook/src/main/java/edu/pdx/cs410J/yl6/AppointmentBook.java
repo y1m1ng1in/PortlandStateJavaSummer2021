@@ -2,7 +2,7 @@ package edu.pdx.cs410J.yl6;
 
 import edu.pdx.cs410J.AbstractAppointmentBook;
 import edu.pdx.cs410J.AbstractAppointment;
-import java.util.ArrayList;
+import java.util.TreeSet;
 
 /**
  * AppointmentBook is the class that collects a collection of appointments belong to a 
@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppointmentBook<T> {
   
-  private ArrayList<T> appts = new ArrayList<T>();
+  private TreeSet<T> appts = new TreeSet<T>();
   private String owner;
   
   /**
@@ -38,11 +38,11 @@ public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppo
   /**
    * Return all the appointments in the appointment book.
    * 
-   * @return a reference to the arraylist of the appointments in this 
-   *         appointment book as a
+   * @return a reference to the <code>TreeSet</code> of the appointments in this 
+   *         appointment book 
    */
   @Override
-  public ArrayList<T> getAppointments() {
+  public TreeSet<T> getAppointments() {
     return this.appts;
   }
 

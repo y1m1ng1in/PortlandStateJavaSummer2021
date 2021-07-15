@@ -24,22 +24,21 @@ public class Appointment extends AbstractAppointment
   static final int numberOfField = 3;
 
   /**
+   * Create an appointment instance
    * 
-   * @param begin
-   * @param end
-   * @param description
-   * @throws AppointmentInvalidFieldException
+   * @param begin       a string that is parseable by <code>SimpleDateFormat</code> in
+   *                    pattern <code>"M/d/yyyy h:m a"</code> and before <code>end</code>
+   * @param end         a string that is parsable by <code>SimpleDateFormat</code> in
+   *                    pattern <code>"M/d/yyyy h:m a"</code> and after <code>before</code>
+   * @param description a nonempty string that describes the appointment
    */
   public Appointment(String begin, String end, String description) 
-      throws AppointmentInvalidFieldException {
-    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+      throws ParseException {
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a"); 
+
     df.setLenient(false);
-    try {
-      this.begin = df.parse(begin);
-      this.end = df.parse(end);
-    } catch (ParseException ex) {
-      throw new AppointmentInvalidFieldException(ex.getMessage());
-    }
+    this.begin = df.parse(begin);
+    this.end = df.parse(end);
 
     this.beginString = begin;
     this.endString = end;
@@ -126,9 +125,6 @@ public class Appointment extends AbstractAppointment
     return this.end;
   }
 
-  /**
-   * 
-   */
   @Override
   public int compareTo(Appointment appt) {
     if (this.begin.equals(appt.begin) && this.end.equals(appt.end)) {

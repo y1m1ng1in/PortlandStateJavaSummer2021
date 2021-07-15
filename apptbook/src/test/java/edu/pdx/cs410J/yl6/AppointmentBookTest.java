@@ -6,7 +6,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.ArrayList;
+import java.util.TreeSet;
 import java.text.ParseException;
 
 /**
@@ -28,11 +28,11 @@ public class AppointmentBookTest {
    * return a collection of appointments with size 1 with same added content.
    */
   @Test
-  void addOneAppointment() throws ParseException, AppointmentInvalidFieldException {
+  void addOneAppointment() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
     book.addAppointment(appointment);
-    ArrayList<Appointment> toCompare = new ArrayList();
+    TreeSet<Appointment> toCompare = new TreeSet();
     toCompare.add(appointment);
     assertThat(book.getAppointments(), equalTo(toCompare));
   }
@@ -42,13 +42,13 @@ public class AppointmentBookTest {
    * return a collection of appointments with size 2 with same added content.
    */
   @Test
-  void addTwoAppointments() throws ParseException, AppointmentInvalidFieldException {
+  void addTwoAppointments() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
     Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
-    ArrayList<Appointment> toCompare = new ArrayList();
+    TreeSet<Appointment> toCompare = new TreeSet();
     toCompare.add(appointment1);
     toCompare.add(appointment2);
     assertThat(book.getAppointments(), equalTo(toCompare));
@@ -59,7 +59,7 @@ public class AppointmentBookTest {
    * return a collection of appointments with size 3 with same added content.
    */
   @Test
-  void addThreeAppointments() throws ParseException, AppointmentInvalidFieldException {
+  void addThreeAppointments() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
     Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");
@@ -67,7 +67,7 @@ public class AppointmentBookTest {
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     book.addAppointment(appointment3);
-    ArrayList<Appointment> toCompare = new ArrayList();
+    TreeSet<Appointment> toCompare = new TreeSet();
     toCompare.add(appointment1);
     toCompare.add(appointment2);
     toCompare.add(appointment3);

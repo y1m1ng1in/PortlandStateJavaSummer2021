@@ -23,7 +23,7 @@ public class AppointmentTest {
    * Tests that correct begin date and time is returned as a string.
    */
   @Test
-  void getBeginTimeStringNeedsToBeImplemented() throws ParseException, AppointmentInvalidFieldException {
+  void getBeginTimeStringNeedsToBeImplemented() throws ParseException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
     assertThat(appointment.getBeginTimeString(), equalTo("3/14/20, 4:29 PM"));
   }
@@ -32,7 +32,7 @@ public class AppointmentTest {
    * Tests that correct end date and time is returned as a string.
    */
   @Test
-  void getEndTimeStringNeedsToBeImplemented() throws ParseException, AppointmentInvalidFieldException {
+  void getEndTimeStringNeedsToBeImplemented() throws ParseException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
     assertThat(appointment.getEndTimeString(), equalTo("3/14/20, 4:50 PM"));
   }
@@ -41,7 +41,7 @@ public class AppointmentTest {
    * Tests that correct description is returned as a string
    */
   @Test
-  void getDescription() throws ParseException, AppointmentInvalidFieldException {
+  void getDescription() throws ParseException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
     assertThat(appointment.getDescription(), equalTo("dummy"));
   }
@@ -50,17 +50,11 @@ public class AppointmentTest {
    * Tests that get begin time returns null since not implemented.
    */
   @Test
-  void forProject2ItIsOkayIfGetBeginTimeReturnsNull() throws ParseException, AppointmentInvalidFieldException {
+  void forProject2ItIsOkayIfGetBeginTimeReturnsNull() throws ParseException {
     DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
     Date d = df.parse("3/14/2020 4:29 pm");
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
     assertThat(appointment.getBeginTime(), equalTo(d));
-  }
-
-  @Test
-  void constructorException() throws ParseException, AppointmentInvalidFieldException {
-    Exception exception = assertThrows(AppointmentInvalidFieldException.class, 
-        () -> new Appointment("22/2/2020 2:22 pm","3/14/2020 4:50 pm","dummy"));
   }
 
 }

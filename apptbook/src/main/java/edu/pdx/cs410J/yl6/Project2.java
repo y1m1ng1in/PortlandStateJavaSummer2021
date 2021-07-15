@@ -24,14 +24,6 @@ import edu.pdx.cs410J.ParserException;
  */
 public class Project2 {
 
-  static final String MISSING_CMD_LINE_ARGS = "Missing command line arguments";
-  static final String MISSING_DESCRIPTION = "Missing description of the appointment";
-  static final String MISSING_BEGIN_DATE = "Missing begin date of the appointment";
-  static final String MISSING_BEGIN_TIME = "Missing begin time of the appointment";
-  static final String MISSING_END_DATE = "Missing end date of the appointment";
-  static final String MISSING_END_TIME = "Missing end time of the appointment";
-  static final String MORE_ARGS = "More arguments passed in than needed";
-  static final String MISSING_OPTION_ARG = "Missing argument of option ";
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
   static HashMap<Integer, String> exitMsgs;
@@ -77,29 +69,26 @@ public class Project2 {
     // number of commandline args is valid
     String[] arguments = argparser.getArguments();
 
-    // create related validators to validate content of each commandline arg
-    DateTimeStringValidator dtValidator = new DateTimeStringValidator("M/d/yyyy h:m a");
-    NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
-    NonemptyStringValidator descriptionValidator = 
-        new NonemptyStringValidator("description");
-
     // combine date and time as a string
-    String begin = String.join(" ", arguments[beginDateArgIndex], 
-                               arguments[beginTimeArgIndex], 
-                               arguments[beginTimeMarkerArgIndex]);
-    String end = String.join(" ", arguments[endDateArgIndex], 
-                             arguments[endTimeArgIndex], 
-                             arguments[endTimeMarkerArgIndex]);
+    String begin = 
+        String.join(" ", arguments[beginDateArgIndex], arguments[beginTimeArgIndex], 
+                    arguments[beginTimeMarkerArgIndex]);
+    String end = 
+        String.join(" ", arguments[endDateArgIndex], arguments[endTimeArgIndex], 
+                    arguments[endTimeMarkerArgIndex]);
 
-    AbstractValidator[] commandLineArgumentValidators = { 
-        ownerValidator, descriptionValidator, dtValidator, dtValidator
-    };
-    String[] toValidate = {
-      arguments[ownerArgIndex], arguments[descriptionArgIndex], begin, end
-    };
-    
-    for (int i = 0; i < toValidate.length; ++i) {
-      validateArgumentByValidator(commandLineArgumentValidators[i], toValidate[i]);
+    NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
+    AppointmentValidator appointmentValidator = 
+        new AppointmentValidator("M/d/yyyy h:m a");
+        
+    if (!ownerValidator.isValid(arguments[ownerArgIndex])) {
+      printErrorMessageAndExit(ownerValidator.getErrorMessage());
+    }
+
+    String[] appointmentFields = { begin, end, arguments[descriptionArgIndex] };
+
+    if (!appointmentValidator.isValid(appointmentFields)) {
+      printErrorMessageAndExit(appointmentValidator.getErrorMessage());
     }
 
     try {
@@ -111,14 +100,13 @@ public class Project2 {
       AppointmentBook<Appointment> book;
       if (argparser.isEnabled("-textFile")) {
         apptbookFile = argparser.getOptionArguments("-textFile").get(0);
-        AbstractValidator[] validators = { dtValidator, dtValidator, descriptionValidator };
         TextParser<AppointmentBook, Appointment> textParser =
             new TextParser(apptbookFile, 
                            arguments[ownerArgIndex], 
                            AppointmentBook.class, 
                            Appointment.class,
                            ownerValidator, 
-                           validators, 
+                           appointmentValidator, 
                            appointment.getExpectedNumberOfField());
         book = textParser.parse();       
       } else {
@@ -138,13 +126,10 @@ public class Project2 {
         System.out.println(appointment.toString());
       }
 
-      String[] fields = new String[4];
-      fields[0] = "Begin at";
-      fields[1] = "End at";
-      fields[2] = "Description";
-      fields[3] = "Duration";
+      String[] fields = { "Begin at", "End at", "Description", "Duration" };
       PrintStream writer = System.out;
       PrettyPrinter<AppointmentBook, Appointment> printer = new PrettyPrinter(writer, fields);
+
       printer.dump(book);
     } catch(ParserException | IOException ex) {
       printErrorMessageAndExit(ex.getMessage());
@@ -192,22 +177,6 @@ public class Project2 {
   private static void printErrorMessageAndExit(String message) {
     System.err.println(message);
     System.exit(1);
-  }
-
-  /**
-   * Given a string <code>s</code>, check if it is valid via <code>validator</code>. 
-   * If it is invalid, exit the program with status 1 with error message generated 
-   * by <code>validator</code>.
-   * 
-   * @param validator object that is any concrete subclass of <code>AbstractValidator</code>.
-   * @param s         the string that is to be validated. 
-   */
-  private static void validateArgumentByValidator(
-      AbstractValidator validator, 
-      String s) {
-    if (!validator.isValid(s)) {
-      printErrorMessageAndExit(validator.getErrorMessage());
-    } 
   }
 
 }

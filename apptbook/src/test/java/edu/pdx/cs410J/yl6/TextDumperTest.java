@@ -36,7 +36,7 @@ public class TextDumperTest {
   }
 
   @Test
-  void writeOneAppt() throws IOException, ParseException, AppointmentInvalidFieldException {
+  void writeOneAppt() throws IOException, ParseException {
     Appointment appt = new Appointment(
         "12/12/2019 12:52 am", "4/5/2020 2:52 pm", "A description");
     AppointmentBook book = new AppointmentBook("yml");
@@ -49,13 +49,13 @@ public class TextDumperTest {
   }
 
   @Test
-  void writeThreeAppt() throws IOException, ParseException, AppointmentInvalidFieldException {
+  void writeThreeAppt() throws IOException, ParseException {
     Appointment appt = new Appointment(
-        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "A description");
+        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "C");
     Appointment appt1 = new Appointment(
-        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "A d#e#s#c#r#i#p#t#i#o#n");
+        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "A");
     Appointment appt2 = new Appointment(
-        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "##A \\\\de&&sc&&ri&&ption&&");
+        "12/12/2020 12:52 pm", "4/5/2021 2:52 am", "B");
     AppointmentBook book = new AppointmentBook("y#m&l");
     book.addAppointment(appt);
     book.addAppointment(appt1);
@@ -63,9 +63,7 @@ public class TextDumperTest {
     TextDumper<AppointmentBook, Appointment> td = new TextDumper<>(testFile);
     td.dump(book);
     String content = readFile();
-    String exp = "y\\#m\\&l&12/12/2020 12:52 pm#4/5/2021 2:52 am#A description&" +
-                 "12/12/2020 12:52 pm#4/5/2021 2:52 am#A d\\#e\\#s\\#c\\#r\\#i\\#p\\#t\\#i\\#o\\#n&" + 
-                 "12/12/2020 12:52 pm#4/5/2021 2:52 am#\\#\\#A \\\\\\\\de\\&\\&sc\\&\\&ri\\&\\&ption\\&\\&&";
+    String exp = "y\\#m\\&l&12/12/2020 12:52 pm#4/5/2021 2:52 am#A&12/12/2020 12:52 pm#4/5/2021 2:52 am#B&12/12/2020 12:52 pm#4/5/2021 2:52 am#C&";
     assertThat(content, equalTo(exp));
   }
 

@@ -41,7 +41,7 @@ public class TextParser<T extends AbstractAppointmentBook,
   private int currentArgIndex;
   private Class<T> bookClass;
   private Class<E> apptClass;
-  private AbstractValidator[] validators;
+  private AppointmentValidator validator;
   private AbstractValidator ownerValidator;
   private final int expectedNumberofField;
 
@@ -73,10 +73,9 @@ public class TextParser<T extends AbstractAppointmentBook,
    * @param ownerValidator
    *        the validator that derived from <code>AbstractValidator</code> applied to be 
    *        applied to owner field of the appointment book
-   * @param validators            
-   *        an array of validators that derived from <code>AbstractValidator</code> to be 
-   *        applied for each field of each appointment got parsed, where ith validator 
-   *        validates ith field of the appointment. 
+   * @param validator            
+   *        validator, a <code>AppointmentValidator</code> instance that validates 
+   *        fields get parsed from file to build appointment.  
    * @param expectedNumberofField 
    *        the number of fields expect to be parsed for every appointment
    */
@@ -86,14 +85,14 @@ public class TextParser<T extends AbstractAppointmentBook,
       Class<T> bookClass, 
       Class<E> apptClass,
       AbstractValidator ownerValidator, 
-      AbstractValidator[] validators, 
+      AppointmentValidator validator, 
       int expectedNumberofField) {
     this.filename = filename;
     this.owner = owner;
     this.bookClass = bookClass;
     this.apptClass = apptClass;
     this.ownerValidator = ownerValidator;
-    this.validators = validators;
+    this.validator = validator;
     this.expectedNumberofField = expectedNumberofField;
     this.sb = new StringBuilder();
     this.appointmentArguments = new String[this.expectedNumberofField];
@@ -189,7 +188,9 @@ public class TextParser<T extends AbstractAppointmentBook,
 
     String owner = this.sb.toString();
     
-    validateField(this.ownerValidator, owner);
+    if (!this.ownerValidator.isValid(owner)) {
+      throw new ParserException(this.ownerValidator.getErrorMessage());
+    }
     if (!owner.equals(this.owner)) {
       throw new ParserException(OWNER_MISMATCH + owner + " versus " + this.owner);
     }
@@ -258,8 +259,8 @@ public class TextParser<T extends AbstractAppointmentBook,
    * @throws ParserException violation detected from validators
    */
   private E buildAppointment() throws ParserException {
-    for (int i = 0; i < expectedNumberofField; ++i) {
-      validateField(this.validators[i], this.appointmentArguments[i]);
+    if (!this.validator.isValid(this.appointmentArguments)) {
+      throw new ParserException(this.validator.getErrorMessage());
     }
 
     Class[] ts = new Class[this.expectedNumberofField];
@@ -285,21 +286,6 @@ public class TextParser<T extends AbstractAppointmentBook,
   private void placeArgumentAndResetStringBuilder() {
     this.appointmentArguments[this.currentArgIndex] = this.sb.toString();
     this.sb.setLength(0);
-  }
-  
-  /** 
-   * Apply <code>validator</code> (any validator derived from <code>AbstractValidato</code>) 
-   * to string <code>s</code>, <code>validator</code> invoke its <code>isValid</code> method,
-   * if it indicates any violation, then throw a <code>ParserException</code>.
-   * 
-   * @param validator        the validator to be appied to string <code>s</code>
-   * @param s                the string to be validated
-   * @throws ParserException any violation detected by <code>validator</code>
-   */
-  private void validateField(AbstractValidator validator, String s) throws ParserException {
-    if (validator != null && !validator.isValid(s)) {
-      throw new ParserException(validator.getErrorMessage());
-    }
   }
 
 }

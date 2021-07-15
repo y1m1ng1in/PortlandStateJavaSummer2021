@@ -30,13 +30,8 @@ public class TextParserTest {
       writer.close();
   }
 
-  AbstractValidator[] createValidators() {
-    NonemptyStringValidator descriptionValidator = new NonemptyStringValidator("description");
-    DateTimeStringValidator dtValidator = new DateTimeStringValidator("M/d/yyyy h:m a");
-    AbstractValidator[] validators = {
-      dtValidator, dtValidator, descriptionValidator
-    };
-    return validators;
+  AppointmentValidator createValidators() {
+    return new AppointmentValidator("M/d/yyyy h:m a");
   }
 
   /**
@@ -49,7 +44,7 @@ public class TextParserTest {
       new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
                      new NonemptyStringValidator("owner"), createValidators(), 3);
     AppointmentBook<Appointment> book = textParser.parse();  
-    Appointment inBook = book.getAppointments().get(0);
+    Appointment inBook = book.getAppointments().first();
     
     String s = inBook.getBeginTimeString();
     assertThat(s, equalTo("2/2/20, 2:22 AM"));
@@ -67,8 +62,8 @@ public class TextParserTest {
       new TextParser(testFile, "yml", AppointmentBook.class, Appointment.class, 
                       new NonemptyStringValidator("owner"), createValidators(), 3);
     AppointmentBook<Appointment> book = textParser.parse();  
-    Appointment inBook1 = book.getAppointments().get(0);
-    Appointment inBook2 = book.getAppointments().get(1);
+    Appointment inBook1 = book.getAppointments().pollFirst();
+    Appointment inBook2 = book.getAppointments().pollFirst();
 
     String s = inBook1.getBeginTimeString();
     assertThat(s, equalTo("2/2/20, 2:22 PM"));
@@ -93,7 +88,7 @@ public class TextParserTest {
       new TextParser(testFile, "###&&&###", AppointmentBook.class, Appointment.class, 
                       new NonemptyStringValidator("owner"), createValidators(), 3);
     AppointmentBook<Appointment> book = textParser.parse();  
-    Appointment inBook1 = book.getAppointments().get(0);
+    Appointment inBook1 = book.getAppointments().first();
 
     String s = inBook1.getBeginTimeString();
     assertThat(s, equalTo("2/2/20, 2:22 PM"));
