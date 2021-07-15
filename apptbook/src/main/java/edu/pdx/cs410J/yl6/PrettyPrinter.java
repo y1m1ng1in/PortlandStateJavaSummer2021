@@ -155,7 +155,7 @@ public class PrettyPrinter<T extends AbstractAppointmentBook,
    */
   private String formatField(String s) {
     StringBuilder sb = new StringBuilder();
-    int fieldWidth = maxLine - fieldNameWidth - tableBoundaryPadding;
+    int fieldWidth = maxLine - fieldNameWidth - 1 - tableBoundaryPadding;
     int currentLength = fieldWidth;
     String spacesForFieldName = 
         fillArray(fieldNameWidth, ' ') + '|' + fillArray(tableBoundaryPadding, ' ');

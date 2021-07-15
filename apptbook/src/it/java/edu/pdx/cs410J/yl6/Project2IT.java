@@ -533,4 +533,63 @@ class Project2IT extends InvokeMainTestCase {
     assertThat(result.getTextWrittenToStandardError(), containsString(expected));
     assertThat(result.getExitCode(), equalTo(1));
   }
+
+  @Test
+  void prettyPrintToStandardOut() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020 12:52 pm#2/2/2020 2:52 pm#longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong description&");
+    MainMethodResult result = invokeMain(
+      "-textFile", testFile, "-pretty", "-", "yml", "A description", "2/12/2020", "12:52", "pm", "2/12/2020", "2:52", "pm");
+      String exp = 
+        "Owner        |  yml\n" +
+        "----------------------------------------\n" +
+        "Begin at     |  2/2/20, 12:52 PM\n" + 
+        "End at       |  2/2/20, 2:52 PM\n" +
+        "Description  |  longlonglonglonglonglong\n" +
+        "             |  longlonglonglonglonglong\n" +
+        "             |  longlonglonglonglonglong\n" +
+        "             |   description\n"+
+        "Duration     |  120 minutes\n" + 
+        "----------------------------------------\n" +
+        "Begin at     |  2/12/20, 12:52 PM\n" + 
+        "End at       |  2/12/20, 2:52 PM\n" +
+        "Description  |  A description\n" +
+        "Duration     |  120 minutes\n" + 
+        "----------------------------------------\n";
+    assertThat(result.getTextWrittenToStandardOut(), equalTo(exp));
+    assertThat(result.getExitCode(), equalTo(0));
+  }
+
+  @Test
+  void prettyPrintToFile() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020 12:52 pm#2/2/2020 2:52 pm#longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong description&");
+    MainMethodResult result = invokeMain(
+      "-textFile", testFile, "-pretty", "nonexists1.txt", "yml", "A description", "2/12/2020", "12:52", "pm", "2/12/2020", "2:52", "pm");
+      String exp = 
+        "Owner        |  yml\n" +
+        "----------------------------------------\n" +
+        "Begin at     |  2/2/20, 12:52 PM\n" + 
+        "End at       |  2/2/20, 2:52 PM\n" +
+        "Description  |  longlonglonglonglonglong\n" +
+        "             |  longlonglonglonglonglong\n" +
+        "             |  longlonglonglonglonglong\n" +
+        "             |   description\n"+
+        "Duration     |  120 minutes\n" + 
+        "----------------------------------------\n" +
+        "Begin at     |  2/12/20, 12:52 PM\n" + 
+        "End at       |  2/12/20, 2:52 PM\n" +
+        "Description  |  A description\n" +
+        "Duration     |  120 minutes\n" + 
+        "----------------------------------------\n";
+    assertThat(readFile("nonexists1.txt"), equalTo(exp));
+    assertThat(result.getExitCode(), equalTo(0));
+  }
+
+  @Test
+  void fileConflictTest() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020 12:52 pm#2/2/2020 2:52 pm#longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong description&");
+    MainMethodResult result = invokeMain(
+      "-textFile", testFile, "-pretty", testFile, "yml", "A description", "2/12/2020", "12:52", "pm", "2/12/2020", "2:52", "pm");
+    assertThat(result.getTextWrittenToStandardError(), containsString("Cannot dump appointment book and pretty print to same file"));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
 }

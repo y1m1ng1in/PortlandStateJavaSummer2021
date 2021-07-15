@@ -60,7 +60,7 @@ public class AppointmentValidator {
       Date end = df.parse(fields[1]);
       if (!begin.before(end)) {
         this.errorMessage = 
-            "Begin time is late than end time of appointment, begin at " + 
+            "Begin time is not early than end time of appointment, begin at " + 
             fields[0] + ", but end at " + fields[1];
         return false;   
       }   

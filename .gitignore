@@ -42,3 +42,6 @@ dependency-reduced-pom.xml
 
 # Test files
 test.txt
+unittest.txt
+nonexists.txt
+nonexists1.txt
