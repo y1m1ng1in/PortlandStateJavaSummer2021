@@ -125,6 +125,20 @@ public class Appointment extends AbstractAppointment
     return this.end;
   }
 
+  /**
+   * Compares invoking appointment with appointment <code>appt</code> passed in. 
+   * If both begin time and end time are same between two appointments, then
+   * two appointments are ordered by description lexicographically. Otherwise, if
+   * begin time between two are same, then ordered by end time; otherwise, ordered
+   * by their begin time.
+   * 
+   * @param appt the <code>Appointment</code> instance that is to be compared with 
+   *             invoking appointment.
+   * @return     1 if invoking appointment is ordered after parameter;
+   *             0 if two appointments are same (which means both begin, end time, 
+   *             and description are same)
+   *             -1 if invoking appointment is ordered before parameter. 
+   */
   @Override
   public int compareTo(Appointment appt) {
     if (this.begin.equals(appt.begin) && this.end.equals(appt.end)) {
@@ -136,6 +150,13 @@ public class Appointment extends AbstractAppointment
     return this.begin.compareTo(appt.begin);
   }
 
+  /**
+   * Get an arrya of strings that stores strings to be pretty print to 
+   * standard output or file.
+   * 
+   * @return an array of strings that stores strings to be pretty print to 
+   *         standard output or file.
+   */
   @Override
   public String[] getPrettyPrinterFields() {
     String[] fields = new String[numberOfField + 1];

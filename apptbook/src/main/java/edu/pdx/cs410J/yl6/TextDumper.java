@@ -11,7 +11,7 @@ import edu.pdx.cs410J.AbstractAppointmentBook;
 
 /**
  * TextDumper is the class parameterized over T which is any derived type from
- * <code>AbstractAppointmentBook</code>, and E which is the element of T such that
+ * {@link AbstractAppointmentBook}, and E which is the element of T such that
  * E is any derived type from <code>AbstractAppointment</code> that implements
  * <code>PlainTextRepresentable</code> interface.
  * <p>

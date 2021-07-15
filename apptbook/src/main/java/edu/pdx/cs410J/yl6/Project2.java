@@ -3,6 +3,7 @@ package edu.pdx.cs410J.yl6;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,22 +14,23 @@ import edu.pdx.cs410J.ParserException;
 /**
  * The main class for the CS410J appointment book Project which parses commandline
  * arguments, processes arguments to construct an appointment, and based on the options
- * to print the appointment, print readme, import and export existing appointment book
- * from external file. 
+ * to print the new added appointment; print readme; import and export existing 
+ * appointment book from external file; or print formatted appointment book to standard
+ * output or file based on its argument. 
  * <p>
- * The class assumes that options are always followed by arguments. There are 3 valid
- * options available: -print, -README, and -textFile filename. This means that the 
- * parsing process will greedily match commandline arguments from 0 index to higher index 
- * until either a invalid option detected, or all the available options matched, the rest 
- * of the commandline arguments are treated as arguments for appointment. 
+ * The class assumes that options are always followed by arguments. There are 4 valid
+ * options available: -print, -README, -pretty, and -textFile filename. This means that 
+ * the parsing process will greedily match commandline arguments from 0 index to higher 
+ * index until either a invalid option detected, or all the available options matched, 
+ * the rest of the commandline arguments are treated as arguments for appointment. 
  */
 public class Project2 {
 
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
-  static HashMap<Integer, String> exitMsgs;
 
-  static final int requiredArgumentNum = 6;
+  static final String FILE_CONFLICT = 
+      "Cannot dump appointment book and pretty print to same file";
 
   static final int ownerArgIndex = 0;
   static final int descriptionArgIndex = 1;
@@ -46,12 +48,14 @@ public class Project2 {
    * an external file to create an appointment book, adds new created appointment to 
    * the book, then dumps updated book back to the file, if <code>-textFile file</code>
    * is enabled; or only prints readme information to standard error once 
-   * <code>-README</code> option is enabled.
+   * <code>-README</code> option is enabled; or print formatted appointment book to 
+   * standard output or file based on its argument if <code>-pretty</code> is enabled. 
    */
   public static void main(String[] args) {
     ArgumentParser argparser = new ArgumentParser()
         .addOption("-print", 0)
         .addOption("-textFile", 1)
+        .addOption("-pretty", 1)
         .addArgument("owner")
         .addArgument("description of the appointment")
         .addArgument("begin date of the appointment")
@@ -66,6 +70,14 @@ public class Project2 {
     if (!argparser.parse(args)) {
       printErrorMessageAndExit(argparser.getErrorMessage());
     }
+    if (argparser.isEnabled("-textFile") && argparser.isEnabled("-pretty")) {
+      boolean fileConflict = argparser.getOptionArguments("-textFile").get(0)
+          .equals(argparser.getOptionArguments("-pretty").get(0));
+      if (fileConflict) {
+        printErrorMessageAndExit(FILE_CONFLICT);
+      }
+    }
+
     // number of commandline args is valid
     String[] arguments = argparser.getArguments();
 
@@ -77,16 +89,14 @@ public class Project2 {
         String.join(" ", arguments[endDateArgIndex], arguments[endTimeArgIndex], 
                     arguments[endTimeMarkerArgIndex]);
 
+    // create validator for appointment owner and appointment
     NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
-    AppointmentValidator appointmentValidator = 
-        new AppointmentValidator("M/d/yyyy h:m a");
+    AppointmentValidator appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
+    String[] appointmentFields = { begin, end, arguments[descriptionArgIndex] };
         
     if (!ownerValidator.isValid(arguments[ownerArgIndex])) {
       printErrorMessageAndExit(ownerValidator.getErrorMessage());
     }
-
-    String[] appointmentFields = { begin, end, arguments[descriptionArgIndex] };
-
     if (!appointmentValidator.isValid(appointmentFields)) {
       printErrorMessageAndExit(appointmentValidator.getErrorMessage());
     }
@@ -116,21 +126,30 @@ public class Project2 {
       // add created appointment to book
       book.addAppointment(appointment);
       
-      // based on option enabled, dump updated appointment, or print created appointment,
-      // or both
+      // if -textFile is enabled, dump appointment book to file
       if (argparser.isEnabled("-textFile")) {
         TextDumper<AppointmentBook, Appointment> textDumper = new TextDumper(apptbookFile);
         textDumper.dump(book);
       }
+
+      // if -print is enabled, print new added appointment to standard output
       if (argparser.isEnabled("-print")) {
         System.out.println(appointment.toString());
       }
 
-      String[] fields = { "Begin at", "End at", "Description", "Duration" };
-      PrintStream writer = System.out;
-      PrettyPrinter<AppointmentBook, Appointment> printer = new PrettyPrinter(writer, fields);
-
-      printer.dump(book);
+      // if -pretty is enabled, dump formatted appointment book to either file 
+      // or standard output based on its argument
+      if (argparser.isEnabled("-pretty")) {
+        String[] fields = { "Begin at", "End at", "Description", "Duration" };
+        String prettyFile = argparser.getOptionArguments("-pretty").get(0);
+        PrettyPrinter<AppointmentBook, Appointment> printer;
+        if (prettyFile.equals("-")) {
+          printer = new PrettyPrinter(System.out, fields);
+        } else {
+          printer = new PrettyPrinter(new FileWriter(prettyFile), fields);
+        }
+        printer.dump(book);
+      }
     } catch(ParserException | IOException ex) {
       printErrorMessageAndExit(ex.getMessage());
     } catch(Exception ex) {
