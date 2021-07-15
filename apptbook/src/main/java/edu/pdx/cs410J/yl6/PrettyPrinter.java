@@ -18,9 +18,9 @@ public class PrettyPrinter<T extends AbstractAppointmentBook,
   
   private Writer writer;
   private String[] fieldNames;
-  private final int maxLine = 60;
+  private final int maxLine = 40;
   private final int tableBoundaryPadding = 2;
-  private final String entryDelimiter = getEntryDelimiter();
+  private final String entryDelimiter = fillArray(maxLine, '-') + "\n";
   private final int fieldNameWidth;
 
   public PrettyPrinter(PrintStream writer, String[] fieldNames) {
@@ -40,23 +40,33 @@ public class PrettyPrinter<T extends AbstractAppointmentBook,
   public void dump(T book) throws IOException {
     Collection<E> appts = book.getAppointments();
     
+    this.writer.write(formatFieldName("Owner"));
+    this.writer.write(formatField(book.getOwnerName()));
+    this.writer.write("\n");
+    this.writer.write(entryDelimiter);
+    
     for (E appt : appts) {
       String[] appointmentFields = appt.getPrettyPrinterFields();
       for (int i = 0; i < appointmentFields.length; ++i) {
         this.writer.write(this.fieldNames[i]);
-        this.writer.write(appointmentFields[i]);
+        this.writer.write(formatField(appointmentFields[i]));
         this.writer.write("\n");
       }
       this.writer.write(entryDelimiter);
     }
+
     this.writer.flush();
     this.writer.close();
   } 
 
   private void formatFieldNames() {
     for (int i = 0; i < this.fieldNames.length; ++i) {
-      this.fieldNames[i] = String.format("%-" + fieldNameWidth + "s|  ", this.fieldNames[i]); 
+      this.fieldNames[i] = formatFieldName(this.fieldNames[i]); 
     }
+  }
+
+  private String formatFieldName(String s) {
+    return String.format("%-" + fieldNameWidth + "s|  ", s);
   }
   
   private int getWidthOfFieldName() {
@@ -70,10 +80,35 @@ public class PrettyPrinter<T extends AbstractAppointmentBook,
     return maxLength;
   }
 
-  private String getEntryDelimiter() {
-    char[] delimiter = new char[maxLine];
-    Arrays.fill(delimiter, '-');
-    return new String(delimiter) + "\n";
+  private String fillArray(int length, char value) {
+    char[] array = new char[length];
+    Arrays.fill(array, value);
+    return new String(array);
   }
 
+  private String formatField(String s) {
+    StringBuilder sb = new StringBuilder();
+    int fieldWidth = maxLine - fieldNameWidth - tableBoundaryPadding;
+    int currentLength = fieldWidth;
+    String spacesForFieldName = 
+        fillArray(fieldNameWidth, ' ') + '|' + fillArray(tableBoundaryPadding, ' ');
+    
+    if (fieldWidth > s.length()) {
+      return s;
+    }
+
+    sb.append(s.substring(0, fieldWidth));
+    while (currentLength < s.length()) {
+      sb.append('\n');
+      sb.append(spacesForFieldName);
+      if (currentLength + fieldWidth > s.length()) {
+        sb.append(s.substring(currentLength, s.length()));
+      } else {
+        sb.append(s.substring(currentLength, currentLength + fieldWidth));
+      }
+      currentLength += fieldWidth;
+    }
+
+    return sb.toString();
+  }
 }
