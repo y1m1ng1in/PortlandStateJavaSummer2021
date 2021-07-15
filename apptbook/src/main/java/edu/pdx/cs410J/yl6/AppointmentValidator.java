@@ -26,7 +26,7 @@ public class AppointmentValidator {
   /**
    * Create an AppointmentValidator instance
    * 
-   * @param dataStringPattern 
+   * @param dateStringPattern 
    *        the pattern that is used for {@link SimpleDateFormat} construction, which
    *        is used to parse a string represents date and time. If any exception 
    *        raise during <code>parse</code> of <code>SimpleDateFormat</code> instance,

@@ -24,13 +24,21 @@ public class Appointment extends AbstractAppointment
   static final int numberOfField = 3;
 
   /**
-   * Create an appointment instance
+   * Create an appointment instance, where {@link SimpleDateFormat} is used 
+   * to parse string <code>begin</code> and <code>end</code> as begin and end
+   * time of the appointment.  
    * 
-   * @param begin       a string that is parseable by <code>SimpleDateFormat</code> in
-   *                    pattern <code>"M/d/yyyy h:m a"</code> and before <code>end</code>
-   * @param end         a string that is parsable by <code>SimpleDateFormat</code> in
-   *                    pattern <code>"M/d/yyyy h:m a"</code> and after <code>before</code>
-   * @param description a nonempty string that describes the appointment
+   * @param begin       
+   *        a string that is parseable by <code>SimpleDateFormat</code> in pattern 
+   *        <code>"M/d/yyyy h:m a"</code> and before <code>end</code>
+   * @param end         
+   *        a string that is parsable by <code>SimpleDateFormat</code> in pattern 
+   *        <code>"M/d/yyyy h:m a"</code> and after <code>before</code>
+   * @param description    
+   *        a nonempty string that describes the appointment
+   * @throws ParseException 
+   *         the <code>begin</code> and <code>end</code> cannot be parsed by 
+   *         <code>SimpleDateFormat</code> successfully.
    */
   public Appointment(String begin, String end, String description) 
       throws ParseException {
