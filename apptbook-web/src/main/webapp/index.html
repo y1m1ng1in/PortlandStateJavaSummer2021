@@ -49,5 +49,23 @@
     </form>
 </div>
 
+<div>
+    <form method="get" action="appointments">
+        List appointments with <input name="owner" type="text" size="10" title="owner"/>
+        <input type="submit" definition="Submit"/>
+    </form>
+</div>
+
+<div>
+    <form method="post" action="appointments">
+        Create an appointment
+        <input name="owner" type="text" size="10" title="owner"/> /
+        <input name="description" type="text" size="10" title="description"/> /
+        <input name="start" type="text" size="10" title="start"/> /
+        <input name="end" type="text" size="10" title="end"/> /
+        <input type="submit" definition="Submit"/>
+    </form>
+</div>
+
 </body>
 </html>

@@ -26,36 +26,36 @@ class AppointmentBookRestClientIT {
     return new AppointmentBookRestClient(HOSTNAME, port);
   }
 
-  @Test
-  void test0RemoveAllDictionaryEntries() throws IOException {
-    AppointmentBookRestClient client = newAppointmentBookRestClient();
-    client.removeAllDictionaryEntries();
-  }
+  // @Test
+  // void test0RemoveAllDictionaryEntries() throws IOException {
+  //   AppointmentBookRestClient client = newAppointmentBookRestClient();
+  //   client.removeAllDictionaryEntries();
+  // }
 
-  @Test
-  void test1EmptyServerContainsNoDictionaryEntries() throws IOException {
-    AppointmentBookRestClient client = newAppointmentBookRestClient();
-    Map<String, String> dictionary = client.getAllDictionaryEntries();
-    assertThat(dictionary.size(), equalTo(0));
-  }
+  // @Test
+  // void test1EmptyServerContainsNoDictionaryEntries() throws IOException {
+  //   AppointmentBookRestClient client = newAppointmentBookRestClient();
+  //   Map<String, String> dictionary = client.getAllDictionaryEntries();
+  //   assertThat(dictionary.size(), equalTo(0));
+  // }
 
-  @Test
-  void test2DefineOneWord() throws IOException {
-    AppointmentBookRestClient client = newAppointmentBookRestClient();
-    String testWord = "TEST WORD";
-    String testDefinition = "TEST DEFINITION";
-    client.addDictionaryEntry(testWord, testDefinition);
+  // @Test
+  // void test2DefineOneWord() throws IOException {
+  //   AppointmentBookRestClient client = newAppointmentBookRestClient();
+  //   String testWord = "TEST WORD";
+  //   String testDefinition = "TEST DEFINITION";
+  //   client.addDictionaryEntry(testWord, testDefinition);
 
-    String definition = client.getDefinition(testWord);
-    assertThat(definition, equalTo(testDefinition));
-  }
+  //   String definition = client.getDefinition(testWord);
+  //   assertThat(definition, equalTo(testDefinition));
+  // }
 
-  @Test
-  void test4MissingRequiredParameterReturnsPreconditionFailed() throws IOException {
-    AppointmentBookRestClient client = newAppointmentBookRestClient();
-    HttpRequestHelper.Response response = client.postToMyURL(Map.of());
-    assertThat(response.getContent(), containsString(Messages.missingRequiredParameter("word")));
-    assertThat(response.getCode(), equalTo(HttpURLConnection.HTTP_PRECON_FAILED));
-  }
+  // @Test
+  // void test4MissingRequiredParameterReturnsPreconditionFailed() throws IOException {
+  //   AppointmentBookRestClient client = newAppointmentBookRestClient();
+  //   HttpRequestHelper.Response response = client.postToMyURL(Map.of());
+  //   assertThat(response.getContent(), containsString(Messages.missingRequiredParameter("word")));
+  //   assertThat(response.getCode(), equalTo(HttpURLConnection.HTTP_PRECON_FAILED));
+  // }
 
 }

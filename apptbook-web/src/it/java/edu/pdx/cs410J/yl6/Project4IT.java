@@ -24,56 +24,56 @@ class Project4IT extends InvokeMainTestCase {
     private static final String HOSTNAME = "localhost";
     private static final String PORT = System.getProperty("http.port", "8080");
 
-    @Test
-    void test0RemoveAllMappings() throws IOException {
-      AppointmentBookRestClient client = new AppointmentBookRestClient(HOSTNAME, Integer.parseInt(PORT));
-      client.removeAllDictionaryEntries();
-    }
+    // @Test
+    // void test0RemoveAllMappings() throws IOException {
+    //   AppointmentBookRestClient client = new AppointmentBookRestClient(HOSTNAME, Integer.parseInt(PORT));
+    //   client.removeAllDictionaryEntries();
+    // }
 
-    @Test
-    void test1NoCommandLineArguments() {
-        MainMethodResult result = invokeMain( Project4.class );
-        assertThat(result.getExitCode(), equalTo(1));
-        assertThat(result.getTextWrittenToStandardError(), containsString(Project4.MISSING_ARGS));
-    }
+    // @Test
+    // void test1NoCommandLineArguments() {
+    //     MainMethodResult result = invokeMain( Project4.class );
+    //     assertThat(result.getExitCode(), equalTo(1));
+    //     assertThat(result.getTextWrittenToStandardError(), containsString(Project4.MISSING_ARGS));
+    // }
 
-    @Test
-    void test2EmptyServer() {
-        MainMethodResult result = invokeMain( Project4.class, HOSTNAME, PORT );
-        assertThat(result.getTextWrittenToStandardError(), result.getExitCode(), equalTo(0));
-        String out = result.getTextWrittenToStandardOut();
-        assertThat(out, out, containsString(Messages.formatWordCount(0)));
-    }
+    // @Test
+    // void test2EmptyServer() {
+    //     MainMethodResult result = invokeMain( Project4.class, HOSTNAME, PORT );
+    //     assertThat(result.getTextWrittenToStandardError(), result.getExitCode(), equalTo(0));
+    //     String out = result.getTextWrittenToStandardOut();
+    //     assertThat(out, out, containsString(Messages.formatWordCount(0)));
+    // }
 
-    @Test
-    void test3NoDefinitionsThrowsAppointmentBookRestException() {
-        String word = "WORD";
-        try {
-            invokeMain(Project4.class, HOSTNAME, PORT, word);
-            fail("Expected a RestException to be thrown");
+    // @Test
+    // void test3NoDefinitionsThrowsAppointmentBookRestException() {
+    //     String word = "WORD";
+    //     try {
+    //         invokeMain(Project4.class, HOSTNAME, PORT, word);
+    //         fail("Expected a RestException to be thrown");
 
-        } catch (UncaughtExceptionInMain ex) {
-            RestException cause = (RestException) ex.getCause();
-            assertThat(cause.getHttpStatusCode(), equalTo(HttpURLConnection.HTTP_NOT_FOUND));
-        }
-    }
+    //     } catch (UncaughtExceptionInMain ex) {
+    //         RestException cause = (RestException) ex.getCause();
+    //         assertThat(cause.getHttpStatusCode(), equalTo(HttpURLConnection.HTTP_NOT_FOUND));
+    //     }
+    // }
 
-    @Test
-    void test4AddDefinition() {
-        String word = "WORD";
-        String definition = "DEFINITION";
+    // @Test
+    // void test4AddDefinition() {
+    //     String word = "WORD";
+    //     String definition = "DEFINITION";
 
-        MainMethodResult result = invokeMain( Project4.class, HOSTNAME, PORT, word, definition );
-        assertThat(result.getTextWrittenToStandardError(), result.getExitCode(), equalTo(0));
-        String out = result.getTextWrittenToStandardOut();
-        assertThat(out, out, containsString(Messages.definedWordAs(word, definition)));
+    //     MainMethodResult result = invokeMain( Project4.class, HOSTNAME, PORT, word, definition );
+    //     assertThat(result.getTextWrittenToStandardError(), result.getExitCode(), equalTo(0));
+    //     String out = result.getTextWrittenToStandardOut();
+    //     assertThat(out, out, containsString(Messages.definedWordAs(word, definition)));
 
-        result = invokeMain( Project4.class, HOSTNAME, PORT, word );
-        out = result.getTextWrittenToStandardOut();
-        assertThat(out, out, containsString(Messages.formatDictionaryEntry(word, definition)));
+    //     result = invokeMain( Project4.class, HOSTNAME, PORT, word );
+    //     out = result.getTextWrittenToStandardOut();
+    //     assertThat(out, out, containsString(Messages.formatDictionaryEntry(word, definition)));
 
-        result = invokeMain( Project4.class, HOSTNAME, PORT );
-        out = result.getTextWrittenToStandardOut();
-        assertThat(out, out, containsString(Messages.formatDictionaryEntry(word, definition)));
-    }
+    //     result = invokeMain( Project4.class, HOSTNAME, PORT );
+    //     out = result.getTextWrittenToStandardOut();
+    //     assertThat(out, out, containsString(Messages.formatDictionaryEntry(word, definition)));
+    // }
 }
