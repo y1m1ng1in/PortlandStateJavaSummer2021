@@ -24,7 +24,7 @@ import edu.pdx.cs410J.ParserException;
  * index until either a invalid option detected, or all the available options matched, 
  * the rest of the commandline arguments are treated as arguments for appointment. 
  */
-public class Project2 {
+public class Project3 {
 
   static final String README = loadPlainTextFromResource("README.txt");
   static final String USAGE = loadPlainTextFromResource("usage.txt");
@@ -170,7 +170,7 @@ public class Project2 {
    */
   private static String loadPlainTextFromResource(String filename) {
     try {
-      InputStream is = Project2.class.getResourceAsStream(filename);
+      InputStream is = Project3.class.getResourceAsStream(filename);
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line = "";
       StringBuilder sb = new StringBuilder();

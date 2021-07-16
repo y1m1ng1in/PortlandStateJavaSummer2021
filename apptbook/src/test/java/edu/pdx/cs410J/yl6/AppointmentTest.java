@@ -51,7 +51,7 @@ public class AppointmentTest {
    * Tests that get begin time returns null since not implemented.
    */
   @Test
-  void forProject2ItIsOkayIfGetBeginTimeReturnsNull() throws ParseException {
+  void forProject3ItIsOkayIfGetBeginTimeReturnsNull() throws ParseException {
     DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
     Date d = df.parse("3/14/2020 4:29 pm");
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");

@@ -24,9 +24,9 @@ import java.io.File;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration tests for the {@link Project2} main class.
+ * Integration tests for the {@link Project3} main class.
  */
-class Project2IT extends InvokeMainTestCase {
+class Project3IT extends InvokeMainTestCase {
 
   static final String testFile = "unittest.txt";
 
@@ -51,10 +51,10 @@ class Project2IT extends InvokeMainTestCase {
   }
 
   /**
-   * Invokes the main method of {@link Project2} with the given arguments.
+   * Invokes the main method of {@link Project3} with the given arguments.
    */
   private MainMethodResult invokeMain(String... args) {
-    return invokeMain( Project2.class, args );
+    return invokeMain( Project3.class, args );
   }
 
   /**
