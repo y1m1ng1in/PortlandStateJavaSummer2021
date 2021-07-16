@@ -592,4 +592,54 @@ class Project2IT extends InvokeMainTestCase {
     assertThat(result.getTextWrittenToStandardError(), containsString("Cannot dump appointment book and pretty print to same file"));
     assertThat(result.getExitCode(), equalTo(1));
   }
+
+  @Test
+  void fileWithUnparseableArgumentsForAppointmentCase1() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020 12:52 pm#4/5/2020 2:52 pm#A description&12/12/2022 12:52pm#4/5/2023 2:52 am#A description2&");
+    MainMethodResult result = invokeMain(
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "am");
+    String expected = "Unparseable date: \"12/12/2022 12:52pm\"";
+    assertThat(result.getTextWrittenToStandardError(), containsString(expected));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  @Test
+  void fileWithUnparseableArgumentsForAppointmentCase2() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020 12:52 pm#4/5/2020 2:52 pm#A description&12/12/2022 12:52 pm#040523 2:52 am#A description2&");
+    MainMethodResult result = invokeMain(
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "am");
+    String expected = "Unparseable date: \"040523 2:52 am\"";
+    assertThat(result.getTextWrittenToStandardError(), containsString(expected));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  @Test
+  void fileWithUnparseableArgumentsForAppointmentCase3() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020 12:52 pm#4/5/2020 2:52 pm#&12/12/2022 12:52 pm#04/05/2023 2:52 am#A description2&");
+    MainMethodResult result = invokeMain(
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "am");
+    String expected = "Field description should not be empty";
+    assertThat(result.getTextWrittenToStandardError(), containsString(expected));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+  
+  @Test
+  void fileWithUnparseableArgumentsForAppointmentCase4() throws IOException, ParserException {
+    createFileWithText("yml&02/02/2020 12:52 pm#4/5/2020 2:52 pm#   &12/12/2022 12:52 pm#04/05/2023 2:52 am#A description2&");
+    MainMethodResult result = invokeMain(
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "am");
+    String expected = "Field description should not be empty";
+    assertThat(result.getTextWrittenToStandardError(), containsString(expected));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
+
+  @Test
+  void fileWithUnparseableArgumentsForAppointmentCase5() throws IOException, ParserException {
+    createFileWithText("yml&begintime#4/5/2020 2:52 pm#desc&12/12/2022 12:52 pm#04/05/2023 2:52 am#A description2&");
+    MainMethodResult result = invokeMain(
+        "-textFile", testFile, "yml", "A description", "2/12/2020", "12:52", "am", "4/5/2020", "2:52", "am");
+    String expected = "Unparseable date: \"begintime\"";
+    assertThat(result.getTextWrittenToStandardError(), containsString(expected));
+    assertThat(result.getExitCode(), equalTo(1));
+  }
 }
