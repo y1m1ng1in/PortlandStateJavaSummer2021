@@ -1,8 +1,5 @@
 package edu.pdx.cs410J.yl6;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /** 
  * NonemptyStringValidator is the class that encapsulate the computation of validation
  * of a given string <code>s</code> that is not empty after removing leading and tailing

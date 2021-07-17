@@ -8,148 +8,124 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Date;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
- * This servlet ultimately provides a REST API for working with an 
+ * This servlet ultimately provides a REST API for working with an
  * {@link AppointmentBook}
  */
-public class AppointmentBookServlet extends HttpServlet
-{
-  static final String WORD_PARAMETER = "word";
-  static final String DEFINITION_PARAMETER = "definition";
+public class AppointmentBookServlet extends HttpServlet {
 
   static final String OWNER_PARAMETER = "owner";
   static final String DESCRIPTION_PARAMETER = "description";
   static final String BEGIN_PARAMETER = "start";
   static final String END_PARAMETER = "end";
 
-  private final Map<String, String> dictionary = new HashMap<>();
-
-  private final Map<String, AppointmentBook> books = new HashMap<>();
+  private PlainTextAsStorage storage = new PlainTextAsStorage(".");
 
   /**
-   * Handles an HTTP GET request from a client by writing the owner, begin, and 
-   * end time of the appointment specified in the "owner", "start", "end" HTTP 
-   * parameter to the HTTP response.  
+   * Handles an HTTP GET request from a client by writing the owner, begin, and
+   * end time of the appointment specified in the "owner", "start", "end" HTTP
+   * parameter to the HTTP response.
    * <p>
-   * If the "begin" and "end" parameter is not specified, all of the entries 
-   * in the appointment book are written to the HTTP response; otherwise, the 
+   * If the "begin" and "end" parameter is not specified, all of the entries in
+   * the appointment book are written to the HTTP response; otherwise, the
    * appointments whose begin time between "begin" and "end" are written to the
    * HTTP response.
    */
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-      throws ServletException, IOException {
+  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String owner = getParameter(OWNER_PARAMETER, request);
     String begin = getParameter(BEGIN_PARAMETER, request);
     String end = getParameter(END_PARAMETER, request);
 
-    response.setContentType( "text/plain" );
+    response.setContentType("text/plain");
     if (owner == null) {
       missingRequiredParameter(response, OWNER_PARAMETER);
       return;
     }
     if (begin == null && end == null) {
-      writeAppointmentBook(response, getAppointmentBookByOwner(owner));
+      writeAppointmentBook(response, this.storage.getAllAppointmentsByOwner(owner));
       return;
-    } 
+    }
     if (begin != null && end != null) {
-      writeAppointmentBook(response, getAppointmentBookByOwner(owner));
+      try {
+        DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+        df.setLenient(false);
+        Date from = df.parse(begin);
+        Date to = df.parse(end);
+        writeAppointmentBook(response, this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to));
+      } catch (Exception e) {
+        writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_BAD_REQUEST);
+      }
       return;
-    } 
+    }
     if (begin == null) {
       missingRequiredParameter(response, BEGIN_PARAMETER);
-    } 
+    }
     missingRequiredParameter(response, END_PARAMETER);
   }
 
   /**
-   * Handles an HTTP POST request by storing the dictionary entry for the
-   * "word" and "definition" request parameters.  It writes the dictionary
-   * entry to the HTTP response.
+   * Handles an HTTP POST request by storing the dictionary entry for the "word"
+   * and "definition" request parameters. It writes the dictionary entry to the
+   * HTTP response.
    */
   @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-      throws ServletException, IOException {
-    response.setContentType( "text/plain" );
+  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    response.setContentType("text/plain");
+    String[] requiredFields = { OWNER_PARAMETER, BEGIN_PARAMETER, END_PARAMETER, DESCRIPTION_PARAMETER };
+    String[] fields = new String[4];
 
-    String owner = getParameter(OWNER_PARAMETER, request);
-    if (owner == null) {
-      missingRequiredParameter(response, OWNER_PARAMETER);
-      return;
-    }
-
-    String description = getParameter(DESCRIPTION_PARAMETER, request);
-    if (description == null) {
-        missingRequiredParameter(response, DESCRIPTION_PARAMETER);
+    for (int i = 0; i < 4; ++i) {
+      String value = getParameter(requiredFields[i], request);
+      if (value == null) {
+        missingRequiredParameter(response, requiredFields[i]);
         return;
-    }
-
-    String begin = getParameter(BEGIN_PARAMETER, request);
-    if (begin == null) {
-      missingRequiredParameter(response, BEGIN_PARAMETER);
-      return;
-    }
-
-    String end = getParameter(END_PARAMETER, request);
-    if (end == null) {
-      missingRequiredParameter(response, END_PARAMETER);
-      return;
+      }
+      fields[i] = value;
     }
 
     NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
     AppointmentValidator appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
-    String[] appointmentFields = { begin, end, description };
-    
-    PrintWriter pw = response.getWriter();
+    String[] appointmentFields = { fields[1], fields[2], fields[3] };
 
-    if (!ownerValidator.isValid(owner)) {
-      pw.println(ownerValidator.getErrorMessage());
-      pw.flush();
-      response.setStatus(HttpServletResponse.SC_OK);
+    if (!ownerValidator.isValid(fields[0])) {
+      writeMessageAndSetStatus(response, ownerValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
     if (!appointmentValidator.isValid(appointmentFields)) {
-      pw.println(appointmentValidator.getErrorMessage());
-      pw.flush();
-      response.setStatus(HttpServletResponse.SC_OK);
+      writeMessageAndSetStatus(response, appointmentValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
-    
+
     Appointment appointment = null;
     try {
-      appointment = new Appointment(begin, end, description);
+      appointment = new Appointment(fields[1], fields[2], fields[3]);
     } catch (ParseException e) {
-      pw.println("server internal error " + e.getMessage());
-      pw.flush();
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      writeMessageAndSetStatus(response, "Program internal error: " + e.getMessage(),
+          HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      return;
     }
-    if (this.books.containsKey(owner)) {
-      this.books.get(owner).addAppointment(appointment);
+    if (this.storage.insertAppointmentWithOwner(fields[0], appointment)) {
+      writeMessageAndSetStatus(response, "Add appointment " + appointment.toString(), HttpServletResponse.SC_OK);
     } else {
-      AppointmentBook newBook = new AppointmentBook(owner);
-      newBook.addAppointment(appointment); 
-      this.books.put(owner, newBook);
+      writeMessageAndSetStatus(response, this.storage.getErrorMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
-
-    pw.println("Add appointment " + appointment.toString());
-    pw.flush();
-
-    response.setStatus( HttpServletResponse.SC_OK);
   }
 
   /**
    * Writes all of the dictionary entries to the HTTP response.
    */
-  private void writeAppointmentBook(HttpServletResponse response, AppointmentBook book) 
+  private void writeAppointmentBook(HttpServletResponse response, AppointmentBook<Appointment> book)
       throws IOException {
     PrintWriter pw = response.getWriter();
-    
+
     if (book != null) {
-      TextDumper dumper = new TextDumper(pw);
+      TextDumper<AppointmentBook<Appointment>, Appointment> dumper = new TextDumper<>(pw);
       dumper.dump(book);
     } else {
       pw.println("No appointment found");
@@ -158,27 +134,23 @@ public class AppointmentBookServlet extends HttpServlet
     response.setStatus(HttpServletResponse.SC_OK);
   }
 
-  private AppointmentBook getAppointmentBookByOwner(String owner) {
-    return this.books.get(owner);
-  }
-
   /**
    * Writes an error message about a missing parameter to the HTTP response.
-   *
-   * The text of the error message is created by 
-   * {@link Messages#missingRequiredParameter(String)}
    */
-  private void missingRequiredParameter(HttpServletResponse response, String parameterName)
-      throws IOException {
-    String message = Messages.missingRequiredParameter(parameterName);
-    response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED, message);
+  private void missingRequiredParameter(HttpServletResponse response, String parameterName) throws IOException {
+    String message = missingRequiredParameter(parameterName);
+    response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+  }
+
+  private static String missingRequiredParameter(String parameterName) {
+    return String.format("The required parameter \"%s\" is missing", parameterName);
   }
 
   /**
    * Returns the value of the HTTP request parameter with the given name.
    *
-   * @return <code>null</code> if the value of the parameter is
-   *         <code>null</code> or is the empty string
+   * @return <code>null</code> if the value of the parameter is <code>null</code>
+   *         or is the empty string
    */
   private String getParameter(String name, HttpServletRequest request) {
     String value = request.getParameter(name);
@@ -188,5 +160,12 @@ public class AppointmentBookServlet extends HttpServlet
       return value;
     }
   }
-  
+
+  private void writeMessageAndSetStatus(HttpServletResponse response, String message, int status) throws IOException {
+    PrintWriter pw = response.getWriter();
+    pw.println(message);
+    pw.flush();
+    response.setStatus(status);
+  }
+
 }

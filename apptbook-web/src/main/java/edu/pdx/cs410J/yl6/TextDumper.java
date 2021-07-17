@@ -2,7 +2,6 @@ package edu.pdx.cs410J.yl6;
 
 import java.util.Collection;
 import java.io.Writer;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import edu.pdx.cs410J.AppointmentBookDumper;
@@ -27,7 +26,7 @@ import edu.pdx.cs410J.AbstractAppointmentBook;
  * <code>getStringFields</code> returned from low index to high index, which is a method 
  * in interface <code>PlainTextRepresentable</code>.
  */
-public class TextDumper<T extends AbstractAppointmentBook, 
+public class TextDumper<T extends AbstractAppointmentBook<E>, 
                         E extends AbstractAppointment & PlainTextRepresentable> 
     implements AppointmentBookDumper<T> {
 

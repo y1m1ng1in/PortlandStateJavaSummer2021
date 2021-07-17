@@ -6,7 +6,6 @@ import java.io.Writer;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.StringTokenizer;
 
 import edu.pdx.cs410J.AppointmentBookDumper;
 import edu.pdx.cs410J.AbstractAppointment;
@@ -25,7 +24,7 @@ import edu.pdx.cs410J.AbstractAppointmentBook;
  * <code>getPrettyPrinterFields</code> from low index to high index. The actual 
  * formatting is performmed by this class internally. 
  */
-public class PrettyPrinter<T extends AbstractAppointmentBook, 
+public class PrettyPrinter<T extends AbstractAppointmentBook<E>, 
                            E extends AbstractAppointment & PrettyPrintable> 
     implements AppointmentBookDumper<T> {
   
