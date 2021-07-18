@@ -25,6 +25,8 @@ public class AppointmentBookServlet extends HttpServlet {
   static final String END_PARAMETER = "end";
 
   private PlainTextAsStorage storage = new PlainTextAsStorage(".");
+  private NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
+  private AppointmentValidator appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
 
   /**
    * Handles an HTTP GET request from a client by writing the owner, begin, and
@@ -43,35 +45,18 @@ public class AppointmentBookServlet extends HttpServlet {
     String end = getParameter(END_PARAMETER, request);
 
     response.setContentType("text/plain");
+    // owner is always a required Get parameter in this servlet
     if (owner == null) {
       missingRequiredParameter(response, OWNER_PARAMETER);
       return;
     }
+
     if (begin == null && end == null) {
-      AppointmentBook<Appointment> book = this.storage.getAllAppointmentsByOwner(owner);
-      if (book == null) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND, "No appointment found with owner " + owner);
-      } else {
-        writeAppointmentBook(response, book);
-      }
+      getAllAppointmentsByOwner(response, owner);
       return;
     }
     if (begin != null && end != null) {
-      try {
-        DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
-        df.setLenient(false);
-        Date from = df.parse(begin);
-        Date to = df.parse(end);
-        AppointmentBook<Appointment> book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
-        if (book == null) {
-          response.sendError(HttpServletResponse.SC_NOT_FOUND,
-              "No appointment found with owner " + owner + " that begins between " + begin + " and " + end);
-        } else {
-          writeAppointmentBook(response, book);
-        }
-      } catch (Exception e) {
-        writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_BAD_REQUEST);
-      }
+      getAppointmentsByOwnerWithBeginInterval(response, owner, begin, end);
       return;
     }
     if (begin == null) {
@@ -100,37 +85,99 @@ public class AppointmentBookServlet extends HttpServlet {
       fields[i] = value;
     }
 
-    NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
-    AppointmentValidator appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
-    String[] appointmentFields = { fields[1], fields[2], fields[3] };
+    insertAppointmentWithOwner(response, fields[0], fields[3], fields[1], fields[2]);
+  }
 
-    if (!ownerValidator.isValid(fields[0])) {
-      writeMessageAndSetStatus(response, ownerValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
+  private void getAllAppointmentsByOwner(HttpServletResponse response, String owner) throws IOException {
+    if (!this.ownerValidator.isValid(owner)) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
       return;
     }
-    if (!appointmentValidator.isValid(appointmentFields)) {
-      writeMessageAndSetStatus(response, appointmentValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
+    AppointmentBook<Appointment> book = this.storage.getAllAppointmentsByOwner(owner);
+    if (book == null) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND, "No appointment found with owner " + owner);
+    } else {
+      writeAppointmentBookAndOkStatus(response, book);
+    }
+  }
+
+  private void getAppointmentsByOwnerWithBeginInterval(HttpServletResponse response, String owner, String begin,
+      String end) throws IOException {
+    if (!this.ownerValidator.isValid(owner)) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
       return;
     }
 
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+    df.setLenient(false);
+    Date from = null;
+    Date to = null;
+
+    // parsing begin and end string as lowerbound and upperbound of time interval to
+    // search and store them to "from" and "to", respectively
+    try {
+      from = df.parse(begin);
+      to = df.parse(end);
+      if (from.after(to)) { // check if lowerbound is greater than upperbound
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+            "The lowerbound of the time that appointments begin at to search, " + begin + " is after the upperbound, "
+                + end);
+        return;
+      }
+    } catch (ParseException e) { // string format is invalid
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "When parsing string as a Date instance, encountered " + e.getMessage());
+      return;
+    }
+
+    // load appointments satisified from persistent storage
+    AppointmentBook<Appointment> book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
+    if (book == null) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND,
+          "No appointment found with owner " + owner + " that begins between " + begin + " and " + end);
+    } else {
+      writeAppointmentBookAndOkStatus(response, book);
+    }
+  }
+
+  private void insertAppointmentWithOwner(HttpServletResponse response, String owner, String description, String begin,
+      String end) throws IOException {
+    String[] appointmentFields = { begin, end, description };
+
+    // validate owner and fields for constructing new appointment
+    if (!this.ownerValidator.isValid(owner)) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
+      return;
+    }
+    if (!this.appointmentValidator.isValid(appointmentFields)) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.appointmentValidator.getErrorMessage());
+      return;
+    }
+
+    // create Appointment instance
     Appointment appointment = null;
     try {
-      appointment = new Appointment(fields[1], fields[2], fields[3]);
+      appointment = new Appointment(begin, end, description);
     } catch (ParseException e) {
+      // should never happen, otherwise it is an implementation error of Appointment
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Program internal error: " + e.getMessage());
       return;
     }
-    if (this.storage.insertAppointmentWithOwner(fields[0], appointment)) {
+
+    // load appointment to persistent storage
+    if (this.storage.insertAppointmentWithOwner(owner, appointment)) {
       writeMessageAndSetStatus(response, "Add appointment " + appointment.toString(), HttpServletResponse.SC_OK);
     } else {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, this.storage.getErrorMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to store appointment " + appointment.toString() + " to storage" + this.storage.getErrorMessage());
     }
   }
 
   /**
-   * Writes all of the dictionary entries to the HTTP response.
+   * Dump the whole <code>book</code> to the HTTP response, and set HTTP status to
+   * 200.
    */
-  private void writeAppointmentBook(HttpServletResponse response, AppointmentBook<Appointment> book)
+  private void writeAppointmentBookAndOkStatus(HttpServletResponse response, AppointmentBook<Appointment> book)
       throws IOException {
     PrintWriter pw = response.getWriter();
     TextDumper<AppointmentBook<Appointment>, Appointment> dumper = new TextDumper<>(pw);
@@ -143,12 +190,8 @@ public class AppointmentBookServlet extends HttpServlet {
    * Writes an error message about a missing parameter to the HTTP response.
    */
   private void missingRequiredParameter(HttpServletResponse response, String parameterName) throws IOException {
-    String message = missingRequiredParameter(parameterName);
+    String message = String.format("The required parameter \"%s\" is missing", parameterName);
     response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-  }
-
-  private static String missingRequiredParameter(String parameterName) {
-    return String.format("The required parameter \"%s\" is missing", parameterName);
   }
 
   /**

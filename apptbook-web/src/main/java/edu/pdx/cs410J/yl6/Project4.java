@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 
 import edu.pdx.cs410J.ParserException;
+import edu.pdx.cs410J.web.HttpRequestHelper.RestException;
 
 /**
  * The main class that parses the command line and communicates with the
@@ -16,6 +17,9 @@ import edu.pdx.cs410J.ParserException;
 public class Project4 {
 
   public static final String MISSING_ARGS = "Missing command line arguments";
+  public static final String PARSE_INT_ERROR = "%s, it cannot be parsed as an integer for port number";
+  public static final String SEARCH_TIME_INTERVAL_ERROR = "lower bound date %s is later than upperbound date %s";
+  public static final String NEW_APPOINTMENT_BEGIN_LATER_THAN_END = "begin date %s is later than end date %s";
 
   public static void main(String... args) {
     ArgumentParser argumentParser = new ArgumentParser();
@@ -34,7 +38,7 @@ public class Project4 {
     try {
       port = Integer.parseInt(argumentParser.getOptionArguments("-port").get(0));
     } catch (NumberFormatException e) {
-      error(e.getMessage() + ", it cannot be parsed as an integer for port number");
+      error(String.format(PARSE_INT_ERROR, e.getMessage()));
     }
 
     AppointmentBookRestClient client = new AppointmentBookRestClient(hostName, port);
@@ -65,7 +69,7 @@ public class Project4 {
         error(e.getMessage());
       }
       if (!lowerboundDate.before(upperboundDate)) {
-        error("lower bound date " + lowerbound + " is later than upperbound date " + upperbound);
+        error(String.format(SEARCH_TIME_INTERVAL_ERROR, lowerbound, upperbound));
       }
 
       try {
@@ -75,7 +79,13 @@ public class Project4 {
       } catch (IOException e) {
         error("IOexception occurred, " + e.getMessage());
       } catch (ParserException e) {
-        error("Cannot parse string returned from server as an appointment book: " + e.getMessage());
+        error("Cannot parse content gets returned from server as an appointment book: " + e.getMessage());
+      } catch (RestException e) {
+        if (e.getHttpStatusCode() == 404) {
+          error("Cannot find any appointment that begins between " + lowerbound + " and " + upperbound);
+        } else {
+          error(e.getMessage());
+        }
       }
 
       System.exit(0);
@@ -90,12 +100,18 @@ public class Project4 {
       } catch (IOException e) {
         error("IOexception occurred, " + e.getMessage());
       } catch (ParserException e) {
-        error("Cannot parse string returned from server as an appointment book: " + e.getMessage());
+        error("Cannot parse content gets returned from server as an appointment book: " + e.getMessage());
+      } catch (RestException e) {
+        if (e.getHttpStatusCode() == 404) {
+          error("Cannot find any appointment with owner " + arguments[0]);
+        } else {
+          error(e.getMessage());
+        }
       }
 
       System.exit(0);
-    } 
-    
+    }
+
     if (arguments.length == 8) {
       String begin = String.join(" ", arguments[2], arguments[3], arguments[4]);
       String end = String.join(" ", arguments[5], arguments[6], arguments[7]);
@@ -109,17 +125,19 @@ public class Project4 {
         error(e.getMessage());
       }
       if (!beginDate.before(endDate)) {
-        error("begin date " + beginDate + " is later than end date " + endDate);
+        error(String.format(NEW_APPOINTMENT_BEGIN_LATER_THAN_END, begin, end));
       }
       try {
         client.addAppointment(arguments[0], arguments[1], begin, end);
       } catch (IOException e) {
         error("IOexception occurred, " + e.getMessage());
+      } catch (RestException e) {
+        error(e.getMessage());
       }
 
       System.exit(0);
     }
-     
+
     error("Cannot process arguments passed in");
 
     System.exit(0);
