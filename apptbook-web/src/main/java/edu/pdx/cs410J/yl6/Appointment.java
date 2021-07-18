@@ -9,13 +9,13 @@ import edu.pdx.cs410J.AbstractAppointment;
 
 /**
  * Appointment is the class that store appointment information for a certain
- * appointment, which includes a description, begin date and time, end date 
- * and time. The begin date and time, and end date and time can be any string, 
- * it leaves the client program to specify a typical format for its uses.
+ * appointment, which includes a description, begin date and time, end date and
+ * time. The begin date and time, and end date and time can be any string, it
+ * leaves the client program to specify a typical format for its uses.
  */
-public class Appointment extends AbstractAppointment 
+public class Appointment extends AbstractAppointment
     implements PlainTextRepresentable, PrettyPrintable, Comparable<Appointment> {
-  
+
   private String beginString;
   private String endString;
   private String description;
@@ -24,25 +24,22 @@ public class Appointment extends AbstractAppointment
   static final int numberOfField = 3;
 
   /**
-   * Create an appointment instance, where {@link SimpleDateFormat} is used 
-   * to parse string <code>begin</code> and <code>end</code> as begin and end
-   * time of the appointment.  
+   * Create an appointment instance, where {@link SimpleDateFormat} is used to
+   * parse string <code>begin</code> and <code>end</code> as begin and end time of
+   * the appointment.
    * 
-   * @param begin       
-   *        a string that is parseable by <code>SimpleDateFormat</code> in pattern 
-   *        <code>"M/d/yyyy h:m a"</code> and before <code>end</code>
-   * @param end         
-   *        a string that is parsable by <code>SimpleDateFormat</code> in pattern 
-   *        <code>"M/d/yyyy h:m a"</code> and after <code>before</code>
-   * @param description    
-   *        a nonempty string that describes the appointment
-   * @throws ParseException 
-   *         the <code>begin</code> and <code>end</code> cannot be parsed by 
-   *         <code>SimpleDateFormat</code> successfully.
+   * @param begin       a string that is parseable by
+   *                    <code>SimpleDateFormat</code> in pattern
+   *                    <code>"M/d/yyyy h:m a"</code> and before <code>end</code>
+   * @param end         a string that is parsable by <code>SimpleDateFormat</code>
+   *                    in pattern <code>"M/d/yyyy h:m a"</code> and after
+   *                    <code>before</code>
+   * @param description a nonempty string that describes the appointment
+   * @throws ParseException the <code>begin</code> and <code>end</code> cannot be
+   *                        parsed by <code>SimpleDateFormat</code> successfully.
    */
-  public Appointment(String begin, String end, String description) 
-      throws ParseException {
-    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a"); 
+  public Appointment(String begin, String end, String description) throws ParseException {
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
 
     df.setLenient(false);
     this.begin = df.parse(begin);
@@ -53,24 +50,20 @@ public class Appointment extends AbstractAppointment
     this.description = description;
   }
 
-  /**                                                                                 
-   * Returns a String describing the beginning date and time of this
-   * appointment.        
+  /**
+   * Returns a String describing the beginning date and time of this appointment.
    * 
-   * @return a string describing the beginning date and time of this
-   *         appointment.                                
-   */ 
+   * @return a string describing the beginning date and time of this appointment.
+   */
   @Override
   public String getBeginTimeString() {
     return DateFormat.getInstance().format(this.begin);
   }
 
   /**
-   * Returns a String describing the ending date and time of this
-   * appointment.
+   * Returns a String describing the ending date and time of this appointment.
    * 
-   * @return a string describing the ending date and time of this
-   *         appointment.
+   * @return a string describing the ending date and time of this appointment.
    */
   @Override
   public String getEndTimeString() {
@@ -89,14 +82,12 @@ public class Appointment extends AbstractAppointment
   }
 
   /**
-   * Get an array of strings that will be dumped to plain text file
-   * in the order from low index to high index of the returned array.
-   * The delimiter between fields is determined by the invoking dumper 
-   * class. 
+   * Get an array of strings that will be dumped to plain text file in the order
+   * from low index to high index of the returned array. The delimiter between
+   * fields is determined by the invoking dumper class.
    * 
-   * @return an array of strings that are to be dumped to plain text 
-   *         where the order is same as from low index to high index
-   *         of this array
+   * @return an array of strings that are to be dumped to plain text where the
+   *         order is same as from low index to high index of this array
    */
   @Override
   public String[] getStringFields() {
@@ -108,11 +99,11 @@ public class Appointment extends AbstractAppointment
   }
 
   /**
-   * Get an integer that represents the number of fields is expected to 
-   * be parsed from plain text file
+   * Get an integer that represents the number of fields is expected to be parsed
+   * from plain text file
    * 
-   * @return an integer that represents the number of fields is expected to 
-   *         be parsed from plain text file
+   * @return an integer that represents the number of fields is expected to be
+   *         parsed from plain text file
    */
   @Override
   public int getExpectedNumberOfField() {
@@ -134,18 +125,18 @@ public class Appointment extends AbstractAppointment
   }
 
   /**
-   * Compares invoking appointment with appointment <code>appt</code> passed in. 
-   * If both begin time and end time are same between two appointments, then
-   * two appointments are ordered by description lexicographically. Otherwise, if
+   * Compares invoking appointment with appointment <code>appt</code> passed in.
+   * If both begin time and end time are same between two appointments, then two
+   * appointments are ordered by description lexicographically. Otherwise, if
    * begin time between two are same, then ordered by end time; otherwise, ordered
    * by their begin time.
    * 
-   * @param appt the <code>Appointment</code> instance that is to be compared with 
+   * @param appt the <code>Appointment</code> instance that is to be compared with
    *             invoking appointment.
-   * @return     1 if invoking appointment is ordered after parameter;
-   *             0 if two appointments are same (which means both begin, end time, 
-   *             and description are same)
-   *             -1 if invoking appointment is ordered before parameter. 
+   * @return 1 if invoking appointment is ordered after parameter; 0 if two
+   *         appointments are same (which means both begin, end time, and
+   *         description are same) -1 if invoking appointment is ordered before
+   *         parameter.
    */
   @Override
   public int compareTo(Appointment appt) {
@@ -159,10 +150,10 @@ public class Appointment extends AbstractAppointment
   }
 
   /**
-   * Get an arrya of strings that stores strings to be pretty print to 
-   * standard output or file.
+   * Get an arrya of strings that stores strings to be pretty print to standard
+   * output or file.
    * 
-   * @return an array of strings that stores strings to be pretty print to 
+   * @return an array of strings that stores strings to be pretty print to
    *         standard output or file.
    */
   @Override
@@ -178,7 +169,7 @@ public class Appointment extends AbstractAppointment
     } else {
       fields[3] = String.valueOf(duration) + " minutes";
     }
-    
+
     return fields;
   }
 

@@ -48,7 +48,12 @@ public class AppointmentBookServlet extends HttpServlet {
       return;
     }
     if (begin == null && end == null) {
-      writeAppointmentBook(response, this.storage.getAllAppointmentsByOwner(owner));
+      AppointmentBook<Appointment> book = this.storage.getAllAppointmentsByOwner(owner);
+      if (book == null) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "No appointment found with owner " + owner);
+      } else {
+        writeAppointmentBook(response, book);
+      }
       return;
     }
     if (begin != null && end != null) {
@@ -57,7 +62,13 @@ public class AppointmentBookServlet extends HttpServlet {
         df.setLenient(false);
         Date from = df.parse(begin);
         Date to = df.parse(end);
-        writeAppointmentBook(response, this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to));
+        AppointmentBook<Appointment> book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
+        if (book == null) {
+          response.sendError(HttpServletResponse.SC_NOT_FOUND,
+              "No appointment found with owner " + owner + " that begins between " + begin + " and " + end);
+        } else {
+          writeAppointmentBook(response, book);
+        }
       } catch (Exception e) {
         writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_BAD_REQUEST);
       }
@@ -106,14 +117,13 @@ public class AppointmentBookServlet extends HttpServlet {
     try {
       appointment = new Appointment(fields[1], fields[2], fields[3]);
     } catch (ParseException e) {
-      writeMessageAndSetStatus(response, "Program internal error: " + e.getMessage(),
-          HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Program internal error: " + e.getMessage());
       return;
     }
     if (this.storage.insertAppointmentWithOwner(fields[0], appointment)) {
       writeMessageAndSetStatus(response, "Add appointment " + appointment.toString(), HttpServletResponse.SC_OK);
     } else {
-      writeMessageAndSetStatus(response, this.storage.getErrorMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, this.storage.getErrorMessage());
     }
   }
 
@@ -123,13 +133,8 @@ public class AppointmentBookServlet extends HttpServlet {
   private void writeAppointmentBook(HttpServletResponse response, AppointmentBook<Appointment> book)
       throws IOException {
     PrintWriter pw = response.getWriter();
-
-    if (book != null) {
-      TextDumper<AppointmentBook<Appointment>, Appointment> dumper = new TextDumper<>(pw);
-      dumper.dump(book);
-    } else {
-      pw.println("No appointment found");
-    }
+    TextDumper<AppointmentBook<Appointment>, Appointment> dumper = new TextDumper<>(pw);
+    dumper.dump(book);
     pw.flush();
     response.setStatus(HttpServletResponse.SC_OK);
   }

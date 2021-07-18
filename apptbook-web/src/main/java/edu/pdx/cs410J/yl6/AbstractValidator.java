@@ -1,18 +1,18 @@
 package edu.pdx.cs410J.yl6;
 
 /**
- * This class represent a field validator, which encapsulates the method
- * that takes a string <code>s</code> as argument and determines if <code>s</code>
- * successfully matches some rule defined by <code>isValid</code> method, and 
+ * This class represent a field validator, which encapsulates the method that
+ * takes a string <code>s</code> as argument and determines if <code>s</code>
+ * successfully matches some rule defined by <code>isValid</code> method, and
  * generate corresponding error message which can be obtained by client program
  * by invoking <code>getErrorMessage</code> method.
  */
 public abstract class AbstractValidator {
   /**
-   * Determine if <code>s</code> is valid. 
+   * Determine if <code>s</code> is valid.
    * 
-   * @param s the string to be checked. 
-   * @return  <code>true</code> if it is valid; <code>false</code> otherwise.
+   * @param s the string to be checked.
+   * @return <code>true</code> if it is valid; <code>false</code> otherwise.
    */
   public abstract boolean isValid(String s);
 

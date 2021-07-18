@@ -31,6 +31,7 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
     File f = locateAppointmentBookFileByOwner(owner);
 
     if (f == null) {
+      this.errorMessage = "No appointments found with owner " + owner;
       return null;
     }
 
@@ -71,6 +72,9 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
           satisifed.addAppointment(appt);
         }
       }
+      if (satisifed.getAppointments().isEmpty()) {
+        return null;
+      } 
       return satisifed;
     } catch (Exception e) {
       return null;

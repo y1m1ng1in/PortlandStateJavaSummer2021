@@ -25,8 +25,9 @@ public class TextParser implements AppointmentBookParser<AppointmentBook<Appoint
       if (!this.appointmentParser.hasMore()) {
         throw new ParserException(ZERO_APPOINTMENT_WITH_OWNER + book.getOwnerName());
       }
-      while (this.appointmentParser.hasMore()) {
-        book.addAppointment(this.appointmentParser.parse());
+      Appointment appt;
+      while ((appt = this.appointmentParser.parse()) != null) {
+        book.addAppointment(appt);
       }
       return book;
     } catch (IOException e) {

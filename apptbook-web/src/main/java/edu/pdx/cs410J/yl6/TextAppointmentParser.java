@@ -45,9 +45,11 @@ public class TextAppointmentParser {
   public Appointment parse() throws ParserException, IOException {
     char c = ' ';
     int next;
+    int count = 0;
 
     parsing: while ((next = reader.read()) != -1) {
       c = (char) next;
+      count += 1;
       switch (c) {
         case '#':
           if (this.currentArgIndex == expectedNumberofField) {
@@ -76,6 +78,11 @@ public class TextAppointmentParser {
         default:
           this.sb.append(c);
       }
+    }
+
+    if (count == 0) {
+      // nothing can be parsed 
+      return null;
     }
 
     if (c != '&' || this.currentArgIndex != 0) {
