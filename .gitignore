@@ -49,3 +49,4 @@ nonexists1.txt
 .settings/
 .project
 .classpath
+.vscode

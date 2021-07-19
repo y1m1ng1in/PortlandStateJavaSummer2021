@@ -35,7 +35,6 @@ import java.util.List;
  * commandline args) with all available options until (n+1)th element is neither
  * a valid option or an argument for an option; from (n+1)th element to the last
  * one, they are treated as &lt; arguments &gt;.
- * <p>
  */
 public class ArgumentParser {
 

@@ -25,8 +25,9 @@ public interface AppointmentBookStorage<T extends AbstractAppointmentBook<E>, E 
    * @param owner the owner name
    * @return an appointment book that contains all appointments with
    *         <code>owner</code>
+   * @throws StorageException If any error occurs during read/write with storage
    */
-  public T getAllAppointmentsByOwner(String owner);
+  public T getAllAppointmentsByOwner(String owner) throws StorageException;
 
   /**
    * Retrieve the storage to get a collection of appointments that begin between
@@ -38,16 +39,16 @@ public interface AppointmentBookStorage<T extends AbstractAppointmentBook<E>, E 
    * @param to    the latest begin time of appointments to be retrieved
    * @return an appointment book <code>T</code> that contains all the appointments
    *         whose begin time is between <code>from</code> to <code>to</code>.
+   * @throws StorageException If any error occurs during read/write with storage
    */
-  public T getAppointmentsByOwnerWithBeginInterval(String owner, Date from, Date to);
+  public T getAppointmentsByOwnerWithBeginInterval(String owner, Date from, Date to) throws StorageException;
 
   /**
    * Insert <code>appointment</code> to the storage.
    * 
    * @param owner       the owner of <code>appointment</code>
    * @param appointment the appointment to be stored persistently.
-   * @return <code>true</code> if stored successfully; <code>false</code>
-   *         otherwise.
+   * @throws StorageException If any error occurs during read/write with storage
    */
-  public boolean insertAppointmentWithOwner(String owner, E appointment);
+  public void insertAppointmentWithOwner(String owner, E appointment) throws StorageException;
 }

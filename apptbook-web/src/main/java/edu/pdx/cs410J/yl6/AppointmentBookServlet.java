@@ -88,12 +88,36 @@ public class AppointmentBookServlet extends HttpServlet {
     insertAppointmentWithOwner(response, fields[0], fields[3], fields[1], fields[2]);
   }
 
+  /**
+   * Handle {@link #doGet} requests that given a <code>owner</code>, return all
+   * appointments that belong to <code>owner</code>. The following lists HTTP
+   * status code with its indication:
+   * <ul>
+   * <li><code>200</code> indicates that all appointments with <code>owner</code>
+   * is found
+   * <li><code>400</code> indicates that the <code>owner</code> string is not
+   * valid
+   * <li><code>404</code> indicates that no appointment with <code>owner</code> is
+   * found
+   * <li><code>500</code> indicates any error related to storage
+   * </ul>
+   *
+   * @param response a {@link HttpServletResponse} instance from {@link #doGet}
+   * @param owner    a string of owner name
+   * @throws IOException If an input or output exception occurs
+   */
   private void getAllAppointmentsByOwner(HttpServletResponse response, String owner) throws IOException {
     if (!this.ownerValidator.isValid(owner)) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
       return;
     }
-    AppointmentBook<Appointment> book = this.storage.getAllAppointmentsByOwner(owner);
+    AppointmentBook<Appointment> book = null;
+    try {
+      book = this.storage.getAllAppointmentsByOwner(owner);
+    } catch (StorageException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      return;
+    }
     if (book == null) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND, "No appointment found with owner " + owner);
     } else {
@@ -101,6 +125,31 @@ public class AppointmentBookServlet extends HttpServlet {
     }
   }
 
+  /**
+   * Handle {@link #doGet} requests that given a <code>owner</code>,
+   * <code>begin</code> stores the lowerbound of searching time interval for
+   * appointments that begin, <code>end</code> stores the upperbound of searching
+   * time interval for appointments that begin, return all appointments that
+   * belong to <code>owner</code> with begin time falls into seraching time
+   * interal. The following lists HTTP status code with its indication:
+   * <ul>
+   * <li><code>200</code> indicates that all appointments with <code>owner</code>
+   * that satisified seraching requirement is found
+   * <li><code>400</code> indicates that the <code>owner</code> string,
+   * <code>begin</code> string, or <code>end</code> string is not valid.
+   * <li><code>404</code> indicates that no appointment with <code>owner</code> is
+   * found
+   * <li><code>500</code> indicates any error related to storage
+   * </ul>
+   * 
+   * @param response a {@link HttpServletResponse} instance from {@link #doGet}
+   * @param owner    a string of owner name
+   * @param begin    the lowerbound of searching time interval for appointment's
+   *                 begin time
+   * @param end      the upperbound of searching time interval for appointment's
+   *                 begin time
+   * @throws IOException If an input or output exception occurs
+   */
   private void getAppointmentsByOwnerWithBeginInterval(HttpServletResponse response, String owner, String begin,
       String end) throws IOException {
     if (!this.ownerValidator.isValid(owner)) {
@@ -125,13 +174,18 @@ public class AppointmentBookServlet extends HttpServlet {
         return;
       }
     } catch (ParseException e) { // string format is invalid
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "When parsing string as a Date instance, encountered " + e.getMessage());
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
       return;
     }
 
     // load appointments satisified from persistent storage
-    AppointmentBook<Appointment> book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
+    AppointmentBook<Appointment> book = null;
+    try {
+      book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
+    } catch (StorageException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      return;
+    }
     if (book == null) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND,
           "No appointment found with owner " + owner + " that begins between " + begin + " and " + end);
@@ -140,6 +194,29 @@ public class AppointmentBookServlet extends HttpServlet {
     }
   }
 
+  /**
+   * Handle {@link #doPost} requests that given a <code>owner</code>,
+   * <code>description</code>, <code>begin</code>, and <code>end</code> for
+   * constructing a new appointment, construct an appointment and store it to
+   * persistent storage. The following lists HTTP status code with its indication:
+   * <ul>
+   * <li><code>200</code> indicates that appointment is successfully created and
+   * stored
+   * <li><code>400</code> indicates that the arguments for new appointment is not
+   * valid
+   * <li><code>500</code> indicates that appointment cannot be stored to storage,
+   * or a program internal error (a bug: an invalid appointment is attempting to
+   * store into storage) occurrs.
+   * </ul>
+   * 
+   * @param response    a {@link HttpServletResponse} instance from
+   *                    {@link #doPost}
+   * @param owner       a string of owner name
+   * @param description a string of description of appointment
+   * @param begin       a string of begin time of appointment
+   * @param end         a string of end time of appointment
+   * @throws IOException If an input or output exception occurs
+   */
   private void insertAppointmentWithOwner(HttpServletResponse response, String owner, String description, String begin,
       String end) throws IOException {
     String[] appointmentFields = { begin, end, description };
@@ -165,17 +242,23 @@ public class AppointmentBookServlet extends HttpServlet {
     }
 
     // load appointment to persistent storage
-    if (this.storage.insertAppointmentWithOwner(owner, appointment)) {
+    try {
+      this.storage.insertAppointmentWithOwner(owner, appointment);
       writeMessageAndSetStatus(response, "Add appointment " + appointment.toString(), HttpServletResponse.SC_OK);
-    } else {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-          "Failed to store appointment " + appointment.toString() + " to storage" + this.storage.getErrorMessage());
+    } catch (StorageException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
   /**
    * Dump the whole <code>book</code> to the HTTP response, and set HTTP status to
-   * 200.
+   * 200. The method uses <code>PrintWriter</code> instance obtained by
+   * {@link HttpServletResponse#getWriter} to dump content by
+   * {@link TextDumper#dump}.
+   * 
+   * @param response a {@link HttpServletResponse} instance
+   * @param book     the appointment book to be write to <code>response</code>
+   * @throws IOException If an input or output exception occurs
    */
   private void writeAppointmentBookAndOkStatus(HttpServletResponse response, AppointmentBook<Appointment> book)
       throws IOException {
@@ -187,7 +270,8 @@ public class AppointmentBookServlet extends HttpServlet {
   }
 
   /**
-   * Writes an error message about a missing parameter to the HTTP response.
+   * Writes an error message about a missing parameter to the HTTP response, and
+   * set HTTP status code to 400 using {@link HttpServletResponse#sendError}
    */
   private void missingRequiredParameter(HttpServletResponse response, String parameterName) throws IOException {
     String message = String.format("The required parameter \"%s\" is missing", parameterName);
@@ -209,6 +293,15 @@ public class AppointmentBookServlet extends HttpServlet {
     }
   }
 
+  /**
+   * Write <code>message</code> to <code>response</code> and set
+   * <code>status</code> to HTTP status
+   * 
+   * @param response a {@link HttpServletResponse} instance
+   * @param message  the message to write to response
+   * @param status   HTTP status code
+   * @throws IOException If an input or output exception occurs
+   */
   private void writeMessageAndSetStatus(HttpServletResponse response, String message, int status) throws IOException {
     PrintWriter pw = response.getWriter();
     pw.println(message);
