@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.text.ParseException;
@@ -17,28 +18,18 @@ public class PrettyPrinterTest {
   String prettyFile = "prettyfile.txt";
   String[] fields = { "Begin at", "End at", "Description", "Duration" };
 
-  String readFile() throws IOException {
-    Reader reader = new FileReader(prettyFile);
-    StringBuilder sb = new StringBuilder();
-    int c;
-    while((c = reader.read()) != -1) {
-      sb.append((char) c);
-    }
-    reader.close();
-    return sb.toString();
-  }
-
   @Test
   void testCase1() throws ParseException, IOException {
+    StringWriter sw = new StringWriter();
     PrettyPrinter<AppointmentBook<Appointment>, Appointment> printer = 
-        new PrettyPrinter(new FileWriter(prettyFile), fields);
+        new PrettyPrinter(sw, fields);
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
     Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     printer.dump(book);
-    String s = readFile();
+    String s = sw.toString();
     String exp = 
         "Owner        |  a owner\n" +
         "----------------------------------------\n" +
@@ -57,8 +48,9 @@ public class PrettyPrinterTest {
 
   @Test
   void testCase2() throws ParseException, IOException {
+    StringWriter sw = new StringWriter();
     PrettyPrinter<AppointmentBook<Appointment>, Appointment> printer = 
-        new PrettyPrinter(new FileWriter(prettyFile), fields);
+        new PrettyPrinter(sw, fields);
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
     Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");
@@ -68,7 +60,7 @@ public class PrettyPrinterTest {
     book.addAppointment(appointment2);
     book.addAppointment(appointment3);
     printer.dump(book);
-    String s = readFile();
+    String s = sw.toString();
     String exp = 
         "Owner        |  a owner\n" +
         "----------------------------------------\n" +

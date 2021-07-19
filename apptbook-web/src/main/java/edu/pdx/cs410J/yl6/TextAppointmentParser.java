@@ -27,7 +27,7 @@ public class TextAppointmentParser {
 
   private static final int expectedNumberofField = 3;
 
-  static final String EOF_REACHED_PARSE_ARG = "End of file reached before the last appointment been parsed completely";
+  static final String EOF_REACHED_PARSE_ARG = "End of file reached before the field been parsed completely";
   static final String NOT_ENOUGH_FIELD = "Not enough fields to build appointment from file";
   static final String CANNOT_FIND_FILE = "Cannot find file: ";
   static final String IOEXCEPTION_OCCUR = "IOException occurs during parsing with message: ";
@@ -52,19 +52,16 @@ public class TextAppointmentParser {
       count += 1;
       switch (c) {
         case '#':
-          if (this.currentArgIndex == expectedNumberofField) {
-            throw new ParserException(MORE_FIELD_THAN_NEEDED);
-          }
           placeArgumentAndResetStringBuilder();
           this.currentArgIndex += 1;
           break;
 
         case '&':
-          placeArgumentAndResetStringBuilder();
-          if (this.currentArgIndex != expectedNumberofField - 1) {
+          if (this.currentArgIndex < expectedNumberofField - 1) {
             throw new ParserException(
                 NOT_ENOUGH_FIELD + " expect " + expectedNumberofField + ", but got " + (this.currentArgIndex + 1));
           }
+          placeArgumentAndResetStringBuilder();
           this.currentArgIndex = 0;
           break parsing;
 
@@ -106,8 +103,13 @@ public class TextAppointmentParser {
    * passed into appointment's constructor, which is done in
    * <code>buildAppointment</code> method. And clear <code>sb</code> to store
    * intermediate results of the next field during parsing.
+   * 
+   * @throws ParserException
    */
-  private void placeArgumentAndResetStringBuilder() {
+  private void placeArgumentAndResetStringBuilder() throws ParserException {
+    if (this.currentArgIndex == expectedNumberofField) {
+      throw new ParserException(MORE_FIELD_THAN_NEEDED);
+    }
     this.appointmentArguments[this.currentArgIndex] = this.sb.toString();
     this.sb.setLength(0);
   }
