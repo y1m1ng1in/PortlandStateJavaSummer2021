@@ -45,3 +45,8 @@ test.txt
 unittest.txt
 nonexists.txt
 nonexists1.txt
+
+.project
+.settings
+.vscode
+.classpath
