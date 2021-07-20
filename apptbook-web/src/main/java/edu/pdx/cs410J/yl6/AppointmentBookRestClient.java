@@ -1,7 +1,5 @@
 package edu.pdx.cs410J.yl6;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import edu.pdx.cs410J.ParserException;
 import edu.pdx.cs410J.web.HttpRequestHelper;
 
@@ -9,6 +7,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Map;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -69,14 +69,9 @@ public class AppointmentBookRestClient extends HttpRequestHelper {
   }
 
   public void addAppointment(String owner, String description, String begin, String end) throws IOException {
-    Response response = post(this.url + "?owner=" + owner,
-        Map.of("description", description, "start", begin, "end", end));
+    String postUrl = this.url + "?owner=" + URLEncoder.encode(owner, StandardCharsets.UTF_8);
+    Response response = post(postUrl, Map.of("description", description, "start", begin, "end", end));
     throwExceptionIfNotOkayHttpStatus(response);
-  }
-
-  @VisibleForTesting
-  Response postToMyURL(Map<String, String> dictionaryEntries) throws IOException {
-    return post(this.url, dictionaryEntries);
   }
 
   private Response throwExceptionIfNotOkayHttpStatus(Response response) {

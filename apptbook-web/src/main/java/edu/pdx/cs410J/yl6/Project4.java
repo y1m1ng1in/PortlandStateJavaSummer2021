@@ -23,7 +23,8 @@ public class Project4 {
 
   public static void main(String... args) {
     ArgumentParser argumentParser = new ArgumentParser();
-    argumentParser.addOption("-host", 1).addOption("-port", 1).addOption("-search", 0).addOption("-print", 0);
+    argumentParser.addOption("-host", 1).addOption("-port", 1).addOption("-search", 0).addOption("-print", 0)
+        .setUsage(usage());
 
     if (!argumentParser.parse(args)) {
       error(argumentParser.getErrorMessage());
@@ -59,18 +60,7 @@ public class Project4 {
 
       String lowerbound = String.join(" ", arguments[1], arguments[2], arguments[3]);
       String upperbound = String.join(" ", arguments[4], arguments[5], arguments[6]);
-      DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
-      df.setLenient(false);
-      Date lowerboundDate = null, upperboundDate = null;
-      try {
-        lowerboundDate = df.parse(lowerbound);
-        upperboundDate = df.parse(upperbound);
-      } catch (ParseException e) {
-        error(e.getMessage());
-      }
-      if (!lowerboundDate.before(upperboundDate)) {
-        error(String.format(SEARCH_TIME_INTERVAL_ERROR, lowerbound, upperbound));
-      }
+      validateTwoDates(lowerbound, upperbound, SEARCH_TIME_INTERVAL_ERROR);
 
       try {
         AppointmentBook<Appointment> book = client.getAppointmentsByOwnerWithBeginInterval(arguments[0], lowerbound,
@@ -115,18 +105,7 @@ public class Project4 {
     if (arguments.length == 8) {
       String begin = String.join(" ", arguments[2], arguments[3], arguments[4]);
       String end = String.join(" ", arguments[5], arguments[6], arguments[7]);
-      DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
-      df.setLenient(false);
-      Date beginDate = null, endDate = null;
-      try {
-        beginDate = df.parse(begin);
-        endDate = df.parse(end);
-      } catch (ParseException e) {
-        error(e.getMessage());
-      }
-      if (!beginDate.before(endDate)) {
-        error(String.format(NEW_APPOINTMENT_BEGIN_LATER_THAN_END, begin, end));
-      }
+      validateTwoDates(begin, end, NEW_APPOINTMENT_BEGIN_LATER_THAN_END);
       try {
         client.addAppointment(arguments[0], arguments[1], begin, end);
       } catch (IOException e) {
@@ -150,28 +129,33 @@ public class Project4 {
     System.exit(1);
   }
 
-  /**
-   * Prints usage information for this program and exits
-   * 
-   * @param message An error message to print
-   */
-  private static void usage(String message) {
-    PrintStream err = System.err;
-    err.println("** " + message);
-    err.println();
-    err.println("usage: java Project4 host port [word] [definition]");
-    err.println("  host         Host of web server");
-    err.println("  port         Port of web server");
-    err.println("  word         Word in dictionary");
-    err.println("  definition   Definition of word");
-    err.println();
-    err.println("This simple program posts words and their definitions");
-    err.println("to the server.");
-    err.println("If no definition is specified, then the word's definition");
-    err.println("is printed.");
-    err.println("If no word is specified, all dictionary entries are printed");
-    err.println();
+  private static void validateTwoDates(String date1, String date2, String message) {
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+    df.setLenient(false);
+    Date lowerboundDate = null, upperboundDate = null;
+    try {
+      lowerboundDate = df.parse(date1);
+      upperboundDate = df.parse(date2);
+    } catch (ParseException e) {
+      error(e.getMessage());
+    }
+    if (!lowerboundDate.before(upperboundDate)) {
+      error(String.format(message, date1, date2));
+    }
+  }
 
-    System.exit(1);
+  /**
+   * Prints usage information for this program
+   */
+  public static String usage() {
+    return "usage: java edu.pdx.cs410J.yl6.Project4 [options] <args>\n" + "  args are (in this order):\n"
+        + "    owner              The person who owns the appt book\n"
+        + "    description        A description of the appointment\n" + "    begin              When the appt begins\n"
+        + "    end                When the appt ends\n" + "  options are (options may appear in any order):\n"
+        + "    -host hostname     Host computer on which the server runs\n"
+        + "    -port port         Port on which the server is listening\n"
+        + "    -search            Appointments should be searched for\n"
+        + "    -print             Prints a description of the new appointment\n"
+        + "    -README            Prints a README for this project and exits\n";
   }
 }

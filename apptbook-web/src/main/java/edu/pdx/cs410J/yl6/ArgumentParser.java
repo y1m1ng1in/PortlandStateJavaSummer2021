@@ -48,7 +48,7 @@ public class ArgumentParser {
 
   static final String optionReadme = "-README";
 
-  static final String MISSING_OPTION_ARG = "Missing argument of option ";
+  static final String MISSING_OPTION_ARG = "Not enough arguments passed in for option ";
   static final String MORE_ARGS = "The following argument(s) passed in are extraneous:\n";
 
   /**
@@ -143,12 +143,12 @@ public class ArgumentParser {
         this.errorMessage = "Missing arguments\n" + usage;
       } else {
         this.errorMessage = "Missing required argument(s):\n"
-            + itemizeString(Arrays.asList(argNames), parsedNumberOfArgs, requiredNumberOfArgs);
+            + itemizeString(Arrays.asList(argNames), parsedNumberOfArgs, requiredNumberOfArgs - 1);
       }
       return null;
     }
     if (parsedNumberOfArgs > requiredNumberOfArgs) {
-      this.errorMessage = MORE_ARGS + itemizeString(this.arguments, requiredNumberOfArgs, parsedNumberOfArgs);
+      this.errorMessage = MORE_ARGS + itemizeString(this.arguments, requiredNumberOfArgs, parsedNumberOfArgs - 1);
       return null;
     }
 
