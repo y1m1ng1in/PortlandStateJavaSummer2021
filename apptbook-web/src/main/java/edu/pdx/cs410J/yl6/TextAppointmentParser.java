@@ -34,6 +34,18 @@ public class TextAppointmentParser {
   static final String PROGRAM_INTERNAL_ERROR = "Program internal error: ";
   static final String MORE_FIELD_THAN_NEEDED = "An extraneous field encountered to build appointment from file";
 
+  /**
+   * Create a TextAppointmentParser instance
+   * 
+   * @param reader    the {@link Reader} instance to read in data to be parsed as
+   *                  an {@link Appointment}, usually <code>reader</code> is the
+   *                  same reference to the one that passed into
+   *                  {@link TextAppointmentBookParser} instance such that
+   *                  {@link TextParser} can use the same <code>reader</code> to
+   *                  parse a complete appointment book
+   * @param validator an {@link AppointmentValidator} instance that checks if a
+   *                  parsed appointment is valid
+   */
   public TextAppointmentParser(Reader reader, AppointmentValidator validator) {
     this.reader = reader;
     this.validator = validator;
@@ -42,6 +54,15 @@ public class TextAppointmentParser {
     this.sb = new StringBuilder();
   }
 
+  /**
+   * Parse an {@link Appointment} instance
+   * 
+   * @return an <code>Appointment</code> instance get parsed
+   * @throws ParserException if the appointment cannot be parsed successfully or
+   *                         completely (either lack of fields, or extraneous
+   *                         field encountered), or parsed appointment is invalid
+   * @throws IOException     If an input or output exception occurs
+   */
   public Appointment parse() throws ParserException, IOException {
     char c = ' ';
     int next;
@@ -51,34 +72,34 @@ public class TextAppointmentParser {
       c = (char) next;
       count += 1;
       switch (c) {
-        case '#':
-          placeArgumentAndResetStringBuilder();
-          this.currentArgIndex += 1;
-          break;
+      case '#':
+        placeArgumentAndResetStringBuilder();
+        this.currentArgIndex += 1;
+        break;
 
-        case '&':
-          if (this.currentArgIndex < expectedNumberofField - 1) {
-            throw new ParserException(
-                NOT_ENOUGH_FIELD + " expect " + expectedNumberofField + ", but got " + (this.currentArgIndex + 1));
-          }
-          placeArgumentAndResetStringBuilder();
-          this.currentArgIndex = 0;
-          break parsing;
+      case '&':
+        if (this.currentArgIndex < expectedNumberofField - 1) {
+          throw new ParserException(
+              NOT_ENOUGH_FIELD + " expect " + expectedNumberofField + ", but got " + (this.currentArgIndex + 1));
+        }
+        placeArgumentAndResetStringBuilder();
+        this.currentArgIndex = 0;
+        break parsing;
 
-        case '\\':
-          next = reader.read();
-          if (next != -1) {
-            this.sb.append((char) next);
-          }
-          break;
+      case '\\':
+        next = reader.read();
+        if (next != -1) {
+          this.sb.append((char) next);
+        }
+        break;
 
-        default:
-          this.sb.append(c);
+      default:
+        this.sb.append(c);
       }
     }
 
     if (count == 0) {
-      // nothing can be parsed 
+      // nothing can be parsed
       return null;
     }
 
@@ -104,7 +125,7 @@ public class TextAppointmentParser {
    * <code>buildAppointment</code> method. And clear <code>sb</code> to store
    * intermediate results of the next field during parsing.
    * 
-   * @throws ParserException
+   * @throws ParserException If an extraneous field detected
    */
   private void placeArgumentAndResetStringBuilder() throws ParserException {
     if (this.currentArgIndex == expectedNumberofField) {
@@ -114,7 +135,4 @@ public class TextAppointmentParser {
     this.sb.setLength(0);
   }
 
-  public boolean hasMore() throws IOException {
-    return this.reader.ready();
-  }
 }

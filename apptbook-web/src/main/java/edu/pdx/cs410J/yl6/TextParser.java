@@ -5,6 +5,18 @@ import java.io.IOException;
 import edu.pdx.cs410J.ParserException;
 import edu.pdx.cs410J.AppointmentBookParser;
 
+/**
+ * TextParser is the class that takes {@link TextAppointmentBookParser} and
+ * {@link TextAppointmentParser} or their subclasses to parse an
+ * {@link AppointmentBook}. This class do <strong>not</strong> implements
+ * anything related to parsing a specific content, this class simply invokes
+ * {@link TextAppointmentBookParser#parse} and
+ * {@link TextAppointmentParser#parse} method.
+ * <p>
+ * This class uses <code>TextAppointmentBookParser</code> first, then
+ * iteratively invokes <code>parse</code> of <code>TextAppointmentParser</code>
+ * until end-of-file reached.
+ */
 public class TextParser implements AppointmentBookParser<AppointmentBook<Appointment>> {
 
   private static final String ZERO_APPOINTMENT_WITH_OWNER = "No appointment associated with owner ";
@@ -13,12 +25,26 @@ public class TextParser implements AppointmentBookParser<AppointmentBook<Appoint
   private TextAppointmentParser appointmentParser;
   private TextAppointmentBookParser appointmentBookParser;
 
-  public TextParser(TextAppointmentBookParser appointmentBookParser,
-      TextAppointmentParser appointmentParser) {
+  /**
+   * Create a TextParser instance
+   * 
+   * @param appointmentBookParser the parser of appointment book information,
+   *                              usually the content to be parsed is the meta
+   *                              information of the book
+   * @param appointmentParser     the parser of individual appointment
+   */
+  public TextParser(TextAppointmentBookParser appointmentBookParser, TextAppointmentParser appointmentParser) {
     this.appointmentBookParser = appointmentBookParser;
     this.appointmentParser = appointmentParser;
   }
 
+  /**
+   * Parse an appointment book with its appointments
+   * 
+   * @return an <code>AppointmentBook</code> instance
+   * @throws ParserException If parser throw any <code>ParserException</code>, or
+   *                         no appointment get parsed
+   */
   public AppointmentBook<Appointment> parse() throws ParserException {
     int added = 0;
     try {
