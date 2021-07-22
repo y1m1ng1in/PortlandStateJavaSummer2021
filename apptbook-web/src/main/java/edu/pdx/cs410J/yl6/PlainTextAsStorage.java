@@ -141,7 +141,7 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
 
     try {
       FileWriter fw = new FileWriter(f);
-      TextDumper<AppointmentBook<Appointment>, Appointment> dumper = new TextDumper<>(fw);
+      TextDumper dumper = new TextDumper(fw);
       dumper.dump(book);
       fw.flush();
       fw.close();

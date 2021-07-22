@@ -261,7 +261,7 @@ public class AppointmentBookServlet extends HttpServlet {
   private void writeAppointmentBookAndOkStatus(HttpServletResponse response, AppointmentBook<Appointment> book)
       throws IOException {
     PrintWriter pw = response.getWriter();
-    TextDumper<AppointmentBook<Appointment>, Appointment> dumper = new TextDumper<>(pw);
+    TextDumper dumper = new TextDumper(pw);
     dumper.dump(book);
     pw.flush();
     response.setStatus(HttpServletResponse.SC_OK);

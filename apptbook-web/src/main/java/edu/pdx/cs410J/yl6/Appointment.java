@@ -14,7 +14,7 @@ import edu.pdx.cs410J.AbstractAppointment;
  * leaves the client program to specify a typical format for its uses.
  */
 public class Appointment extends AbstractAppointment
-    implements PlainTextRepresentable, PrettyPrintable, Comparable<Appointment> {
+    implements PrettyPrintable, Comparable<Appointment> {
 
   private String beginString;
   private String endString;
@@ -57,7 +57,7 @@ public class Appointment extends AbstractAppointment
    */
   @Override
   public String getBeginTimeString() {
-    return DateFormat.getInstance().format(this.begin);
+    return this.beginString;
   }
 
   /**
@@ -67,7 +67,7 @@ public class Appointment extends AbstractAppointment
    */
   @Override
   public String getEndTimeString() {
-    return DateFormat.getInstance().format(this.end);
+    return this.endString;
   }
 
   /**
@@ -79,35 +79,6 @@ public class Appointment extends AbstractAppointment
   @Override
   public String getDescription() {
     return this.description;
-  }
-
-  /**
-   * Get an array of strings that will be dumped to plain text file in the order
-   * from low index to high index of the returned array. The delimiter between
-   * fields is determined by the invoking dumper class.
-   * 
-   * @return an array of strings that are to be dumped to plain text where the
-   *         order is same as from low index to high index of this array
-   */
-  @Override
-  public String[] getStringFields() {
-    String[] fields = new String[numberOfField];
-    fields[0] = this.beginString;
-    fields[1] = this.endString;
-    fields[2] = this.description;
-    return fields;
-  }
-
-  /**
-   * Get an integer that represents the number of fields is expected to be parsed
-   * from plain text file
-   * 
-   * @return an integer that represents the number of fields is expected to be
-   *         parsed from plain text file
-   */
-  @Override
-  public int getExpectedNumberOfField() {
-    return numberOfField;
   }
 
   /**
@@ -159,8 +130,8 @@ public class Appointment extends AbstractAppointment
   @Override
   public String[] getPrettyPrinterFields() {
     String[] fields = new String[numberOfField + 1];
-    fields[0] = getBeginTimeString();
-    fields[1] = getEndTimeString();
+    fields[0] = DateFormat.getInstance().format(this.begin);
+    fields[1] = DateFormat.getInstance().format(this.end);
     fields[2] = this.description;
 
     long duration = (int) ((this.end.getTime() - this.begin.getTime()) / 60000);

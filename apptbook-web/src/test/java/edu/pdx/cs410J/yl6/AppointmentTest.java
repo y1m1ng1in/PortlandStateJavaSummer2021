@@ -23,7 +23,7 @@ public class AppointmentTest {
   @Test
   void getBeginTimeStringNeedsToBeImplemented() throws ParseException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
-    assertThat(appointment.getBeginTimeString(), equalTo("3/14/20, 4:29 PM"));
+    assertThat(appointment.getBeginTimeString(), equalTo("3/14/2020 4:29 pm"));
   }
 
   /**
@@ -32,7 +32,7 @@ public class AppointmentTest {
   @Test
   void getEndTimeStringNeedsToBeImplemented() throws ParseException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
-    assertThat(appointment.getEndTimeString(), equalTo("3/14/20, 4:50 PM"));
+    assertThat(appointment.getEndTimeString(), equalTo("3/14/2020 4:50 pm"));
   }
 
   /**

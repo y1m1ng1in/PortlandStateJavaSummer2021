@@ -26,7 +26,7 @@ public class TextDumperTest {
     AppointmentBook book = new AppointmentBook("yml");
     book.addAppointment(appt);
     StringWriter fw = new StringWriter();
-    TextDumper<AppointmentBook<Appointment>, Appointment> td = new TextDumper<>(fw);
+    TextDumper td = new TextDumper(fw);
     td.dump(book);
     String exp = "yml&12/12/2019 12:52 am#4/5/2020 2:52 pm#A description&";
     assertThat(exp, equalTo(fw.toString()));
@@ -45,7 +45,7 @@ public class TextDumperTest {
     book.addAppointment(appt1);
     book.addAppointment(appt2);
     StringWriter fw = new StringWriter();
-    TextDumper<AppointmentBook<Appointment>, Appointment> td = new TextDumper<>(fw);
+    TextDumper td = new TextDumper(fw);
     td.dump(book);
     String exp = "y\\#m\\&l&12/12/2020 12:52 pm#4/5/2021 2:52 am#A&12/12/2020 12:52 pm#4/5/2021 2:52 am#B&12/12/2020 12:52 pm#4/5/2021 2:52 am#C&";
     assertThat(exp, equalTo(fw.toString()));
