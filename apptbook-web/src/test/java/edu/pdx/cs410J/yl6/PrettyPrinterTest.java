@@ -16,13 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class PrettyPrinterTest {
   
   String prettyFile = "prettyfile.txt";
-  String[] fields = { "Begin at", "End at", "Description", "Duration" };
 
   @Test
   void testCase1() throws ParseException, IOException {
     StringWriter sw = new StringWriter();
-    PrettyPrinter<AppointmentBook<Appointment>, Appointment> printer = 
-        new PrettyPrinter(sw, fields);
+    PrettyPrinter printer = new PrettyPrinter(sw);
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
     Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");
@@ -49,8 +47,7 @@ public class PrettyPrinterTest {
   @Test
   void testCase2() throws ParseException, IOException {
     StringWriter sw = new StringWriter();
-    PrettyPrinter<AppointmentBook<Appointment>, Appointment> printer = 
-        new PrettyPrinter(sw, fields);
+    PrettyPrinter printer = new PrettyPrinter(sw);
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy1");
     Appointment appointment2 = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy2");

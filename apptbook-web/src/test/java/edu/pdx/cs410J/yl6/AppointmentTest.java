@@ -91,26 +91,6 @@ public class AppointmentTest {
   }
 
   @Test
-  void getPrettyPrinterFieldsTestCase1() throws ParseException {
-    Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:50 pm","dummy");
-    String[] pretty = appointment.getPrettyPrinterFields();
-    assertThat(pretty[0], equalTo("3/14/20, 4:29 PM"));
-    assertThat(pretty[1], equalTo("3/14/20, 4:50 PM"));
-    assertThat(pretty[2], equalTo("dummy"));
-    assertThat(pretty[3], equalTo("21 minutes"));
-  }
-
-  @Test
-  void getPrettyPrinterFieldsTestCase2() throws ParseException {
-    Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:30 pm","dummy");
-    String[] pretty = appointment.getPrettyPrinterFields();
-    assertThat(pretty[0], equalTo("3/14/20, 4:29 PM"));
-    assertThat(pretty[1], equalTo("3/14/20, 4:30 PM"));
-    assertThat(pretty[2], equalTo("dummy"));
-    assertThat(pretty[3], equalTo("1 minute"));
-  }
-
-  @Test
   void getBeginTimeTest() throws ParseException {
     Appointment appointment = new Appointment("3/14/2020 4:29 pm","3/14/2020 4:30 pm","dummy");
     Calendar myCalendar = new GregorianCalendar(2020, Calendar.MARCH, 14, 16, 29);

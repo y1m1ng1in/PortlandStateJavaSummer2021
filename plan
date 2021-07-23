@@ -1,0 +1,64 @@
+REST APIs:
+  - create an appt
+  - search appt based on owner and begin time
+  - serach appt based on owner
+
+  - "owner":
+    - id
+    - username
+    - password
+    - email
+    - address
+
+  - "appointment"
+    - ID
+    - owner
+    - description
+    - begin time
+    - end time
+
+    -> "customized appointment"
+      - ID
+      - owner
+      - description
+      - begin time
+      - end time
+      - "fields"
+        - field1 : content1
+        - field2 : content2
+          ...
+        - fieldn : contentn
+
+    -> "appointment with registered user"
+      - ID
+      - owner (the one who host the appt)
+      - booker (the one, a registered user, who book the appt)
+      - description
+      - begin time
+      - end time
+      - "fields"
+        - field1 : content1
+        - field2 : content2
+          ...
+        - fieldn : contentn
+
+  - "appointment template"
+    - owner
+    - ID
+    - [ fields with empty content ]
+
+
+Scheme:
+  User (id*, username, password, email, address)
+  Appointment (id*, ownerId, description, begin time, end time) 
+    ownerId reference to User.id
+  AppointmentDetail (apptId, order, fieldName, fieldContent)
+    apptId reference to Appointment.id
+  AppointmentWith (apptId, ownerId, bookerId)
+    apptId reference to Appointment.id
+    ownerId reference to User.id
+    bookerId reference to User.id
+  AppointmentTemplateMeta (id*, ownerId)
+    ownerId reference to User.id
+  AppointmentTemplate (templateId, fieldName, order, fieldtype?)
+    templateId reference to AppointmentTemplateMeta.id

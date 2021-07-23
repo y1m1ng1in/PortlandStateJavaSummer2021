@@ -5,7 +5,7 @@ import java.util.Collection;
 
 public interface Dumper<T> {
 
-  void dump(T object) throws IOException;
+  public abstract void dump(T object) throws IOException;
 
   static public void dumpAppointmentBook(AppointmentBook<Appointment> book,
       Dumper<AppointmentBook<Appointment>> metaDumper, Dumper<Appointment> entryDumper) throws IOException {

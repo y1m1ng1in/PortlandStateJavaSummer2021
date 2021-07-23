@@ -2,6 +2,7 @@ package edu.pdx.cs410J.yl6;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -44,8 +45,8 @@ public class Project4 {
 
     AppointmentBookRestClient client = new AppointmentBookRestClient(hostName, port);
 
-    String[] fields = { "Begin at", "End at", "Description", "Duration" };
-    PrettyPrinter<AppointmentBook<Appointment>, Appointment> prettyPrinter = new PrettyPrinter<>(System.out, fields);
+    PrintWriter prettyPrinterWriter = new PrintWriter(System.out);
+    PrettyPrinter prettyPrinter = new PrettyPrinter(prettyPrinterWriter);
 
     String[] arguments;
     if (argumentParser.isEnabled("-search")) {
@@ -66,6 +67,7 @@ public class Project4 {
         AppointmentBook<Appointment> book = client.getAppointmentsByOwnerWithBeginInterval(arguments[0], lowerbound,
             upperbound);
         prettyPrinter.dump(book);
+        prettyPrinterWriter.flush();
       } catch (IOException e) {
         error("IOexception occurred, " + e.getMessage());
       } catch (ParserException e) {
@@ -87,6 +89,7 @@ public class Project4 {
       try {
         AppointmentBook<Appointment> book = client.getAppointmentBookByOwner(arguments[0]);
         prettyPrinter.dump(book);
+        prettyPrinterWriter.flush();
       } catch (IOException e) {
         error("IOexception occurred, " + e.getMessage());
       } catch (ParserException e) {

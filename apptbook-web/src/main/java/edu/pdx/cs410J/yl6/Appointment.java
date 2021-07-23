@@ -13,8 +13,7 @@ import edu.pdx.cs410J.AbstractAppointment;
  * time. The begin date and time, and end date and time can be any string, it
  * leaves the client program to specify a typical format for its uses.
  */
-public class Appointment extends AbstractAppointment
-    implements PrettyPrintable, Comparable<Appointment> {
+public class Appointment extends AbstractAppointment implements Comparable<Appointment> {
 
   private String beginString;
   private String endString;
@@ -118,30 +117,6 @@ public class Appointment extends AbstractAppointment
       return this.end.compareTo(appt.end);
     }
     return this.begin.compareTo(appt.begin);
-  }
-
-  /**
-   * Get an arrya of strings that stores strings to be pretty print to standard
-   * output or file.
-   * 
-   * @return an array of strings that stores strings to be pretty print to
-   *         standard output or file.
-   */
-  @Override
-  public String[] getPrettyPrinterFields() {
-    String[] fields = new String[numberOfField + 1];
-    fields[0] = DateFormat.getInstance().format(this.begin);
-    fields[1] = DateFormat.getInstance().format(this.end);
-    fields[2] = this.description;
-
-    long duration = (int) ((this.end.getTime() - this.begin.getTime()) / 60000);
-    if (duration <= 1) {
-      fields[3] = String.valueOf(duration) + " minute";
-    } else {
-      fields[3] = String.valueOf(duration) + " minutes";
-    }
-
-    return fields;
   }
 
 }
