@@ -14,7 +14,6 @@ import edu.pdx.cs410J.AbstractAppointment;
  */
 public class Appointment extends AbstractAppointment implements Comparable<Appointment> {
 
-  static public int nextid = 0;
   final static public String dateFormat = "M/d/yyyy h:m a";
   final static public SimpleDateFormat outputDateFormat = new SimpleDateFormat("M/d/yyyy h:m a");
 
@@ -22,7 +21,7 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
   protected Date begin;
   protected Date end;
 
-  final protected int id;
+  final protected String id;
   final protected UUID ownerId;
 
   public Appointment(Date begin, Date end, String description) {
@@ -30,7 +29,7 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
     this.end = end;
     this.description = description;
     this.ownerId = null;
-    this.id = ++nextid;
+    this.id = UUID.randomUUID().toString();
   }
 
   public Appointment(UUID ownerId, Date begin, Date end, String description) {
@@ -38,7 +37,7 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
     this.begin = begin;
     this.end = end;
     this.description = description;
-    this.id = ++nextid;
+    this.id = UUID.randomUUID().toString();
   }
 
   /**
@@ -92,6 +91,10 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
 
   public String getOwnerIdString() {
     return this.ownerId.toString();
+  }
+
+  public String getId() {
+    return this.id;
   }
 
   /**

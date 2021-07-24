@@ -12,4 +12,12 @@
     <servlet-name>AppointmentBookServlet</servlet-name>
     <url-pattern>/appointments</url-pattern>
   </servlet-mapping>
+    <servlet>
+    <servlet-name>UserRegistrationServlet</servlet-name>
+    <servlet-class>edu.pdx.cs410J.yl6.UserRegistrationServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserRegistrationServlet</servlet-name>
+    <url-pattern>/registration</url-pattern>
+  </servlet-mapping>
 </web-app>
