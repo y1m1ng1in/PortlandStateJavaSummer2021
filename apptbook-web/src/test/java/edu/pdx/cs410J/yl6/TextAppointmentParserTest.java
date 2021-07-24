@@ -9,6 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.StringReader;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import edu.pdx.cs410J.ParserException;
 
@@ -16,13 +19,20 @@ public class TextAppointmentParserTest {
   
   AppointmentValidator validator = new AppointmentValidator("M/d/yyyy h:m a");
 
+  Date getDate(String s) throws ParseException {
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+    df.setLenient(false);
+    return df.parse(s);
+  }
+
+
   @Test
   void testCase1() throws ParserException, IOException, ParseException {
     String s = "2/2/2020 4:30 pm#2/2/2020 5:30 pm#description&";
     StringReader reader = new StringReader(s);
     TextAppointmentParser p = new TextAppointmentParser(reader, validator);
     Appointment appt = p.parse();
-    Appointment expected = new Appointment("2/2/2020 4:30 pm", "2/2/2020 5:30 pm", "description");
+    Appointment expected = new Appointment(getDate("2/2/2020 4:30 pm"), getDate("2/2/2020 5:30 pm"), "description");
     assertThat(appt.compareTo(expected), equalTo(0));
   }
 
@@ -32,7 +42,7 @@ public class TextAppointmentParserTest {
     StringReader reader = new StringReader(s);
     TextAppointmentParser p = new TextAppointmentParser(reader, validator);
     Appointment appt = p.parse();
-    Appointment expected = new Appointment("2/2/2020 4:30 pm", "2/2/2020 5:30 pm", "description");
+    Appointment expected = new Appointment(getDate("2/2/2020 4:30 pm"), getDate("2/2/2020 5:30 pm"), "description");
     assertThat(appt.compareTo(expected), equalTo(0));
     assertThat(reader.read(), equalTo((int) 'x'));
   }
@@ -80,7 +90,7 @@ public class TextAppointmentParserTest {
     StringReader reader = new StringReader(s);
     TextAppointmentParser p = new TextAppointmentParser(reader, validator);
     Appointment appt = p.parse();
-    Appointment expected = new Appointment("2/2/2020 4:30 pm", "2/2/2020 5:30 pm", "des\\cr#iption");
+    Appointment expected = new Appointment(getDate("2/2/2020 4:30 pm"), getDate("2/2/2020 5:30 pm"), "des\\cr#iption");
     assertThat(appt.compareTo(expected), equalTo(0));
   }
 

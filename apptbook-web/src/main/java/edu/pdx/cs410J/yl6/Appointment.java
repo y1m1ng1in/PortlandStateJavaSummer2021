@@ -1,9 +1,8 @@
 package edu.pdx.cs410J.yl6;
 
 import java.util.Date;
+import java.util.UUID;
 import java.text.SimpleDateFormat;
-import java.text.DateFormat;
-import java.text.ParseException;
 
 import edu.pdx.cs410J.AbstractAppointment;
 
@@ -15,38 +14,31 @@ import edu.pdx.cs410J.AbstractAppointment;
  */
 public class Appointment extends AbstractAppointment implements Comparable<Appointment> {
 
-  private String beginString;
-  private String endString;
-  private String description;
-  private Date begin;
-  private Date end;
-  static final int numberOfField = 3;
+  static public int nextid = 0;
+  final static public String dateFormat = "M/d/yyyy h:m a";
+  final static public SimpleDateFormat outputDateFormat = new SimpleDateFormat("M/d/yyyy h:m a");
 
-  /**
-   * Create an appointment instance, where {@link SimpleDateFormat} is used to
-   * parse string <code>begin</code> and <code>end</code> as begin and end time of
-   * the appointment.
-   * 
-   * @param begin       a string that is parseable by
-   *                    <code>SimpleDateFormat</code> in pattern
-   *                    <code>"M/d/yyyy h:m a"</code> and before <code>end</code>
-   * @param end         a string that is parsable by <code>SimpleDateFormat</code>
-   *                    in pattern <code>"M/d/yyyy h:m a"</code> and after
-   *                    <code>before</code>
-   * @param description a nonempty string that describes the appointment
-   * @throws ParseException the <code>begin</code> and <code>end</code> cannot be
-   *                        parsed by <code>SimpleDateFormat</code> successfully.
-   */
-  public Appointment(String begin, String end, String description) throws ParseException {
-    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+  protected String description;
+  protected Date begin;
+  protected Date end;
 
-    df.setLenient(false);
-    this.begin = df.parse(begin);
-    this.end = df.parse(end);
+  final protected int id;
+  final protected UUID ownerId;
 
-    this.beginString = begin;
-    this.endString = end;
+  public Appointment(Date begin, Date end, String description) {
+    this.begin = begin;
+    this.end = end;
     this.description = description;
+    this.ownerId = null;
+    this.id = ++nextid;
+  }
+
+  public Appointment(UUID ownerId, Date begin, Date end, String description) {
+    this.ownerId = ownerId;
+    this.begin = begin;
+    this.end = end;
+    this.description = description;
+    this.id = ++nextid;
   }
 
   /**
@@ -56,7 +48,7 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
    */
   @Override
   public String getBeginTimeString() {
-    return this.beginString;
+    return outputDateFormat.format(this.begin);
   }
 
   /**
@@ -66,7 +58,7 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
    */
   @Override
   public String getEndTimeString() {
-    return this.endString;
+    return outputDateFormat.format(this.end);
   }
 
   /**
@@ -92,6 +84,14 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
    */
   public Date getEndTime() {
     return this.end;
+  }
+
+  public UUID getOwnerId() {
+    return this.ownerId;
+  }
+
+  public String getOwnerIdString() {
+    return this.ownerId.toString();
   }
 
   /**

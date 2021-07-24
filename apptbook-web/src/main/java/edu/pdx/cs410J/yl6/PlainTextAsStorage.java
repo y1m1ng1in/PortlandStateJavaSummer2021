@@ -1,9 +1,11 @@
 package edu.pdx.cs410J.yl6;
 
 import java.util.Date;
+import java.util.UUID;
 
 import edu.pdx.cs410J.ParserException;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -172,4 +174,19 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
     return null;
   }
 
+  public void insertUser(User user) throws StorageException {
+    try (FileWriter fw = new FileWriter(new File(this.dir, "db_user.txt"), true);
+        BufferedWriter bw = new BufferedWriter(fw)) {
+      ParseableUserDumper dumper = new ParseableUserDumper(bw);
+      dumper.dump(user);
+      bw.flush();
+    } catch (IOException e) {
+      throw new StorageException("While storing user to storage, " + e.getMessage());
+    }
+
+  }
+
+  public User getUserById(UUID id) throws StorageException {
+    return null;
+  }
 }

@@ -217,25 +217,15 @@ public class AppointmentBookServlet extends HttpServlet {
    */
   private void insertAppointmentWithOwner(HttpServletResponse response, String owner, String description, String begin,
       String end) throws IOException {
-    String[] appointmentFields = { begin, end, description };
-
     // validate owner and fields for constructing new appointment
     if (!this.ownerValidator.isValid(owner)) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
       return;
     }
-    if (!this.appointmentValidator.isValid(appointmentFields)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.appointmentValidator.getErrorMessage());
-      return;
-    }
 
-    // create Appointment instance
     Appointment appointment = null;
-    try {
-      appointment = new Appointment(begin, end, description);
-    } catch (ParseException e) {
-      // should never happen, otherwise it is an implementation error of Appointment
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Program internal error: " + e.getMessage());
+    if ((appointment = this.appointmentValidator.createAppointmentFromString(begin, end, description)) == null) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.appointmentValidator.getErrorMessage());
       return;
     }
 

@@ -32,9 +32,9 @@ public class TextParserTest {
     Appointment inBook = book.getAppointments().first();
     
     String s1 = inBook.getBeginTimeString();
-    assertThat(s1, equalTo("2/2/2020 2:22 am"));
+    assertThat(s1, equalTo("2/2/2020 2:22 AM"));
     s1 = inBook.getEndTimeString();
-    assertThat(s1, equalTo("2/3/2020 3:33 am"));
+    assertThat(s1, equalTo("2/3/2020 3:33 AM"));
     s1 = inBook.getDescription();
     assertThat(s1, equalTo("descrp"));
   }
@@ -52,16 +52,16 @@ public class TextParserTest {
     Appointment inBook2 = book.getAppointments().pollFirst();
 
     String s1 = inBook1.getBeginTimeString();
-    assertThat(s1, equalTo("2/2/2020 2:22 pm"));
+    assertThat(s1, equalTo("2/2/2020 2:22 PM"));
     s1 = inBook1.getEndTimeString();
-    assertThat(s1, equalTo("2/3/2020 3:33 pm"));
+    assertThat(s1, equalTo("2/3/2020 3:33 PM"));
     s1 = inBook1.getDescription();
     assertThat(s1, equalTo("descrp"));
 
     s1 = inBook2.getBeginTimeString();
-    assertThat(s1, equalTo("11/14/2021 12:30 am"));
+    assertThat(s1, equalTo("11/14/2021 12:30 AM"));
     s1 = inBook2.getEndTimeString();
-    assertThat(s1, equalTo("11/15/2021 2:45 pm"));
+    assertThat(s1, equalTo("11/15/2021 2:45 PM"));
     s1 = inBook2.getDescription();
     assertThat(s1, equalTo("desc  des ddd "));
   }
@@ -78,9 +78,9 @@ public class TextParserTest {
     Appointment inBook1 = book.getAppointments().first();
 
     String s = inBook1.getBeginTimeString();
-    assertThat(s, equalTo("2/2/2020 2:22 pm"));
+    assertThat(s, equalTo("2/2/2020 2:22 PM"));
     s = inBook1.getEndTimeString();
-    assertThat(s, equalTo("2/3/2020 3:33 pm"));
+    assertThat(s, equalTo("2/3/2020 3:33 PM"));
     s = inBook1.getDescription();
     assertThat(s, equalTo("&&des&c&&&&"));
   }

@@ -1,7 +1,6 @@
 package edu.pdx.cs410J.yl6;
 
 import java.io.Reader;
-import java.text.ParseException;
 import java.io.IOException;
 
 import edu.pdx.cs410J.ParserException;
@@ -107,15 +106,13 @@ public class TextAppointmentParser {
       throw new ParserException(EOF_REACHED_PARSE_ARG);
     }
 
-    if (!this.validator.isValid(this.appointmentArguments)) {
+    Appointment appointment = null;
+    if ((appointment = this.validator.createAppointmentFromString(this.appointmentArguments[0],
+        this.appointmentArguments[1], this.appointmentArguments[2])) == null) {
       throw new ParserException(this.validator.getErrorMessage());
     }
 
-    try {
-      return new Appointment(this.appointmentArguments[0], this.appointmentArguments[1], this.appointmentArguments[2]);
-    } catch (ParseException e) {
-      throw new ParserException(PROGRAM_INTERNAL_ERROR + e.getMessage());
-    }
+    return appointment;
   }
 
   /**

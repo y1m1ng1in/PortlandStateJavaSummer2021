@@ -212,7 +212,7 @@ public class AppointmentBookServletTest {
   @Order(5)
   void getAllWithFirstOwner() throws ServletException, IOException {
     testGetExistingAppointments("unittest", null, null,
-        "unittest&7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
+        "unittest&7/18/2021 9:0 PM#7/18/2021 10:0 PM#test description&7/18/2021 9:0 PM#7/18/2021 11:59 PM#another test description&");
   }
 
   /**
@@ -222,7 +222,7 @@ public class AppointmentBookServletTest {
   @Order(6)
   void getAllWithSecondOwner() throws ServletException, IOException {
     testGetExistingAppointments("another unittest", null, null,
-        "another unittest&6/18/2021 9:00 pm#6/18/2021 11:59 pm#test description for another unittest&6/28/2021 3:00 pm#6/28/2021 5:00 pm#another test description for another unittest&");
+        "another unittest&6/18/2021 9:0 PM#6/18/2021 11:59 PM#test description for another unittest&6/28/2021 3:0 PM#6/28/2021 5:0 PM#another test description for another unittest&");
   }
 
   /**
@@ -301,7 +301,7 @@ public class AppointmentBookServletTest {
   @Order(13)
   void dataShouldNotBeAffectedAfterError() throws ServletException, IOException {
     testGetExistingAppointments("unittest", null, null,
-        "unittest&7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
+        "unittest&7/18/2021 9:0 PM#7/18/2021 10:0 PM#test description&7/18/2021 9:0 PM#7/18/2021 11:59 PM#another test description&");
   }
 
   /**
@@ -311,7 +311,7 @@ public class AppointmentBookServletTest {
   @Order(14)
   void dataShouldNotBeAffectedAfterErrorCase2() throws ServletException, IOException {
     testGetExistingAppointments("another unittest", null, null,
-        "another unittest&6/18/2021 9:00 pm#6/18/2021 11:59 pm#test description for another unittest&6/28/2021 3:00 pm#6/28/2021 5:00 pm#another test description for another unittest&");
+        "another unittest&6/18/2021 9:0 PM#6/18/2021 11:59 PM#test description for another unittest&6/28/2021 3:0 PM#6/28/2021 5:0 PM#another test description for another unittest&");
   }
 
   @Test
@@ -340,35 +340,35 @@ public class AppointmentBookServletTest {
   @Order(17)
   void getAllAgain() throws ServletException, IOException {
     testGetExistingAppointments("unittest", null, null,
-        "unittest&" + "6/28/2021 4:00 pm#6/28/2021 6:00 pm#this is the description for test15&"
-            + "6/28/2021 4:30 pm#6/28/2021 8:00 pm#this is the description for test16&"
-            + "7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&"
-            + "7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
+        "unittest&" + "6/28/2021 4:0 PM#6/28/2021 6:0 PM#this is the description for test15&"
+            + "6/28/2021 4:30 PM#6/28/2021 8:0 PM#this is the description for test16&"
+            + "7/18/2021 9:0 PM#7/18/2021 10:0 PM#test description&"
+            + "7/18/2021 9:0 PM#7/18/2021 11:59 PM#another test description&");
   }
 
   @Test
   @Order(17)
   void getSearchBeginWithinIntervalCase1() throws ServletException, IOException {
     testGetExistingAppointments("unittest", "6/28/2021 4:20 pm", "7/18/2021 9:05 pm",
-        "unittest&" + "6/28/2021 4:30 pm#6/28/2021 8:00 pm#this is the description for test16&"
-            + "7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&"
-            + "7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
+        "unittest&" + "6/28/2021 4:30 PM#6/28/2021 8:0 PM#this is the description for test16&"
+            + "7/18/2021 9:0 PM#7/18/2021 10:0 PM#test description&"
+            + "7/18/2021 9:0 PM#7/18/2021 11:59 PM#another test description&");
   }
 
   @Test
   @Order(18)
   void getSearchBeginWithinIntervalCase2() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", "7/18/2021 4:20 am", "7/18/2021 11:00 pm",
-        "unittest&" + "7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&"
-            + "7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
+    testGetExistingAppointments("unittest", "7/18/2021 4:20 am", "7/18/2021 11:0 pm",
+        "unittest&" + "7/18/2021 9:0 PM#7/18/2021 10:0 PM#test description&"
+            + "7/18/2021 9:0 PM#7/18/2021 11:59 PM#another test description&");
   }
 
   @Test
   @Order(18)
   void getSearchBeginWithinIntervalCase3() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", "6/28/2021 4:20 am", "6/28/2021 11:00 pm",
-        "unittest&" + "6/28/2021 4:00 pm#6/28/2021 6:00 pm#this is the description for test15&"
-            + "6/28/2021 4:30 pm#6/28/2021 8:00 pm#this is the description for test16&");
+    testGetExistingAppointments("unittest", "6/28/2021 4:20 am", "6/28/2021 11:0 pm",
+        "unittest&" + "6/28/2021 4:0 PM#6/28/2021 6:0 PM#this is the description for test15&"
+            + "6/28/2021 4:30 PM#6/28/2021 8:0 PM#this is the description for test16&");
   }
 
   /**
