@@ -575,7 +575,7 @@ public class AppointmentBookServletTest {
     createFileWithText("sdfkljsadhflakshdfsd", owner);
     
     testGetNonExistingAppointments(owner, null, null, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-        "File in storage is malformatted: " + "End of file reached before owner been parsed completely");
+        "File in storage is malformatted: " + "End of file reached before the field been parsed completely");
   }
 
 

@@ -4,7 +4,6 @@ import edu.pdx.cs410J.AbstractAppointment;
 import edu.pdx.cs410J.AbstractAppointmentBook;
 
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * This interface is to be implemented by classes that communicates between
@@ -62,11 +61,11 @@ public interface AppointmentBookStorage<T extends AbstractAppointmentBook<E>, E 
   public void insertUser(User user) throws StorageException;
 
   /**
-   * Retrieve a {@link User} by its id from the storage
+   * Retrieve a {@link User} by its username from the storage
    * 
-   * @param id
+   * @param username
    * @return
    * @throws StorageException
    */
-  public User getUserById(UUID id) throws StorageException;
+  public User getUserByUsername(String username) throws StorageException;
 }

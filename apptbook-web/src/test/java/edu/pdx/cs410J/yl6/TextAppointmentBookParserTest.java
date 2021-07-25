@@ -39,7 +39,7 @@ public class TextAppointmentBookParserTest {
     StringReader reader = new StringReader(s);
     TextAppointmentBookParser p = new TextAppointmentBookParser(reader);
     Exception ex = assertThrows(ParserException.class, p::parse);
-    assertThat(ex.getMessage(), containsString("End of file reached before owner been parsed completely"));
+    assertThat(ex.getMessage(), containsString("End of file reached before the field been parsed completely"));
   }
 
   @Test

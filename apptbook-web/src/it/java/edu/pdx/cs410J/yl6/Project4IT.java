@@ -2,6 +2,7 @@ package edu.pdx.cs410J.yl6;
 
 import edu.pdx.cs410J.InvokeMainTestCase;
 import org.junit.jupiter.api.MethodOrderer.MethodName;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -44,6 +45,7 @@ class Project4IT extends InvokeMainTestCase {
     }
 
     @Test
+    @Disabled
     void test4AddDefinition() {
         String owner = "IT test";
         String description = "add appt in IT test";

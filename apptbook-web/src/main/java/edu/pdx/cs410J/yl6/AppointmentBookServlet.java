@@ -1,11 +1,13 @@
 package edu.pdx.cs410J.yl6;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Base64;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -47,6 +49,26 @@ public class AppointmentBookServlet extends HttpServlet {
     if (owner == null) {
       missingRequiredParameter(response, OWNER_PARAMETER);
       return;
+    }
+
+    Cookie[] c = request.getCookies();
+    String auth = c[0].getValue(); 
+    byte[] decodedBytes = Base64.getDecoder().decode(auth);
+    String decodedString = new String(decodedBytes);
+    String[] toCheck = decodedString.split(":");
+    
+    if (!toCheck[0].equals(owner)) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+      return;
+    } 
+    try {
+      User user = this.storage.getUserByUsername(owner);
+      if (!user.getPassword().equals(toCheck[1])) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Password is wrong");
+        return;
+      }
+    } catch (StorageException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     if (begin == null && end == null) {
@@ -220,6 +242,17 @@ public class AppointmentBookServlet extends HttpServlet {
     // validate owner and fields for constructing new appointment
     if (!this.ownerValidator.isValid(owner)) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
+      return;
+    }
+
+    // owner must be a registered user
+    try {
+      if (this.storage.getUserByUsername(owner) == null) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, owner + " is not an registered user");
+        return;
+      }
+    } catch (StorageException e1) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
       return;
     }
 

@@ -1,29 +1,29 @@
 package edu.pdx.cs410J.yl6;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Base64;
 
-public class UserRegistrationServlet extends HttpServlet {
+public class UserLoginServlet extends HttpServlet {
 
   static final String USERNAME_PARAMETER = "username";
   static final String PASSWORD_PARAMETER = "password";
-  static final String EMAIL_PARAMETER = "email";
-  static final String ADDRESS_PARAMETER = "address";
 
   private PlainTextAsStorage storage = new PlainTextAsStorage(".");
 
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setContentType("text/plain");
-    String[] requiredFields = { USERNAME_PARAMETER, PASSWORD_PARAMETER, EMAIL_PARAMETER, ADDRESS_PARAMETER };
-    String[] fields = new String[4];
+    String[] requiredFields = { USERNAME_PARAMETER, PASSWORD_PARAMETER };
+    String[] fields = new String[2];
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 2; ++i) {
       String value = getParameter(requiredFields[i], request);
       if (value == null) {
         missingRequiredParameter(response, requiredFields[i]);
@@ -32,21 +32,26 @@ public class UserRegistrationServlet extends HttpServlet {
       fields[i] = value;
     }
 
-    insertUser(response, fields[0], fields[1], fields[2], fields[3]);
+    loginUser(response, fields[0], fields[1]);
   }
-  
-  private void insertUser(HttpServletResponse response, String username, String password, String email,
-      String address) throws IOException {
 
-    User user = new User(username, password, email, address);
-
+  private void loginUser(HttpServletResponse response, String username, String password) throws IOException {
     try {
-      if (this.storage.getUserByUsername(username) != null) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, username + " has already been registered");
-        return;
+      User user = this.storage.getUserByUsername(username);
+      if (user == null) {
+        // cannot find user
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, username + " is not an registered user");
+      } else if (!user.getPassword().equals(password)) {
+        // password is not correct
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "password is wrong");
+      } else {
+        // registered user with correct password
+        String toEncode = username + ":" + password;
+        Cookie cookie = new Cookie("Authentication", Base64.getEncoder().encodeToString(toEncode.getBytes()));
+        cookie.setMaxAge(-1);
+        response.addCookie(cookie);
+        writeMessageAndSetStatus(response, "Login successfully", HttpServletResponse.SC_OK);
       }
-      this.storage.insertUser(user);
-      writeMessageAndSetStatus(response, "Add appointment " + user.toString(), HttpServletResponse.SC_OK);
     } catch (StorageException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }

@@ -1,10 +1,11 @@
 package edu.pdx.cs410J.yl6;
 
 import java.util.Date;
-import java.util.UUID;
+import java.util.Iterator;
 
 import edu.pdx.cs410J.ParserException;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,6 +23,8 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
 
   private File dir;
   private AppointmentValidator validator = new AppointmentValidator("M/d/yyyy h:m a");
+
+  static final private String userdb = "db_user.txt";
 
   /**
    * Create a PlainTextAsStorage instance
@@ -175,8 +178,7 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
   }
 
   public void insertUser(User user) throws StorageException {
-    try (FileWriter fw = new FileWriter(new File(this.dir, "db_user.txt"), true);
-        BufferedWriter bw = new BufferedWriter(fw)) {
+    try (FileWriter fw = new FileWriter(new File(this.dir, userdb), true); BufferedWriter bw = new BufferedWriter(fw)) {
       ParseableUserDumper dumper = new ParseableUserDumper(bw);
       dumper.dump(user);
       bw.flush();
@@ -186,7 +188,61 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
 
   }
 
-  public User getUserById(UUID id) throws StorageException {
+  public User getUserByUsername(String username) throws StorageException {
+    File f = new File(this.dir, userdb);
+    if (!f.exists()) {
+      try {
+        f.createNewFile();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    try (Reader reader = new BufferedReader(new FileReader(f))) {
+      PlainTextIterator<TextUserParser, User> iterator = new PlainTextIterator<>(null, new TextUserParser(reader));
+      while (iterator.hasNext()) {
+        User user = iterator.next();
+        if (user.getUsername().equals(username)) {
+          return user;
+        }
+      }
+    } catch (IOException e) {
+      throw new StorageException("While retrieving user to storage, " + e.getMessage());
+    }
     return null;
   }
+
+  public class PlainTextIterator<T extends Parser<E>, E> implements Iterator<E> {
+
+    private Parser<?> metaParser;
+    private Parser<E> entryParser;
+    private E temp;
+
+    public PlainTextIterator(Parser<?> metaParser, Parser<E> entryParser) throws StorageException {
+      this.metaParser = metaParser;
+      this.entryParser = entryParser;
+      try {
+        if (metaParser != null) {
+          metaParser.parse();
+        }
+      } catch (Exception e) {
+        throw new StorageException("While traversing file, " + e.getMessage());
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      try {
+        this.temp = this.entryParser.parse();
+      } catch (Exception e) {
+        return false;
+      }
+      return this.temp != null;
+    }
+
+    @Override
+    public E next() {
+      return this.temp;
+    }
+  }
+
 }
