@@ -15,6 +15,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 /**
  * This servlet ultimately provides a REST API for working with an
@@ -59,7 +60,7 @@ public class AppointmentBookServlet extends HttpServlet {
     String begin = getParameter(BEGIN_PARAMETER, request);
     String end = getParameter(END_PARAMETER, request);
 
-    response.setContentType("text/plain");
+    // response.setContentType("text/plain");
     // owner is always a required Get parameter in this servlet
     if (owner == null) {
       missingRequiredParameter(response, OWNER_PARAMETER);
@@ -72,16 +73,13 @@ public class AppointmentBookServlet extends HttpServlet {
 
     if (begin == null && end == null) {
       getAllAppointmentsByOwner(response, owner);
-      return;
-    }
-    if (begin != null && end != null) {
+    } else if (begin != null && end != null) {
       getAppointmentsByOwnerWithBeginInterval(response, owner, begin, end);
-      return;
-    }
-    if (begin == null) {
+    } else if (begin == null) {
       missingRequiredParameter(response, BEGIN_PARAMETER);
+    } else {
+      missingRequiredParameter(response, END_PARAMETER);
     }
-    missingRequiredParameter(response, END_PARAMETER);
   }
 
   /**
@@ -91,7 +89,7 @@ public class AppointmentBookServlet extends HttpServlet {
    */
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    response.setContentType("text/plain");
+    // response.setContentType("text/plain");
     String[] requiredFields = { OWNER_PARAMETER, BEGIN_PARAMETER, END_PARAMETER, DESCRIPTION_PARAMETER };
     String[] fields = new String[4];
 
@@ -134,7 +132,8 @@ public class AppointmentBookServlet extends HttpServlet {
     Cookie[] cookies = request.getCookies();
 
     if (cookies == null || cookies.length < 1) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credential for user \"" + username + "\"");
+      writeMessageAndSetStatus(response, "Invalid credential for user \"" + username + "\"",
+          HttpServletResponse.SC_UNAUTHORIZED);
       return false;
     }
 
@@ -142,22 +141,24 @@ public class AppointmentBookServlet extends HttpServlet {
     String[] toCheck = decodedString.split(":");
 
     if (!toCheck[0].equals(username)) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credential for user \"" + username + "\"");
+      writeMessageAndSetStatus(response, "Invalid credential for user \"" + username + "\"",
+          HttpServletResponse.SC_UNAUTHORIZED);
       return false;
     }
 
     try {
       User user = this.storage.getUserByUsername(username);
       if (user == null) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "User \"" + username + "\" is not a registered user");
+        writeMessageAndSetStatus(response, "User \"" + username + "\" is not a registered user",
+            HttpServletResponse.SC_FORBIDDEN);
         return false;
       }
       if (!user.getPassword().equals(toCheck[1])) {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Password is wrong");
+        writeMessageAndSetStatus(response, "Password is wrong", HttpServletResponse.SC_UNAUTHORIZED);
         return false;
       }
     } catch (StorageException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return false;
     }
     return true;
@@ -183,18 +184,18 @@ public class AppointmentBookServlet extends HttpServlet {
    */
   private void getAllAppointmentsByOwner(HttpServletResponse response, String owner) throws IOException {
     if (!this.ownerValidator.isValid(owner)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
+      writeMessageAndSetStatus(response, this.ownerValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
     AppointmentBook<Appointment> book = null;
     try {
       book = this.storage.getAllAppointmentsByOwner(owner);
     } catch (StorageException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return;
     }
     if (book == null) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, "No appointment found with owner " + owner);
+      writeMessageAndSetStatus(response, "No appointment found with owner " + owner, HttpServletResponse.SC_NOT_FOUND);
     } else {
       writeAppointmentBookAndOkStatus(response, book);
     }
@@ -228,7 +229,7 @@ public class AppointmentBookServlet extends HttpServlet {
   private void getAppointmentsByOwnerWithBeginInterval(HttpServletResponse response, String owner, String begin,
       String end) throws IOException {
     if (!this.ownerValidator.isValid(owner)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
+      writeMessageAndSetStatus(response, this.ownerValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
@@ -243,13 +244,12 @@ public class AppointmentBookServlet extends HttpServlet {
       from = df.parse(begin);
       to = df.parse(end);
       if (from.after(to)) { // check if lowerbound is greater than upperbound
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-            "The lowerbound of the time that appointments begin at to search, " + begin + " is after the upperbound, "
-                + end);
+        writeMessageAndSetStatus(response, "The lowerbound of the time that appointments begin at to search, " + begin
+            + " is after the upperbound, " + end, HttpServletResponse.SC_BAD_REQUEST);
         return;
       }
     } catch (ParseException e) { // string format is invalid
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+      writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
@@ -258,12 +258,13 @@ public class AppointmentBookServlet extends HttpServlet {
     try {
       book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
     } catch (StorageException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return;
     }
     if (book == null) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND,
-          "No appointment found with owner " + owner + " that begins between " + begin + " and " + end);
+      writeMessageAndSetStatus(response,
+          "No appointment found with owner " + owner + " that begins between " + begin + " and " + end,
+          HttpServletResponse.SC_NOT_FOUND);
     } else {
       writeAppointmentBookAndOkStatus(response, book);
     }
@@ -296,24 +297,14 @@ public class AppointmentBookServlet extends HttpServlet {
       String end) throws IOException {
     // validate owner and fields for constructing new appointment
     if (!this.ownerValidator.isValid(owner)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.ownerValidator.getErrorMessage());
-      return;
-    }
-
-    // owner must be a registered user
-    try {
-      if (this.storage.getUserByUsername(owner) == null) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, owner + " is not an registered user");
-        return;
-      }
-    } catch (StorageException e1) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
+      writeMessageAndSetStatus(response, this.ownerValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
     Appointment appointment = null;
     if ((appointment = this.appointmentValidator.createAppointmentFromString(begin, end, description)) == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, this.appointmentValidator.getErrorMessage());
+      writeMessageAndSetStatus(response, this.appointmentValidator.getErrorMessage(),
+          HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
@@ -322,7 +313,7 @@ public class AppointmentBookServlet extends HttpServlet {
       this.storage.insertAppointmentWithOwner(owner, appointment);
       writeMessageAndSetStatus(response, "Add appointment " + appointment.toString(), HttpServletResponse.SC_OK);
     } catch (StorageException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -338,13 +329,14 @@ public class AppointmentBookServlet extends HttpServlet {
    */
   private void writeAppointmentBookAndOkStatus(HttpServletResponse response, AppointmentBook<Appointment> book)
       throws IOException {
-    PrintWriter pw = response.getWriter();
     response.setContentType("text/json");
+    response.setStatus(HttpServletResponse.SC_OK);
+    
     Gson gson = new Gson();
     String json = gson.toJson(book);
+    PrintWriter pw = response.getWriter();
     pw.write(json);
     pw.flush();
-    response.setStatus(HttpServletResponse.SC_OK);
   }
 
   /**
@@ -353,7 +345,7 @@ public class AppointmentBookServlet extends HttpServlet {
    */
   private void missingRequiredParameter(HttpServletResponse response, String parameterName) throws IOException {
     String message = String.format("The required parameter \"%s\" is missing", parameterName);
-    response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+    writeMessageAndSetStatus(response, message, HttpServletResponse.SC_BAD_REQUEST);
   }
 
   /**
@@ -381,9 +373,17 @@ public class AppointmentBookServlet extends HttpServlet {
    * @throws IOException If an input or output exception occurs
    */
   private void writeMessageAndSetStatus(HttpServletResponse response, String message, int status) throws IOException {
+    response.setContentType("text/json");
     response.setStatus(status);
+
+    JsonObject object = new JsonObject();
+    object.addProperty("message", message);
+    object.addProperty("status", status);
+    Gson gson = new Gson();
+    String json = gson.toJson(object);
+
     PrintWriter pw = response.getWriter();
-    pw.println(message);
+    pw.println(json);
     pw.flush();
   }
 

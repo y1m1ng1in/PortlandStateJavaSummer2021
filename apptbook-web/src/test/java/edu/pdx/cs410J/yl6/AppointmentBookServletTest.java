@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.Writer;
 import java.io.FileWriter;
 import java.util.Base64;
+import java.lang.reflect.Type;
 
 import edu.pdx.cs410J.ParserException;
 
@@ -27,6 +28,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.*;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * A unit test for the {@link AppointmentBookServlet}. It uses mockito to
@@ -134,7 +138,7 @@ public class AppointmentBookServletTest {
 
     servlet.doPost(request, response);
 
-    verify(response).sendError(sc, errorMessage);
+    verify(response).setStatus(sc);
   }
 
   /**
@@ -153,7 +157,14 @@ public class AppointmentBookServletTest {
     HttpServletResponse response = createMockedResponse(stringWriter);
 
     servlet.doGet(request, response);
-    assertThat(stringWriter.toString(), equalTo(expected));
+    String s = stringWriter.toString();
+    Type t = new TypeToken<AppointmentBook<Appointment>>() {}.getType();
+    Gson gson = new Gson();
+    AppointmentBook<Appointment> apptbook = gson.fromJson(s, t);
+    StringWriter sw =  new StringWriter();
+    TextDumper td = new TextDumper(sw);
+    td.dump(apptbook);
+    assertThat(sw.toString(), equalTo(expected));
     ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
     verify(response).setStatus(statusCode.capture());
     assertThat(statusCode.getValue(), equalTo(HttpServletResponse.SC_OK));
@@ -176,7 +187,7 @@ public class AppointmentBookServletTest {
 
     servlet.doGet(request, response);
 
-    verify(response).sendError(sc, expected);
+    verify(response).setStatus(sc);
   }
 
   @Test
