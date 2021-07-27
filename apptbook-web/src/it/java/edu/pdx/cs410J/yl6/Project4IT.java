@@ -170,8 +170,7 @@ class Project4IT extends InvokeMainTestCase {
         MainMethodResult result = invokeMain(Project4.class, "-host", "dfgsdfgdf", "-search", "-port", "8080", owner,
                 "6/2/2020", "3:30", "pm", "6/2/2020", "9:00", "pm");
         assertThat(result.getExitCode(), equalTo(1));
-        assertThat(result.getTextWrittenToStandardError(),
-                containsString("While connecting to host, "));
+        assertThat(result.getTextWrittenToStandardError(), containsString("While connecting to host, "));
     }
 
     @Test
@@ -251,5 +250,13 @@ class Project4IT extends InvokeMainTestCase {
         assertThat(result.getTextWrittenToStandardOut(), containsString("1/2/21, 5:30 PM"));
         assertThat(result.getTextWrittenToStandardOut(), containsString("1/2/21, 7:00 PM"));
         assertThat(result.getTextWrittenToStandardOut(), containsString("90 minutes"));
+    }
+
+    @Test
+    void test18Readme() {
+        MainMethodResult result = invokeMain(Project4.class, "-README");
+        assertThat(result.getExitCode(), equalTo(1));
+        assertThat(result.getTextWrittenToStandardError(),
+                containsString("CS410/510 Advanced programming with Java Summer 2021, Project 4."));
     }
 }

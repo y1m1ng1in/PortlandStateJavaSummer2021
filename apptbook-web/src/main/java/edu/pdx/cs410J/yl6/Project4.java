@@ -2,6 +2,9 @@ package edu.pdx.cs410J.yl6;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -21,11 +24,18 @@ public class Project4 {
   public static final String SEARCH_TIME_INTERVAL_ERROR = "lower bound date %s is later than upperbound date %s";
   public static final String NEW_APPOINTMENT_BEGIN_LATER_THAN_END = "begin date %s is later than end date %s";
   public static final String SEARCH_AND_PRINT_BOTH_ENABLED = "When -search is enabled, -print must not be enabled, since nothing can be added to appointment book";
+  public static final String README = loadPlainTextFromResource("README.txt");
+  public static final String USAGE = loadPlainTextFromResource("usage.txt");
 
+  /**
+   * The main method of client-side program that communicates with servlet.
+   * 
+   * @param args arguments passed in from command line
+   */
   public static void main(String... args) {
     ArgumentParser argumentParser = new ArgumentParser();
     argumentParser.addOption("-host", 1).addOption("-port", 1).addOption("-search", 0).addOption("-print", 0)
-        .setUsage(usage());
+        .setUsage(USAGE).setReadme(README);
 
     if (!argumentParser.parse(args)) {
       error(argumentParser.getErrorMessage());
@@ -150,6 +160,11 @@ public class Project4 {
     System.exit(0);
   }
 
+  /**
+   * Print <code>message</code> to standard error and exit with status 1.
+   * 
+   * @param message the error message to output
+   */
   private static void error(String message) {
     PrintStream err = System.err;
     err.println(message);
@@ -157,6 +172,14 @@ public class Project4 {
     System.exit(1);
   }
 
+  /**
+   * Validate two strings that represent two dates, the first date should before
+   * the second date.
+   * 
+   * @param date1   the first date
+   * @param date2   the second date
+   * @param message the format string to display error message
+   */
   private static void validateTwoDates(String date1, String date2, String message) {
     DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
     df.setLenient(false);
@@ -173,17 +196,31 @@ public class Project4 {
   }
 
   /**
-   * Prints usage information for this program
+   * Load the content of a plain text file <code>filename</code> in the resource.
+   * If any <code>IOException</code> catched during loading via
+   * <code>getResourceAsStream</code>, the program exits with status 1 with an
+   * error message to standard error indicates that error.
+   * 
+   * @param filename the plain text filename in the resource to be loaded
+   * @return a string that is the content of the file <code>filename</code>.
    */
-  public static String usage() {
-    return "usage: java edu.pdx.cs410J.yl6.Project4 [options] <args>\n" + "  args are (in this order):\n"
-        + "    owner              The person who owns the appt book\n"
-        + "    description        A description of the appointment\n" + "    begin              When the appt begins\n"
-        + "    end                When the appt ends\n" + "  options are (options may appear in any order):\n"
-        + "    -host hostname     Host computer on which the server runs\n"
-        + "    -port port         Port on which the server is listening\n"
-        + "    -search            Appointments should be searched for\n"
-        + "    -print             Prints a description of the new appointment\n"
-        + "    -README            Prints a README for this project and exits\n";
+  private static String loadPlainTextFromResource(String filename) {
+    try {
+      InputStream is = Project4.class.getResourceAsStream(filename);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      String line = "";
+      StringBuilder sb = new StringBuilder();
+
+      while ((line = reader.readLine()) != null) {
+        sb.append(line);
+        sb.append("\n");
+      }
+
+      return sb.toString();
+    } catch (IOException e) {
+      error("Cannot load plain text file from resource " + filename);
+      return null;
+    }
   }
+
 }
