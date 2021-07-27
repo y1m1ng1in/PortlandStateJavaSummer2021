@@ -1,5 +1,9 @@
 package edu.pdx.cs410J.yl6;
 
+/**
+ * The abstract class that encapsulates common methods needed for
+ * {@link ParseableAppointmentBookDumper} and {@link ParseableAppointmentDumper}
+ */
 public abstract class ParseableDumper<T> implements Dumper<T> {
 
   protected char fieldDelimiter = '#';
