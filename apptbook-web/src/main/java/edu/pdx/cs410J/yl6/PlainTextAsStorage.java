@@ -174,6 +174,12 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
     return null;
   }
 
+  /**
+   * Insert a <code>user</code> into user storage.
+   * 
+   * @param user a {@link User} instance to append
+   * @throws StorageException If any read/write with file occurs
+   */
   public void insertUser(User user) throws StorageException {
     try (FileWriter fw = new FileWriter(new File(this.dir, userdb), true); BufferedWriter bw = new BufferedWriter(fw)) {
       ParseableUserDumper dumper = new ParseableUserDumper(bw);
@@ -185,6 +191,13 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
 
   }
 
+  /**
+   * Get a {@link User} instance by its username
+   * 
+   * @param username the name of user
+   * @return a {@link User} instance
+   * @throws StorageException If any read/write with file occurs
+   */
   public User getUserByUsername(String username) throws StorageException {
     File f = new File(this.dir, userdb);
     if (!f.exists()) {
@@ -208,12 +221,26 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
     return null;
   }
 
+  /**
+   * A class that works as an iterator that "traverses" a file by invoking
+   * {@link Parser#parse}. Thus, it avoids reading the whole file into the memory.
+   */
   public class PlainTextIterator<T extends Parser<E>, E> implements Iterator<E> {
 
     private Parser<?> metaParser;
     private Parser<E> entryParser;
     private E temp;
 
+    /**
+     * Create a PlainTextIterator instance, moving the "cursor" of {@link Reader} to
+     * the place right after the last character of the meta information, so the next
+     * read should be the first character of the first entry
+     * 
+     * @param metaParser  the parser parses meta information stored in a file
+     * @param entryParser the parser parses an individual <code>E</code>
+     * @throws StorageException If an input or output exception occurs, or file is
+     *                          malformatted
+     */
     public PlainTextIterator(Parser<?> metaParser, Parser<E> entryParser) throws StorageException {
       this.metaParser = metaParser;
       this.entryParser = entryParser;
@@ -226,6 +253,13 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
       }
     }
 
+    /**
+     * Store the next entry that should be returned by <code>next</code>, if the
+     * next entry is null, then it shows that we don't have a "next".
+     * 
+     * @return <code>true</code> if parsed a <code>E</code> that is not
+     *         <code>null</code>; <code>false</code> otherwise
+     */
     @Override
     public boolean hasNext() {
       try {
@@ -236,6 +270,13 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
       return this.temp != null;
     }
 
+    /**
+     * Return an instance of <code>E</code> get parsed from the last call to
+     * <code>hasNext</code>
+     * 
+     * @return an instance of <code>E</code> get parsed from the last call to
+     *         <code>hasNext</code>
+     */
     @Override
     public E next() {
       return this.temp;

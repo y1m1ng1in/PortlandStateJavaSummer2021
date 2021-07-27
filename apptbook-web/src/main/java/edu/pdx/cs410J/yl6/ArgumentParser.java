@@ -126,6 +126,11 @@ public class ArgumentParser {
     return this.optionEnableStatusMap.get(s);
   }
 
+  /**
+   * Return all the arguments followed by the last "argument" for the last option.
+   * 
+   * @return an array of arguments
+   */
   public String[] getAllArguments() {
     if (this.arguments.size() > 0) {
       String[] args = new String[this.arguments.size()];
@@ -134,6 +139,18 @@ public class ArgumentParser {
     return null;
   }
 
+  /**
+   * Return an array of arguments such that each one corresponds to each element
+   * of <code>argNames</code> at the same index. If there are more arguments than
+   * <code>argNames</code>, or not enough arguments for each <code>argNames</code>
+   * (either case means that arguments are not <strong>matched</strong> with
+   * specified), then <code>null</code> is returned; otherwise, an array of
+   * arguments is returned.
+   * 
+   * @param argNames the specified arguments needed
+   * @return an array of arguments if <strong>matched</strong> (as described
+   *         above); <code>null</code> otherwise
+   */
   public String[] getArguments(String... argNames) {
     int requiredNumberOfArgs = argNames.length;
     int parsedNumberOfArgs = this.arguments.size();

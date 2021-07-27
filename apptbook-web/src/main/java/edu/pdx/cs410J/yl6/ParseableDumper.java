@@ -1,5 +1,12 @@
 package edu.pdx.cs410J.yl6;
 
+/**
+ * The abstract class that encapsulates common methods needed for dumping an
+ * instance of <code>T</code> such that <code>T</code> can be instantiated by
+ * reading exactly what has been dumped. The "common methods" supported in this
+ * class include such as adding escaped character before delimiter of fields and
+ * entries.
+ */
 public abstract class ParseableDumper<T> implements Dumper<T> {
 
   protected char fieldDelimiter = '#';
