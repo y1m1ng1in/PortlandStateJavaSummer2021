@@ -157,7 +157,7 @@ public class ArgumentParser {
 
     if (parsedNumberOfArgs < requiredNumberOfArgs) {
       if (parsedNumberOfArgs == 0) {
-        this.errorMessage = "Missing arguments\n" + usage;
+        this.errorMessage = "Missing command line arguments (after last argument for last option)\n" + usage;
       } else {
         this.errorMessage = "Missing required argument(s):\n"
             + itemizeString(Arrays.asList(argNames), parsedNumberOfArgs, requiredNumberOfArgs - 1);

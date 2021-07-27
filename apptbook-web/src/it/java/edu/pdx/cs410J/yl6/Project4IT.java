@@ -259,4 +259,28 @@ class Project4IT extends InvokeMainTestCase {
         assertThat(result.getTextWrittenToStandardError(),
                 containsString("CS410/510 Advanced programming with Java Summer 2021, Project 4."));
     }
+
+    @Test
+    void test19MissingArgument() {
+        MainMethodResult result = invokeMain(Project4.class, "-host", HOSTNAME, "-port", PORT);
+        assertThat(result.getExitCode(), equalTo(1));
+        String out = result.getTextWrittenToStandardError();
+        assertThat(out, containsString("Missing command line arguments (after last argument for last option)\nusage:"));
+    }
+
+    @Test
+    void test20MissingArgumentCase2() {
+        MainMethodResult result = invokeMain(Project4.class, "-host", HOSTNAME, "-port", PORT, "-search");
+        assertThat(result.getExitCode(), equalTo(1));
+        String out = result.getTextWrittenToStandardError();
+        assertThat(out, containsString("Missing command line arguments (after last argument for last option)\nusage:"));
+    }
+
+    @Test
+    void test21MissingArgumentCase2() {
+        MainMethodResult result = invokeMain(Project4.class, "-host", HOSTNAME, "-port", PORT, "-search");
+        assertThat(result.getExitCode(), equalTo(1));
+        String out = result.getTextWrittenToStandardError();
+        assertThat(out, containsString("Missing command line arguments (after last argument for last option)\nusage:"));
+    }
 }

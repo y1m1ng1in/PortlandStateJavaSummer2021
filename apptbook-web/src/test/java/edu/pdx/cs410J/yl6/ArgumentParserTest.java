@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.Matchers.containsString;
 
 import java.util.ArrayList;
 
@@ -327,7 +328,7 @@ public class ArgumentParserTest {
     assertThat(rt, equalTo(true));
     String[] args = argparser.getArguments("arg1","arg2","arg3");
     assertThat(args, equalTo(null));
-    assertThat(argparser.getErrorMessage(), equalTo("Missing arguments\nusage"));
+    assertThat(argparser.getErrorMessage(), containsString("Missing command line arguments (after last argument for last option)\nusage"));
   }
 
   @Test

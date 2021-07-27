@@ -19,7 +19,7 @@ import edu.pdx.cs410J.web.HttpRequestHelper.RestException;
  */
 public class Project4 {
 
-  public static final String MISSING_ARGS = "Missing command line arguments";
+  public static final String MISSING_ARGS = "Missing command line arguments (after last argument for last option)";
   public static final String PARSE_INT_ERROR = "%s, it cannot be parsed as an integer for port number";
   public static final String SEARCH_TIME_INTERVAL_ERROR = "lower bound date %s is later than upperbound date %s";
   public static final String NEW_APPOINTMENT_BEGIN_LATER_THAN_END = "begin date %s is later than end date %s";
@@ -102,6 +102,9 @@ public class Project4 {
     }
 
     arguments = argumentParser.getAllArguments();
+    if (arguments == null) {
+      error(MISSING_ARGS + '\n' + USAGE);
+    }
     // argument length can be either 1 or 8
     if (arguments.length == 1) {
       // when only one argument presents, which is the owner name, then get all the
