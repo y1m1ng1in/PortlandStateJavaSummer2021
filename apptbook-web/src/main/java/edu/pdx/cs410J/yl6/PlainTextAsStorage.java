@@ -26,14 +26,11 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
 
   static final private String userdb = "db_user.txt";
 
-  /**
-   * Create a PlainTextAsStorage instance
-   * 
-   * @param dir the directory path that is to contains files that store
-   *            appointment books
-   */
-  public PlainTextAsStorage(String dir) {
-    this.dir = new File(dir);
+  public PlainTextAsStorage(File dir) {
+    this.dir = dir;
+    if (!this.dir.exists() || !this.dir.isDirectory()) {
+      this.dir.mkdirs();
+    }
   }
 
   /**

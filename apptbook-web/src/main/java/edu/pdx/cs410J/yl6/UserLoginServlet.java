@@ -5,7 +5,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Base64;
@@ -15,7 +15,7 @@ public class UserLoginServlet extends HttpServlet {
   static final String USERNAME_PARAMETER = "username";
   static final String PASSWORD_PARAMETER = "password";
 
-  private PlainTextAsStorage storage = new PlainTextAsStorage(".");
+  private PlainTextAsStorage storage = new PlainTextAsStorage(new File("."));
 
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

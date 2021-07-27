@@ -7,11 +7,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.File;
 import java.util.Base64;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+
+import com.google.gson.Gson;
 
 /**
  * This servlet ultimately provides a REST API for working with an
@@ -24,9 +27,21 @@ public class AppointmentBookServlet extends HttpServlet {
   static final String BEGIN_PARAMETER = "start";
   static final String END_PARAMETER = "end";
 
-  private PlainTextAsStorage storage = new PlainTextAsStorage(".");
-  private NonemptyStringValidator ownerValidator = new NonemptyStringValidator("owner");
-  private AppointmentValidator appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
+  private AppointmentBookStorage<AppointmentBook<Appointment>, Appointment> storage;
+  private NonemptyStringValidator ownerValidator;
+  private AppointmentValidator appointmentValidator;
+
+  public AppointmentBookServlet() {
+    this.storage = new PlainTextAsStorage(new File("."));
+    this.ownerValidator = new NonemptyStringValidator("owner");
+    this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
+  }
+
+  public AppointmentBookServlet(AppointmentBookStorage<AppointmentBook<Appointment>, Appointment> storage) {
+    this.storage = storage;
+    this.ownerValidator = new NonemptyStringValidator("owner");
+    this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
+  }
 
   /**
    * Handles an HTTP GET request from a client by writing the owner, begin, and
@@ -51,24 +66,8 @@ public class AppointmentBookServlet extends HttpServlet {
       return;
     }
 
-    Cookie[] c = request.getCookies();
-    String auth = c[0].getValue(); 
-    byte[] decodedBytes = Base64.getDecoder().decode(auth);
-    String decodedString = new String(decodedBytes);
-    String[] toCheck = decodedString.split(":");
-    
-    if (!toCheck[0].equals(owner)) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+    if (!authenticateUser(request, response, owner)) {
       return;
-    } 
-    try {
-      User user = this.storage.getUserByUsername(owner);
-      if (!user.getPassword().equals(toCheck[1])) {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Password is wrong");
-        return;
-      }
-    } catch (StorageException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     if (begin == null && end == null) {
@@ -105,7 +104,63 @@ public class AppointmentBookServlet extends HttpServlet {
       fields[i] = value;
     }
 
+    if (!authenticateUser(request, response, fields[0])) {
+      return;
+    }
+
     insertAppointmentWithOwner(response, fields[0], fields[3], fields[1], fields[2]);
+  }
+
+  /**
+   * Check <code>username</code> credential stored via cookie in
+   * <code>request</code>. If the username stored in credential is not same as
+   * <code>username</code>; or either <code>username</code> or username stored in
+   * credential is not a registered user; or in credential the password is wrong,
+   * the authentication failed, and the function returns <code>false</code>.
+   * 
+   * @param request  {@link HttpServletRequest} instance of incoming http request
+   * @param response {@link HttpServletResponse} instance of http response to be
+   *                 sent
+   * @param username the username to check credential
+   * @return <code>true</code> if authentication is not failed; <code>false</code>
+   *         otherwise
+   * @throws IOException If an input or output exception occurs
+   * @implNote currently the server uses basic authentication, which is not
+   *           enough. Still looking for more advanced method... then replace the
+   *           implementation in this method
+   */
+  private boolean authenticateUser(HttpServletRequest request, HttpServletResponse response, String username)
+      throws IOException {
+    Cookie[] cookies = request.getCookies();
+
+    if (cookies == null || cookies.length < 1) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credential for user \"" + username + "\"");
+      return false;
+    }
+
+    String decodedString = new String(Base64.getDecoder().decode(cookies[0].getValue()));
+    String[] toCheck = decodedString.split(":");
+
+    if (!toCheck[0].equals(username)) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credential for user \"" + username + "\"");
+      return false;
+    }
+
+    try {
+      User user = this.storage.getUserByUsername(username);
+      if (user == null) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "User \"" + username + "\" is not a registered user");
+        return false;
+      }
+      if (!user.getPassword().equals(toCheck[1])) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Password is wrong");
+        return false;
+      }
+    } catch (StorageException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -284,8 +339,10 @@ public class AppointmentBookServlet extends HttpServlet {
   private void writeAppointmentBookAndOkStatus(HttpServletResponse response, AppointmentBook<Appointment> book)
       throws IOException {
     PrintWriter pw = response.getWriter();
-    TextDumper dumper = new TextDumper(pw);
-    dumper.dump(book);
+    response.setContentType("text/json");
+    Gson gson = new Gson();
+    String json = gson.toJson(book);
+    pw.write(json);
     pw.flush();
     response.setStatus(HttpServletResponse.SC_OK);
   }
@@ -324,10 +381,10 @@ public class AppointmentBookServlet extends HttpServlet {
    * @throws IOException If an input or output exception occurs
    */
   private void writeMessageAndSetStatus(HttpServletResponse response, String message, int status) throws IOException {
+    response.setStatus(status);
     PrintWriter pw = response.getWriter();
     pw.println(message);
     pw.flush();
-    response.setStatus(status);
   }
 
 }
