@@ -10,9 +10,6 @@ import java.io.PrintWriter;
 import java.io.File;
 import java.util.Base64;
 import java.util.Date;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -233,23 +230,18 @@ public class AppointmentBookServlet extends HttpServlet {
       return;
     }
 
-    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
-    df.setLenient(false);
-    Date from = null;
-    Date to = null;
-
-    // parsing begin and end string as lowerbound and upperbound of time interval to
-    // search and store them to "from" and "to", respectively
-    try {
-      from = df.parse(begin);
-      to = df.parse(end);
-      if (from.after(to)) { // check if lowerbound is greater than upperbound
-        writeMessageAndSetStatus(response, "The lowerbound of the time that appointments begin at to search, " + begin
-            + " is after the upperbound, " + end, HttpServletResponse.SC_BAD_REQUEST);
-        return;
-      }
-    } catch (ParseException e) { // string format is invalid
-      writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_BAD_REQUEST);
+    Date from = Helper.validateAndParseDate(begin);
+    if (from == null) {
+      writeMessageAndSetStatus(response, Helper.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
+    Date to = Helper.validateAndParseDate(end);
+    if (to == null) {
+      writeMessageAndSetStatus(response, Helper.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
+    if (!Helper.validateAndGetDateInterval(from, to, "lowerbound date", "upperbound date")) {
+      writeMessageAndSetStatus(response, Helper.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 

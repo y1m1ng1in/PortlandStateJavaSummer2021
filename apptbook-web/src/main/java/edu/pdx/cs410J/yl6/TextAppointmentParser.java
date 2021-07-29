@@ -6,7 +6,7 @@ import edu.pdx.cs410J.ParserException;
 
 public class TextAppointmentParser extends Parser<Appointment> {
 
-  final private int numberofField = 3;
+  final private int numberofField = 2;
   private AppointmentValidator validator;
 
   /**
@@ -33,11 +33,7 @@ public class TextAppointmentParser extends Parser<Appointment> {
 
   @Override
   public Appointment instantiate(String... fields) throws ParserException {
-    Appointment appointment = this.validator.createAppointmentFromString(fields[0], fields[1], fields[2]);
-    if (appointment == null) {
-      throw new ParserException(this.validator.getErrorMessage());
-    }
-    return appointment;
+    return null;
   }
 
 }

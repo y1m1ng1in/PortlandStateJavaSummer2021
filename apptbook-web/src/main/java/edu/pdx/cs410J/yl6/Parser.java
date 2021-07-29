@@ -47,14 +47,8 @@ public abstract class Parser<T> {
    */
   public abstract T instantiate(String... arguments) throws ParserException;
 
-  /**
-   * The template method for parsing a <code>T</code>
-   * 
-   * @return an instance of <code>T</code>
-   * @throws ParserException If any error occurs during parsing
-   * @throws IOException     If an input or output exception occurs
-   */
-  public T parse() throws ParserException, IOException {
+
+  public int readRow() throws ParserException, IOException {
     char c = ' ';
     int next;
     int count = 0;
@@ -97,15 +91,39 @@ public abstract class Parser<T> {
 
     if (count == 0) {
       // nothing can be parsed
-      return null;
+      return 0;
     }
 
     if (c != entryDelimiter || this.currentArgIndex != 0) {
       throw new ParserException(EOF_REACHED_PARSE_ARG);
     }
 
+    return 1;
+  }
+
+  /**
+   * The template method for parsing a <code>T</code>
+   * 
+   * @return an instance of <code>T</code>
+   * @throws ParserException If any error occurs during parsing
+   * @throws IOException     If an input or output exception occurs
+   */
+  public T parse() throws ParserException, IOException {
+    if (readRow() == 0) {
+      return null;
+    }
     return instantiate(this.argumetStrings);
   }
+
+  public String[] getRow() throws ParserException, IOException {
+    if (readRow() == 0) {
+      return null;
+    }
+    String[] copied = new String[getExpectedNumberofField()];
+    System.arraycopy(this.argumetStrings, 0, copied, 0, getExpectedNumberofField());
+    return copied;
+  }
+
 
   /**
    * Place the parsed string (stored in a string builder <code>sb</code>) into

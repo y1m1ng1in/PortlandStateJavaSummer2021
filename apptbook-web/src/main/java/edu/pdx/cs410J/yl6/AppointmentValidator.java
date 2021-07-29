@@ -46,7 +46,7 @@ public class AppointmentValidator {
    * date string pattern
    */
   public AppointmentValidator() {
-    this.dateStringPattern = Appointment.dateFormat;
+    this.dateStringPattern = Helper.datePattern;
   }
 
   /**
@@ -68,6 +68,13 @@ public class AppointmentValidator {
       return null;
     }
     return new Appointment(this.begin, this.end, this.description);
+  }
+
+  public Appointment createAppointmentFromString(String id, String begin, String end, String description) {
+    if (!isValid(new String[] { begin, end, description })) {
+      return null;
+    }
+    return new Appointment(id, this.begin, this.end, this.description);
   }
 
   /**

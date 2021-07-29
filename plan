@@ -62,3 +62,32 @@ Scheme:
     ownerId reference to User.id
   AppointmentTemplate (templateId, fieldName, order, fieldtype?)
     templateId reference to AppointmentTemplateMeta.id
+
+
+
+
+User creates an appointment 
+  -> check if conflict with existing appointments
+      -> if not
+          -> check if overlapped with available slots
+              -> if overlapped, remove slots covered
+          -> create appt
+      -> otherwise, fail
+
+
+PublicBookableSlots:
+  - username => array of slots, where slots are not overlapped
+    slot = start time + end time
+
+POST: /addPublicBookableSlots:
+  - lowerbound: Date
+  - upperbound: Date
+  - duration: int of mintues
+  - break: int of mintues
+
+store as an array of non-overlapped interval:
+  [lo_1, hi_1], [lo_2, hi_2], ..., [lo_n, hi_n]
+
+create an appointment [lo, hi] overlapped with above intervals:
+  within : [lo_i, hi_i] -> [lo_i, lo], [hi_i, hi]
+  one_side: [lo_i, hi_i] -> [lo_i, lo], [hi, hi_i+c]

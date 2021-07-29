@@ -2,9 +2,6 @@ package edu.pdx.cs410J.yl6;
 
 import java.util.Date;
 import java.util.UUID;
-import java.text.SimpleDateFormat;
-
-import edu.pdx.cs410J.AbstractAppointment;
 
 /**
  * Appointment is the class that store appointment information for a certain
@@ -12,52 +9,18 @@ import edu.pdx.cs410J.AbstractAppointment;
  * time. The begin date and time, and end date and time can be any string, it
  * leaves the client program to specify a typical format for its uses.
  */
-public class Appointment extends AbstractAppointment implements Comparable<Appointment> {
-
-  final static public String dateFormat = "M/d/yyyy h:m a";
-  final static public SimpleDateFormat outputDateFormat = new SimpleDateFormat("M/d/yyyy h:m a");
+public class Appointment extends AppointmentSlot {
 
   protected String description;
-  protected Date begin;
-  protected Date end;
-
-  final protected String id;
-  final protected UUID ownerId;
 
   public Appointment(Date begin, Date end, String description) {
-    this.begin = begin;
-    this.end = end;
+    super(begin, end);
     this.description = description;
-    this.ownerId = null;
-    this.id = UUID.randomUUID().toString();
   }
 
-  public Appointment(UUID ownerId, Date begin, Date end, String description) {
-    this.ownerId = ownerId;
-    this.begin = begin;
-    this.end = end;
+  public Appointment(String appointmentId, Date begin, Date end, String description) {
+    super(appointmentId, begin, end);
     this.description = description;
-    this.id = UUID.randomUUID().toString();
-  }
-
-  /**
-   * Returns a String describing the beginning date and time of this appointment.
-   * 
-   * @return a string describing the beginning date and time of this appointment.
-   */
-  @Override
-  public String getBeginTimeString() {
-    return outputDateFormat.format(this.begin);
-  }
-
-  /**
-   * Returns a String describing the ending date and time of this appointment.
-   * 
-   * @return a string describing the ending date and time of this appointment.
-   */
-  @Override
-  public String getEndTimeString() {
-    return outputDateFormat.format(this.end);
   }
 
   /**
@@ -71,30 +34,8 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
     return this.description;
   }
 
-  /**
-   * Returns the {@link Date} that this appointment begins.
-   */
-  public Date getBeginTime() {
-    return this.begin;
-  }
-
-  /**
-   * Returns the {@link Date} that this appointment ends.
-   */
-  public Date getEndTime() {
-    return this.end;
-  }
-
-  public UUID getOwnerId() {
-    return this.ownerId;
-  }
-
-  public String getOwnerIdString() {
-    return this.ownerId.toString();
-  }
-
-  public String getId() {
-    return this.id;
+  public AppointmentSlot getAppointmentSlot() {
+    return new AppointmentSlot(this.appointmentId.toString(), this.begin, this.end);
   }
 
   /**
@@ -112,14 +53,8 @@ public class Appointment extends AbstractAppointment implements Comparable<Appoi
    *         parameter.
    */
   @Override
-  public int compareTo(Appointment appt) {
-    if (this.begin.equals(appt.begin) && this.end.equals(appt.end)) {
-      return this.description.compareTo(appt.description);
-    }
-    if (this.begin.equals(appt.begin)) {
-      return this.end.compareTo(appt.end);
-    }
-    return this.begin.compareTo(appt.begin);
+  public int compareTo(AppointmentSlot appt) {
+    return super.compareTo(appt) != 0 ? super.compareTo(appt) : this.description.compareTo(appt.getDescription());
   }
 
 }

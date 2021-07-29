@@ -7,7 +7,7 @@ import java.io.Writer;
  * {@link Appointment} via a {@link Writer} specified by constructor.
  */
 public class ParseableAppointmentDumper extends ParseableEntryDumper<Appointment> {
-  
+
   protected Writer writer;
 
   /**
@@ -22,14 +22,13 @@ public class ParseableAppointmentDumper extends ParseableEntryDumper<Appointment
 
   /**
    * Return an array of strings in the order of each field of an appointment to be
-   * dumped.
+   * dumped, which are appointment id followed by appointment description.
    * 
    * @param appointment the {@link Appointment} instance to be dumped
    * @return an array of strings in the order of each field of an appointment to
    *         be dumped
    */
   public String[] getStringFields(Appointment appointment) {
-    return new String[] { appointment.getBeginTimeString(), appointment.getEndTimeString(),
-        appointment.getDescription() };
+    return new String[] { appointment.getId(), appointment.getDescription() };
   }
 }
