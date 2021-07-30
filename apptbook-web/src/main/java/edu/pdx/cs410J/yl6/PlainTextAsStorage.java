@@ -178,6 +178,42 @@ public class PlainTextAsStorage implements AppointmentBookStorage {
     }
   }
 
+  @Override
+  public void insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException {
+    // appointment id -> appointment slot
+    Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
+
+    if (idToslot.containsKey(slot.getId())) {
+      throw new StorageException("appointment id alreay exists in file that maps appointment id to slot");
+    }
+
+    File slots = new File(this.dir, owner + "_slots.txt");
+    try (Writer slotWrite = new FileWriter(slots, true)) {
+      ParseableAppointmentSlotDumper slotDumper = new ParseableAppointmentSlotDumper(slotWrite);
+      slotDumper.dump(slot);
+    } catch (IOException e) {
+      throw new StorageException("While writing new appointment slot to storage, " + e.getMessage());
+    }
+  }
+
+  @Override
+  public void bookAppointment(String owner, Appointment appointment) throws StorageException {
+    // appointment id -> appointment description
+    Map<String, String> idToDescription = getAllAppointmentIdToDescriptionsByOwner(owner);
+
+    if (idToDescription.containsKey(appointment.getId())) {
+      throw new StorageException("appointment id already exists in file that maps appointment id to description");
+    }
+
+    File descriptions = new File(this.dir, owner + "_descriptions.txt");
+    try (Writer descriptionWriter = new FileWriter(descriptions, true)) {
+      ParseableAppointmentDumper descriptionDumper = new ParseableAppointmentDumper(descriptionWriter);
+      descriptionDumper.dump(appointment);
+    } catch (IOException e) {
+      throw new StorageException("While writing new appointment slot to storage, " + e.getMessage());
+    }
+  }
+
   /**
    * Insert a <code>user</code> into user storage.
    * 

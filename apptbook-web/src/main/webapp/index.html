@@ -1,91 +1,99 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 
 <head>
-    <title>HTML forms for interacting with the REST API</title>
-    <style type="text/css">
-        div {
-            padding-bottom: 1em;
-        }
-    </style>
+  <title>HTML forms for interacting with the REST API</title>
+  <style type="text/css">
+    div {
+      padding-bottom: 1em;
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>
+  <h1>
 
     This page contains a couple of HTML forms that GET and POST to the
-    REST API provided by your project.  These forms are <b>not</b>
-    submitted as part of the project.  You do <b>not</b> have to update
+    REST API provided by your project. These forms are <b>not</b>
+    submitted as part of the project. You do <b>not</b> have to update
     them.
 
-</h1>
+  </h1>
 
-<h2>
+  <h2>
     These forms let you interact with the simple word/definition REST API that
     is created by the project archetype.
-</h2>
+  </h2>
 
 
-<div>
-    <form method="get" action="appointments">
-        List all word/definition pairs <input type="submit" definition="Submit"/>
-    </form>
-</div>
-
-<div>
-    <form method="get" action="appointments">
-        List definition for word <input name="word" type="text" size="10" title="word"/>
-        <input type="submit" definition="Submit"/>
-    </form>
-</div>
-
-<div>
-    <form method="post" action="appointments">
-        Create a new word/definition pair <input name="word" type="text" size="10" title="word"/> /
-        <input name="definition" type="text" size="10" title="definition"/>
-        <input type="submit" definition="Submit"/>
-    </form>
-</div>
-
-<div>
-    <form method="get" action="appointments">
-        List appointments with <input name="owner" type="text" size="10" title="owner"/>
-        <input type="submit" definition="Submit"/>
-    </form>
-</div>
-
-<div>
-    <form method="post" action="appointments">
-        Create an appointment
-        <input name="owner" type="text" size="10" title="owner"/> /
-        <input name="description" type="text" size="10" title="description"/> /
-        <input name="start" type="text" size="10" title="start"/> /
-        <input name="end" type="text" size="10" title="end"/> /
-        <input type="submit" definition="Submit"/>
-    </form>
-</div>
-
-<div>
-    <form method="post" action="registration">
-        New user
-        <input name="username" type="text" size="10" title="username"/> /
-        <input name="password" type="text" size="10" title="password"/> /
-        <input name="email" type="text" size="10" title="email"/> /
-        <input name="address" type="text" size="10" title="address"/> /
-        <input type="submit" definition="Submit"/>
-    </form>
-</div>
-
-<div>
+  <div>
     <form method="post" action="login">
-        New user
-        <input name="username" type="text" size="10" title="username"/> /
-        <input name="password" type="text" size="10" title="password"/> /
-        <input type="submit" definition="Submit"/>
+      Login
+      <input name="username" type="text" size="20" title="username" /> /
+      <input name="password" type="text" size="20" title="password" /> /
+      <input type="submit" definition="Submit" />
     </form>
-</div>
+  </div>
+
+  <div>
+    <form method="post" action="registration">
+      New user
+      <input name="username" type="text" size="20" title="username" /> /
+      <input name="password" type="text" size="20" title="password" /> /
+      <input name="email" type="text" size="20" title="email" /> /
+      <input name="address" type="text" size="20" title="address" /> /
+      <input type="submit" definition="Submit" />
+    </form>
+  </div>
+
+
+
+  <div>
+    <form method="get" action="appointments">
+      List appointments with <input name="owner" type="text" size="20" title="owner" />
+      <input type="submit" definition="Submit" />
+    </form>
+  </div>
+
+  <div>
+    <form method="post" action="appointments">
+      Search appointment between two times
+      <input name="owner" type="text" size="20" title="owner" /> /
+      <input name="start" type="text" size="20" title="start" /> /
+      <input name="end" type="text" size="20" title="end" /> /
+      <input type="submit" definition="Submit" />
+    </form>
+  </div>
+
+  <div>
+    <form method="post" action="appointments">
+      Create an appointment
+      <input name="owner" type="text" size="20" title="owner" /> /
+      <input name="description" type="text" size="20" title="description" /> /
+      <input name="start" type="text" size="20" title="start" /> /
+      <input name="end" type="text" size="20" title="end" /> /
+      <input type="submit" definition="Submit" />
+    </form>
+  </div>
+
+  <div>
+    <form method="post" action="book">
+      Create an public bookable appointment slot
+      <input name="owner" type="text" size="20" title="owner" /> /
+      <input name="start" type="text" size="20" title="start" /> /
+      <input name="end" type="text" size="20" title="end" /> /
+      <input type="submit" definition="Submit" />
+    </form>
+  </div>
+
+  <div>
+    <form method="get" action="book">
+      List public bookable appointments with <input name="owner" type="text" size="20" title="owner" />
+      <input type="submit" definition="Submit" />
+    </form>
+  </div>
 
 </body>
+
 </html>

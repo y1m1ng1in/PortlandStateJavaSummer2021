@@ -9,6 +9,9 @@ public class Helper {
 
   private static String errorMessage = "";
 
+  private static Date lower_date;
+  private static Date upper_date;
+
   public static final String datePattern = "M/d/yyyy h:m a";
 
   public static String getDateString(Date d) {
@@ -36,6 +39,20 @@ public class Helper {
     return true;
   }
 
+  public static boolean validateTwoDateStringForDateInterval(String d1, String d2, String mark1, String mark2) {
+    Date date1 = validateAndParseDate(d1);
+    if (date1 == null) {
+      return false;
+    }
+    Date date2 = validateAndParseDate(d2);
+    if (date2 == null) {
+      return false;
+    }
+    lower_date = date1;
+    upper_date = date2;
+    return validateAndGetDateInterval(date1, date2, mark1, mark2);
+  }
+
   public static boolean validateAndGetDateInterval(Date d1, Date d2, String mark1, String mark2) {
     DateFormat df = new SimpleDateFormat(datePattern);
     df.setLenient(false);
@@ -48,5 +65,13 @@ public class Helper {
 
   public static String getErrorMessage() {
     return errorMessage;
+  }
+
+  public static Date getLowerDate() {
+    return lower_date;
+  }
+
+  public static Date getUpperDate() {
+    return upper_date;
   }
 }

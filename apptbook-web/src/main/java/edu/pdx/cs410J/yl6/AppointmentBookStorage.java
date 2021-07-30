@@ -71,8 +71,27 @@ public interface AppointmentBookStorage {
    * @param owner the name of the owner
    * @return an appointment book that contains all appointment slots belong to
    *         <code>owner</code>
+   * @throws StorageException If any error occurs during read/write with storage
    */
   public AppointmentBook<AppointmentSlot> getAllExistingAppointmentSlotsByOwner(String owner) throws StorageException;
+
+  /**
+   * Add an appointment slot that is public bookable to <code>owner</code>
+   * 
+   * @param owner the name of the owner
+   * @param slot  an {@link AppointmentSlot} the is bookable
+   * @throws StorageException If any error occurs during read/write with storage
+   */
+  public void insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException;
+
+  /**
+   * Book an public bookable appointment slot of <code>owner</code>
+   * 
+   * @param owner       the name of the owner
+   * @param appointment an {@link Appointment} instance to be booked
+   * @throws StorageException If any error occurs during read/write with storage
+   */
+  public void bookAppointment(String owner, Appointment appointment) throws StorageException;
 
   /**
    * Insert a {@link User} instance to the storage
