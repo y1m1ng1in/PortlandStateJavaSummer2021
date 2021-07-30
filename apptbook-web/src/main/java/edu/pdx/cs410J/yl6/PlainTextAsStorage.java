@@ -19,7 +19,7 @@ import java.io.IOException;
  * The class that encapsulates methods communicate with plaintext files stores
  * appointments.
  */
-public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBook<Appointment>, Appointment> {
+public class PlainTextAsStorage implements AppointmentBookStorage {
 
   private File dir;
   private AppointmentValidator validator = new AppointmentValidator("M/d/yyyy h:m a");
@@ -70,6 +70,7 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
     return appointmentBook;
   }
 
+  @Override
   public AppointmentBook<AppointmentSlot> getAllBookableAppointmentSlotsByOwner(String owner) throws StorageException {
     // appointment id -> appointment slot
     Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
@@ -86,6 +87,22 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
       }
     }
 
+    if (appointmentBook.getAppointments().isEmpty()) {
+      return null;
+    }
+    return appointmentBook;
+  }
+
+  @Override
+  public AppointmentBook<AppointmentSlot> getAllExistingAppointmentSlotsByOwner(String owner) throws StorageException {
+    // appointment id -> appointment slot
+    Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
+    AppointmentBook<AppointmentSlot> appointmentBook = new AppointmentBook<>(owner);
+    
+    for (AppointmentSlot slot: idToslot.values()) {
+      appointmentBook.addAppointment(slot);
+    }
+    
     if (appointmentBook.getAppointments().isEmpty()) {
       return null;
     }
@@ -167,6 +184,7 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
    * @param user a {@link User} instance to append
    * @throws StorageException If any read/write with file occurs
    */
+  @Override
   public void insertUser(User user) throws StorageException {
     try (FileWriter fw = new FileWriter(new File(this.dir, userdb), true); BufferedWriter bw = new BufferedWriter(fw)) {
       ParseableUserDumper dumper = new ParseableUserDumper(bw);
@@ -185,6 +203,7 @@ public class PlainTextAsStorage implements AppointmentBookStorage<AppointmentBoo
    * @return a {@link User} instance
    * @throws StorageException If any read/write with file occurs
    */
+  @Override
   public User getUserByUsername(String username) throws StorageException {
     File f = new File(this.dir, userdb);
     if (!f.exists()) {

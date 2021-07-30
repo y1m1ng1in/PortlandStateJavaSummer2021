@@ -2,6 +2,9 @@ package edu.pdx.cs410J.yl6;
 
 import edu.pdx.cs410J.AbstractAppointmentBook;
 import edu.pdx.cs410J.AbstractAppointment;
+
+import java.util.Comparator;
+import java.util.Date;
 import java.util.TreeSet;
 
 /**
@@ -14,7 +17,7 @@ import java.util.TreeSet;
  */
 public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppointmentBook<T> {
 
-  private TreeSet<T> appts = new TreeSet<T>();
+  private TreeSet<T> appts = new TreeSet<T>(new NonOverlappingConstrainter());
   private String owner;
 
   /**
@@ -55,5 +58,38 @@ public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppo
   @Override
   public String getOwnerName() {
     return this.owner;
+  }
+
+  /**
+   * Checks if <code>slot</code> conflicts with existing appointments.
+   * 
+   * @param slot the appointment time slot to check
+   * @return <code>true</code> if conflicts; <code>false</code> otherwise
+   */
+  public boolean contains(T slot) {
+    return this.appts.contains(slot);
+  }
+
+  public class NonOverlappingConstrainter implements Comparator<T> {
+
+    @Override
+    public int compare(T o1, T o2) {
+      Date o1Begin = o1.getBeginTime();
+      Date o2Begin = o2.getBeginTime();
+      Date o1End = o1.getEndTime();
+      Date o2End = o2.getEndTime();
+
+      if (o1Begin.after(o2End)) {
+        // o2Begin < o2End < o1Begin < o1End
+        return 1;
+      } else if (o1End.before(o2Begin)) {
+        // o1Begin < o1End < o2Begin < o2End
+        return -1;
+      } else {
+        // two appointment slots do not overlapped if and only if as two cases described
+        // above
+        return 0;
+      }
+    }
   }
 }

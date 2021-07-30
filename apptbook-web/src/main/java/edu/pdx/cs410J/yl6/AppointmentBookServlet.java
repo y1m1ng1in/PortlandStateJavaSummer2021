@@ -25,7 +25,7 @@ public class AppointmentBookServlet extends HttpServlet {
   static final String BEGIN_PARAMETER = "start";
   static final String END_PARAMETER = "end";
 
-  private AppointmentBookStorage<AppointmentBook<Appointment>, Appointment> storage;
+  private AppointmentBookStorage storage;
   private NonemptyStringValidator ownerValidator;
   private AppointmentValidator appointmentValidator;
 
@@ -35,7 +35,7 @@ public class AppointmentBookServlet extends HttpServlet {
     this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
   }
 
-  public AppointmentBookServlet(AppointmentBookStorage<AppointmentBook<Appointment>, Appointment> storage) {
+  public AppointmentBookServlet(AppointmentBookStorage storage) {
     this.storage = storage;
     this.ownerValidator = new NonemptyStringValidator("owner");
     this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
@@ -272,6 +272,8 @@ public class AppointmentBookServlet extends HttpServlet {
    * stored
    * <li><code>400</code> indicates that the arguments for new appointment is not
    * valid
+   * <li><code>409</code> indicates that the appointment to be added conflicts
+   * with existing appointment slots
    * <li><code>500</code> indicates that appointment cannot be stored to storage,
    * or a program internal error (a bug: an invalid appointment is attempting to
    * store into storage) occurrs.
@@ -302,6 +304,13 @@ public class AppointmentBookServlet extends HttpServlet {
 
     // load appointment to persistent storage
     try {
+      AppointmentBook<AppointmentSlot> existingSlots = this.storage.getAllExistingAppointmentSlotsByOwner(owner);
+      if (existingSlots != null && existingSlots.contains(appointment.getAppointmentSlot())) {
+        writeMessageAndSetStatus(response,
+            "appointment " + appointment.toString() + " conflicts with existing appointment",
+            HttpServletResponse.SC_CONFLICT);
+        return;
+      }
       this.storage.insertAppointmentWithOwner(owner, appointment);
       writeMessageAndSetStatus(response, "Add appointment " + appointment.toString(), HttpServletResponse.SC_OK);
     } catch (StorageException e) {
@@ -323,7 +332,7 @@ public class AppointmentBookServlet extends HttpServlet {
       throws IOException {
     response.setContentType("text/json");
     response.setStatus(HttpServletResponse.SC_OK);
-    
+
     Gson gson = new Gson();
     String json = gson.toJson(book);
     PrintWriter pw = response.getWriter();

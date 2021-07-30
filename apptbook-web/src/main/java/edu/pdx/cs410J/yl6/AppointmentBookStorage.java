@@ -16,7 +16,7 @@ import java.util.Date;
  * of appointment to be stored in <code>T</code>, which can be any type that
  * derives {@link AbstractAppointment}.
  */
-public interface AppointmentBookStorage<T extends AbstractAppointmentBook<E>, E extends AbstractAppointment> {
+public interface AppointmentBookStorage {
 
   /**
    * Get an appointment book that contains all appointments belong to
@@ -27,7 +27,7 @@ public interface AppointmentBookStorage<T extends AbstractAppointmentBook<E>, E 
    *         <code>owner</code>
    * @throws StorageException If any error occurs during read/write with storage
    */
-  public T getAllAppointmentsByOwner(String owner) throws StorageException;
+  public AppointmentBook<Appointment> getAllAppointmentsByOwner(String owner) throws StorageException;
 
   /**
    * Retrieve the storage to get a collection of appointments that begin between
@@ -41,7 +41,8 @@ public interface AppointmentBookStorage<T extends AbstractAppointmentBook<E>, E 
    *         whose begin time is between <code>from</code> to <code>to</code>.
    * @throws StorageException If any error occurs during read/write with storage
    */
-  public T getAppointmentsByOwnerWithBeginInterval(String owner, Date from, Date to) throws StorageException;
+  public AppointmentBook<Appointment> getAppointmentsByOwnerWithBeginInterval(String owner, Date from, Date to)
+      throws StorageException;
 
   /**
    * Insert <code>appointment</code> to the storage.
@@ -50,7 +51,28 @@ public interface AppointmentBookStorage<T extends AbstractAppointmentBook<E>, E 
    * @param appointment the appointment to be stored persistently.
    * @throws StorageException If any error occurs during read/write with storage
    */
-  public void insertAppointmentWithOwner(String owner, E appointment) throws StorageException;
+  public void insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException;
+
+  /**
+   * Get an appointment book that contains all bookable appointment slots belong
+   * to <code>owner</code> in the storage.
+   * 
+   * @param owner the appointment owner
+   * @return an appointment book that contains all bookable appointment slots
+   * @throws StorageException If any error occurs during read/write with storage
+   */
+  public AppointmentBook<AppointmentSlot> getAllBookableAppointmentSlotsByOwner(String owner) throws StorageException;
+
+  /**
+   * Get an appointment book that contains all appointment slots belong to
+   * <code>owner</code> in the storage, include both bookable and non-bookable
+   * slots.
+   * 
+   * @param owner the name of the owner
+   * @return an appointment book that contains all appointment slots belong to
+   *         <code>owner</code>
+   */
+  public AppointmentBook<AppointmentSlot> getAllExistingAppointmentSlotsByOwner(String owner) throws StorageException;
 
   /**
    * Insert a {@link User} instance to the storage

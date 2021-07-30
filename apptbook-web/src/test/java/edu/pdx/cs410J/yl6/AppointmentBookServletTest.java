@@ -41,7 +41,7 @@ public class AppointmentBookServletTest {
 
   File dir = new File("./unittest/");
 
-  AppointmentBookStorage<AppointmentBook<Appointment>, Appointment> storage = new PlainTextAsStorage(dir);
+  AppointmentBookStorage storage = new PlainTextAsStorage(dir);
 
   void createFileWithText(String content, String owner) throws IOException {
     File f = new File(dir, owner + ".txt");

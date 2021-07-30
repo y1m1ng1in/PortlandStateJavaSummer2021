@@ -1,7 +1,6 @@
 package edu.pdx.cs410J.yl6;
 
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * Appointment is the class that store appointment information for a certain
