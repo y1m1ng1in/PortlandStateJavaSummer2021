@@ -32,7 +32,7 @@ public class PrettyPrinterTest {
     PrettyPrinter printer = new PrettyPrinter(sw);
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy2");
+    Appointment appointment2 = new Appointment(getDate("3/16/2020 4:29 pm"),getDate("3/16/2020 4:50 pm"),"dummy2");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     printer.dump(book);
@@ -45,8 +45,8 @@ public class PrettyPrinterTest {
         "Description  |  dummy1\n" +
         "Duration     |  21 minutes\n" + 
         "----------------------------------------\n" +
-        "Begin at     |  3/14/20, 4:29 PM\n" + 
-        "End at       |  3/14/20, 4:50 PM\n" +
+        "Begin at     |  3/16/20, 4:29 PM\n" + 
+        "End at       |  3/16/20, 4:50 PM\n" +
         "Description  |  dummy2\n" +
         "Duration     |  21 minutes\n" +
         "----------------------------------------\n";
@@ -59,7 +59,7 @@ public class PrettyPrinterTest {
     PrettyPrinter printer = new PrettyPrinter(sw);
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy2");
+    Appointment appointment2 = new Appointment(getDate("3/16/2020 4:29 pm"),getDate("3/16/2020 4:50 pm"),"dummy2");
     Appointment appointment3 = new Appointment(getDate("1/12/2020 5:30 pm"),getDate("1/12/2020 6:50 pm"),
         "supersupersuper supersupersuper supersupersuper longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong description");
     book.addAppointment(appointment1);
@@ -85,8 +85,8 @@ public class PrettyPrinterTest {
         "Description  |  dummy1\n" +
         "Duration     |  21 minutes\n" + 
         "----------------------------------------\n" +
-        "Begin at     |  3/14/20, 4:29 PM\n" + 
-        "End at       |  3/14/20, 4:50 PM\n" +
+        "Begin at     |  3/16/20, 4:29 PM\n" + 
+        "End at       |  3/16/20, 4:50 PM\n" +
         "Description  |  dummy2\n" +
         "Duration     |  21 minutes\n" +
         "----------------------------------------\n";

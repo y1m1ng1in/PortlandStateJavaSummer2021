@@ -79,22 +79,10 @@ public class AppointmentSlot extends AbstractAppointment implements Comparable<A
 
   @Override
   public int compareTo(AppointmentSlot other) {
-    // compare lower bound first
-    if (this.begin.before(other.begin)) {
-      return -1;
+    if (this.begin.equals(other.begin)) {
+      return this.end.compareTo(other.end);
     }
-    if (this.begin.after(other.end)) {
-      return 1;
-    }
-    // if lower bounds are same, then compare upper bounds
-    if (this.end.before(other.end)) {
-      return -1;
-    }
-    if (this.end.after(other.end)) {
-      return 1;
-    }
-    // two slots are same if and only if lower bounds and upper bounds are both same
-    return 0;
+    return this.begin.compareTo(other.begin);
   }
 
   @Override

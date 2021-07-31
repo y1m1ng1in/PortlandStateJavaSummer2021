@@ -19,12 +19,12 @@ public class BookAppointmentServlet extends HttpServletHelper {
   static final String ID_PARAMETER = "id";
 
   private NonemptyStringValidator ownerValidator;
-  // private AppointmentValidator appointmentValidator;
+  private AppointmentValidator appointmentValidator;
 
   public BookAppointmentServlet() {
     super();
     this.ownerValidator = new NonemptyStringValidator("owner");
-    // this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
+    this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
   }
 
   // GET: /book?owner=username
@@ -63,23 +63,26 @@ public class BookAppointmentServlet extends HttpServletHelper {
 
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String[] requiredFields = { OWNER_PARAMETER, BEGIN_PARAMETER, END_PARAMETER };
-    String[] fields = new String[3];
+    String owner = getParameter(OWNER_PARAMETER, request);
+    String begin = getParameter(BEGIN_PARAMETER, request);
+    String end = getParameter(END_PARAMETER, request);
+    String id = getParameter(ID_PARAMETER, request);
+    String description = getParameter(DESCRIPTION_PARAMETER, request);
 
-    for (int i = 0; i < 3; ++i) {
-      String value = getParameter(requiredFields[i], request);
-      if (value == null) {
-        missingRequiredParameter(response, requiredFields[i]);
-        return;
-      }
-      fields[i] = value;
-    }
-
-    if (!authenticateUser(request, response, fields[0])) {
+    if (owner != null && begin != null && end != null && id != null && description != null) {
+      bookAppointment(response, owner, id, begin, end, description);
       return;
     }
 
-    insertBookableAppointmentSlot(response, fields[0], fields[1], fields[2]);
+    if (owner != null && begin != null && end != null) {
+      if (!authenticateUser(request, response, owner)) {
+        return;
+      }
+      insertBookableAppointmentSlot(response, owner, begin, end);
+      return;
+    }
+
+    writeMessageAndSetStatus(response, "Cannot process query parameter passed in", 422);
   }
 
   private void getAllBookableAppointmentSlotsByOwner(HttpServletResponse response, String owner) throws IOException {
@@ -124,15 +127,41 @@ public class BookAppointmentServlet extends HttpServletHelper {
 
     // load appointment to persistent storage
     try {
-      AppointmentBook<AppointmentSlot> existingSlots = this.storage.getAllExistingAppointmentSlotsByOwner(owner);
-      if (existingSlots != null && existingSlots.contains(slot)) {
-        writeMessageAndSetStatus(response,
-            "slot " + slot.toString() + " conflicts with existing appointment slot",
+      if (!this.storage.verifySlotIsCompatibleWithAll(owner, slot)) {
+        writeMessageAndSetStatus(response, "slot " + slot.toString() + " conflicts with existing appointment slot",
             HttpServletResponse.SC_CONFLICT);
         return;
       }
       this.storage.insertBookableAppointmentSlot(owner, slot);
       writeMessageAndSetStatus(response, "Add bookable appointment slot " + slot.toString(), HttpServletResponse.SC_OK);
+    } catch (StorageException e) {
+      writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  public void bookAppointment(HttpServletResponse response, String owner, String id, String begin, String end,
+      String description) throws IOException {
+    // validate owner and fields for constructing new appointment
+    if (!this.ownerValidator.isValid(owner)) {
+      writeMessageAndSetStatus(response, this.ownerValidator.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
+
+    Appointment appointment = null;
+    if ((appointment = this.appointmentValidator.createAppointmentFromString(id, begin, end, description)) == null) {
+      writeMessageAndSetStatus(response, this.appointmentValidator.getErrorMessage(),
+          HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
+
+    try {
+      if (!this.storage.verifySlotIsBookable(owner, appointment)) {
+        writeMessageAndSetStatus(response, "Appointment " + appointment.toString() + " is not bookable",
+            HttpServletResponse.SC_CONFLICT);
+        return;
+      }
+      this.storage.bookAppointment(owner, appointment);
+      writeMessageAndSetStatus(response, "Book appointment " + appointment.toString(), HttpServletResponse.SC_OK);
     } catch (StorageException e) {
       writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }

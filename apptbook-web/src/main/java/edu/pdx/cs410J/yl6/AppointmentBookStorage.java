@@ -109,4 +109,8 @@ public interface AppointmentBookStorage {
    * @throws StorageException
    */
   public User getUserByUsername(String username) throws StorageException;
+
+  public boolean verifySlotIsCompatibleWithAll(String owner, AppointmentSlot slot) throws StorageException;
+
+  public boolean verifySlotIsBookable(String owner, AppointmentSlot appointment) throws StorageException;
 }

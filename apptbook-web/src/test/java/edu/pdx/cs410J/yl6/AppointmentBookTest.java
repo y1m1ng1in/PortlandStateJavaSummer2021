@@ -54,7 +54,7 @@ public class AppointmentBookTest {
   void addTwoAppointments() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy2");
+    Appointment appointment2 = new Appointment(getDate("3/14/2020 5:29 pm"),getDate("3/14/2020 6:50 pm"),"dummy2");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     TreeSet<Appointment> toCompare = new TreeSet();
@@ -71,8 +71,8 @@ public class AppointmentBookTest {
   void addThreeAppointments() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
     Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy2");
-    Appointment appointment3 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy3");
+    Appointment appointment2 = new Appointment(getDate("3/15/2020 4:29 pm"),getDate("3/15/2020 4:50 pm"),"dummy2");
+    Appointment appointment3 = new Appointment(getDate("3/16/2020 4:29 pm"),getDate("3/16/2020 4:50 pm"),"dummy3");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     book.addAppointment(appointment3);
@@ -80,6 +80,24 @@ public class AppointmentBookTest {
     toCompare.add(appointment1);
     toCompare.add(appointment2);
     toCompare.add(appointment3);
+    assertThat(book.getAppointments(), equalTo(toCompare));
+  }
+
+  /**
+   * Tests that add 3 appointments to the book but they are mutually overlapping , and get appointments correctly
+   * return a book with size 1 (only the first one is added)
+   */
+  @Test
+  void addThreeAppointmentsWithOverlapping() throws ParseException {
+    AppointmentBook book = new AppointmentBook("a owner");
+    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
+    Appointment appointment2 = new Appointment(getDate("3/14/2020 3:29 pm"),getDate("3/14/2020 6:50 pm"),"dummy2");
+    Appointment appointment3 = new Appointment(getDate("3/14/2020 4:49 pm"),getDate("3/16/2020 4:55 pm"),"dummy3");
+    book.addAppointment(appointment1);
+    book.addAppointment(appointment2);
+    book.addAppointment(appointment3);
+    TreeSet<Appointment> toCompare = new TreeSet();
+    toCompare.add(appointment1);
     assertThat(book.getAppointments(), equalTo(toCompare));
   }
 

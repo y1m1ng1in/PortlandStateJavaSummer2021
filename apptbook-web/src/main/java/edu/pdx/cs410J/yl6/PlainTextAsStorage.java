@@ -98,11 +98,11 @@ public class PlainTextAsStorage implements AppointmentBookStorage {
     // appointment id -> appointment slot
     Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
     AppointmentBook<AppointmentSlot> appointmentBook = new AppointmentBook<>(owner);
-    
-    for (AppointmentSlot slot: idToslot.values()) {
+
+    for (AppointmentSlot slot : idToslot.values()) {
       appointmentBook.addAppointment(slot);
     }
-    
+
     if (appointmentBook.getAppointments().isEmpty()) {
       return null;
     }
@@ -261,6 +261,38 @@ public class PlainTextAsStorage implements AppointmentBookStorage {
       throw new StorageException("While retrieving user to storage, " + e.getMessage());
     }
     return null;
+  }
+
+  @Override
+  public boolean verifySlotIsCompatibleWithAll(String owner, AppointmentSlot slot) throws StorageException {
+    AppointmentBook<AppointmentSlot> existingSlots = getAllExistingAppointmentSlotsByOwner(owner);
+    if (existingSlots != null && existingSlots.contains(slot)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean verifySlotIsBookable(String owner, AppointmentSlot appointment) throws StorageException {
+    // appointment id -> appointment slot
+    Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
+    // appointment id -> appointment description
+    Map<String, String> idToDescription = getAllAppointmentIdToDescriptionsByOwner(owner);
+
+    if (!idToslot.containsKey(appointment.getId())) {
+      return false;
+    }
+
+    if (idToDescription.containsKey(appointment.getId())) {
+      return false;
+    }
+
+    AppointmentSlot toCompare = idToslot.get(appointment.getId());
+    if (!toCompare.getBeginTime().equals(appointment.getBeginTime())
+        || !toCompare.getEndTime().equals(appointment.getEndTime())) {
+      return false;
+    }
+    return true;
   }
 
   private Map<String, AppointmentSlot> getAllAppointmentSlotsByOwner(String owner) throws StorageException {

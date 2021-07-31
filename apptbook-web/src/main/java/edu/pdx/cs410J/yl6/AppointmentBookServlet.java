@@ -170,20 +170,13 @@ public class AppointmentBookServlet extends HttpServletHelper {
       return;
     }
 
-    Date from = Helper.validateAndParseDate(begin);
-    if (from == null) {
+    if (!Helper.validateTwoDateStringForDateInterval(begin, end, "lowerbound date", "upperbound date")) {
       writeMessageAndSetStatus(response, Helper.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
-    Date to = Helper.validateAndParseDate(end);
-    if (to == null) {
-      writeMessageAndSetStatus(response, Helper.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
-      return;
-    }
-    if (!Helper.validateAndGetDateInterval(from, to, "lowerbound date", "upperbound date")) {
-      writeMessageAndSetStatus(response, Helper.getErrorMessage(), HttpServletResponse.SC_BAD_REQUEST);
-      return;
-    }
+
+    Date from = Helper.getLowerDate();
+    Date to = Helper.getUpperDate();
 
     // load appointments satisified from persistent storage
     AppointmentBook<Appointment> book = null;
@@ -244,15 +237,14 @@ public class AppointmentBookServlet extends HttpServletHelper {
 
     // load appointment to persistent storage
     try {
-      AppointmentBook<AppointmentSlot> existingSlots = this.storage.getAllExistingAppointmentSlotsByOwner(owner);
-      if (existingSlots != null && existingSlots.contains(appointment.getAppointmentSlot())) {
+      if (!this.storage.verifySlotIsCompatibleWithAll(owner, appointment)) {
         writeMessageAndSetStatus(response,
             "appointment " + appointment.toString() + " conflicts with existing appointment",
             HttpServletResponse.SC_CONFLICT);
         return;
       }
       this.storage.insertAppointmentWithOwner(owner, appointment);
-      writeMessageAndSetStatus(response, "Add appointment " + appointment.toString(), HttpServletResponse.SC_OK);
+      writeAppointmentAndOkStatus(response, appointment);
     } catch (StorageException e) {
       writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
@@ -275,6 +267,17 @@ public class AppointmentBookServlet extends HttpServletHelper {
 
     Gson gson = new Gson();
     String json = gson.toJson(book);
+    PrintWriter pw = response.getWriter();
+    pw.write(json);
+    pw.flush();
+  }
+
+  private void writeAppointmentAndOkStatus(HttpServletResponse response, Appointment appointment) throws IOException {
+    response.setContentType("text/json");
+    response.setStatus(HttpServletResponse.SC_OK);
+
+    Gson gson = new Gson();
+    String json = gson.toJson(appointment);
     PrintWriter pw = response.getWriter();
     pw.write(json);
     pw.flush();
