@@ -2,6 +2,7 @@ package edu.pdx.cs410J.yl6;
 
 import android.os.Handler;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -28,6 +29,7 @@ public class AppointmentBookRepository {
     public void getAllAppointmentsByOwner(String owner, RepositoryCallback<List<Appointment>> resultCallback) {
         localRoomExecutor.execute(() -> {
             List<Appointment> listOfAppointments = appointmentDao.getAllAppointmentByOwner(owner);
+            Collections.sort(listOfAppointments);
             resultHandler.post(() -> resultCallback.onComplete(listOfAppointments));
         });
     }
@@ -41,6 +43,7 @@ public class AppointmentBookRepository {
         localRoomExecutor.execute(() -> {
             List<Appointment> listOfAppointments =
                     appointmentDao.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
+            Collections.sort(listOfAppointments);
             resultHandler.post(() -> resultCallback.onComplete(listOfAppointments));
         });
     }

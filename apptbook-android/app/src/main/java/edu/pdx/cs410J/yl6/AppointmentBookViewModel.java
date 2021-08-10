@@ -6,14 +6,13 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class AppointmentBookViewModel extends ViewModel {
 
     private final AppointmentBookRepository storage;
-    private MutableLiveData<List<Appointment>> appointmentInDisplay = new MutableLiveData<>();
+    private final MutableLiveData<List<Appointment>> appointmentInDisplay = new MutableLiveData<>();
 
     public AppointmentBookViewModel(AppointmentBookRepository storage) {
         this.storage = storage;
@@ -24,13 +23,12 @@ public class AppointmentBookViewModel extends ViewModel {
     }
 
     public void searchAllAppointmentsByOwner(String owner) {
-        storage.getAllAppointmentsByOwner(owner, appointmentReturned ->
-                appointmentInDisplay.postValue(appointmentReturned));
+        storage.getAllAppointmentsByOwner(owner, appointmentInDisplay::postValue);
     }
 
     public void searchAppointmentsBetweenIntervalByOwner(String owner, Date start, Date end) {
         storage.getAppointmentsByOwnerWithBeginInterval(owner, start, end,
-                appointmentReturned -> appointmentInDisplay.postValue(appointmentReturned));
+                appointmentInDisplay::postValue);
     }
 
     public void addAppointment(Appointment appointment) {
@@ -42,16 +40,21 @@ public class AppointmentBookViewModel extends ViewModel {
     }
 
     public static class AppointmentBookViewModelFactory implements ViewModelProvider.Factory {
-        private AppointmentBookRepository storage;
+        private final AppointmentBookRepository storage;
 
         public AppointmentBookViewModelFactory(AppointmentBookRepository storage) {
             this.storage = storage;
         }
 
+        @SuppressWarnings("unchecked")
         @NonNull
         @Override
         public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-            return (T) new AppointmentBookViewModel(storage);
+            if (modelClass.isAssignableFrom(AppointmentBookViewModel.class)) {
+                return (T) new AppointmentBookViewModel(storage);
+            }
+            throw new IllegalArgumentException(
+                    "cannot create AppointmentBookViewModel due to bad argument");
         }
     }
 
