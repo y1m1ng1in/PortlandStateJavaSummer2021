@@ -185,14 +185,9 @@ public class AppointmentBookServletTest {
       apptbook.addAppointment(validAppointments.get(owner).get(index));
     }
 
-    // Type t = new TypeToken<AppointmentBook<Appointment>>() {
-    // }.getType();
     Gson gson = new Gson();
     String json = gson.toJson(apptbook);
-    // AppointmentBook<Appointment> apptbook = gson.fromJson(s, t);
-    // StringWriter sw = new StringWriter();
-    // TextDumper td = new TextDumper(sw);
-    // td.dump(apptbook);
+
     assertThat(s, equalTo(json));
 
     ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
