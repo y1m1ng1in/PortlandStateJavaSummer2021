@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/cardSearchAppointmentMessageBanner"
+        android:elevation="24dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/searchAppointmentMessageBannerIcon"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginLeft="16dp"
+                android:src="@drawable/ic_baseline_error_24"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/searchAppointmentMessageBannerText"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:text="message regarding with search filter goes here..."
+                app:layout_constraintEnd_toEndOf="parent"
+                android:paddingLeft="16dp"
+                android:paddingRight="8dp"
+                android:layout_marginTop="24dp"
+                android:gravity="center_vertical"
+                app:layout_constraintLeft_toRightOf="@+id/searchAppointmentMessageBannerIcon"
+                app:layout_constraintStart_toEndOf="@+id/searchAppointmentMessageBannerIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/searchAppointmentMessageAction1"
+                style="@style/Widget.MyApplication3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="clear dates"
+                android:layout_marginRight="8dp"
+                app:layout_constraintRight_toLeftOf="@+id/searchAppointmentMessageAction2"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/searchAppointmentMessageAction2"
+                style="@style/Widget.MyApplication3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="8dp"
+                android:text="I'll fix it"
+                app:layout_constraintTop_toBottomOf="@+id/searchAppointmentMessageBannerText"
+                app:layout_constraintRight_toRightOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".FirstFragment">
+
+        <LinearLayout
+            android:id="@+id/apptCreationForm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/editAddApptOwner"
+                style="@style/Widget.MyApplication3.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:hint="owner"
+                app:endIconMode="clear_text"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginHorizontal="15dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editAddApptBeginDate"
+                    style="@style/Widget.MyApplication3.TextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:gravity="top"
+                    android:hint="begin date"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="7.5dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editAddApptBeginTime"
+                    style="@style/Widget.MyApplication3.TextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:hint="begin time"
+                    android:gravity="top"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginRight="15dp"
+                    android:layout_marginLeft="7.5dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"/>
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editAddApptEndDate"
+                    style="@style/Widget.MyApplication3.TextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:hint="end date"
+                    android:gravity="top"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="7.5dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editAddApptEndTime"
+                    style="@style/Widget.MyApplication3.TextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:hint="end time"
+                    android:gravity="top"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginRight="15dp"
+                    android:layout_marginLeft="7.5dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"/>
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/editAddApptDescription"
+                style="@style/Widget.MyApplication3.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="description"
+                app:endIconMode="clear_text"
+                android:layout_marginVertical="5dp"
+                android:layout_marginHorizontal="15dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="create"
+                android:layout_marginVertical="5dp"
+                android:id="@+id/btnCreateAppt"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</LinearLayout>

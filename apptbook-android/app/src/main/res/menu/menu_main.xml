@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="edu.pdx.cs410J.yl6.MainActivity">
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_baseline_help_outline_24"
+        android:title="Help"
+        android:contentDescription="Display help information"
+        app:showAsAction="ifRoom" />
+<!--    <item-->
+<!--        android:id="@+id/action_settings"-->
+<!--        android:orderInCategory="100"-->
+<!--        android:title="@string/action_settings"-->
+<!--        app:showAsAction="never" />-->
+</menu>

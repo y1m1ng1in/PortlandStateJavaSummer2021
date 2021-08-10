@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SecondFragment">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".SecondFragment"
+        android:orientation="vertical">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/cardSearchAppointmentMessageBanner"
+            android:elevation="24dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/searchAppointmentMessageBannerIcon"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginLeft="16dp"
+                    android:src="@drawable/ic_baseline_error_24"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/searchAppointmentMessageBannerText"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:text="message regarding with search filter goes here..."
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="8dp"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center_vertical"
+                    app:layout_constraintLeft_toRightOf="@+id/searchAppointmentMessageBannerIcon"
+                    app:layout_constraintStart_toEndOf="@+id/searchAppointmentMessageBannerIcon"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/searchAppointmentMessageAction1"
+                    style="@style/Widget.MyApplication3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="clear filter"
+                    android:layout_marginRight="8dp"
+                    app:layout_constraintRight_toLeftOf="@+id/searchAppointmentMessageAction2"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/searchAppointmentMessageAction2"
+                    style="@style/Widget.MyApplication3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="8dp"
+                    android:text="fix it"
+                    app:layout_constraintTop_toBottomOf="@+id/searchAppointmentMessageBannerText"
+                    app:layout_constraintRight_toRightOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <RelativeLayout
+            android:id="@+id/relativeLayoutSearchBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_editor_absoluteX="0dp">
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/searchViewForAppointmentByOwner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@+id/btnToggleSearchFilter" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnToggleSearchFilter"
+                android:layout_alignParentRight="true">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSearchFilter"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    style="@style/Widget.App.Button.OutlinedButton.IconOnly"
+                    app:icon="@drawable/ic_outline_filter_list_24" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/searchFilter"
+                android:layout_below="@+id/searchViewForAppointmentByOwner"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="10dp"
+                android:elevation="20dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Filter by begin time"
+                    android:textColor="@color/black"
+                    android:id="@+id/textFilterTitle"
+                    android:layout_marginBottom="10dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/textFilterBeginTimeLowerboundTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textFilterTitle"
+                    android:layout_alignParentLeft="true"
+                    android:text="Range from"
+                    android:textColor="@color/black" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Range to"
+                    android:textColor="@color/black"
+                    android:layout_below="@+id/editFilterBeginTimeLowerBoundDate"
+                    android:layout_alignParentLeft="true"
+                    android:id="@+id/textFilterBeginTimeUpperboundTitle" />
+
+                <EditText
+                    android:id="@+id/editFilterBeginTimeLowerBoundDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/textFilterBeginTimeLowerboundTitle"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_toRightOf="@+id/textFilterBeginTimeLowerboundTitle"
+                    android:hint="mm/dd/yyyy"
+                    android:minWidth="120dp"
+                    android:minHeight="48dp"
+                    android:textSize="14sp"
+                    android:focusable="false"
+                    android:theme="@style/EditTextTheme" />
+
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/textFilterBeginTimeLowerboundTitle"
+                    android:layout_toRightOf="@id/editFilterBeginTimeLowerBoundDate"
+                    android:id="@+id/editFilterBeginTimeLowerBoundTime"
+                    android:layout_marginLeft="10dp"
+                    android:minWidth="120dp"
+                    android:minHeight="48dp"
+                    android:textSize="14sp"
+                    android:focusable="false"
+                    android:theme="@style/EditTextTheme"
+                    android:hint="hh:mm am|pm" />
+
+                <EditText
+                    android:id="@+id/editFilterBeginTimeUpperBoundDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textFilterBeginTimeLowerboundTitle"
+                    android:layout_alignBaseline="@+id/textFilterBeginTimeUpperboundTitle"
+                    android:layout_alignLeft="@+id/editFilterBeginTimeLowerBoundDate"
+                    android:layout_toRightOf="@id/textFilterBeginTimeUpperboundTitle"
+                    android:hint="mm/dd/yyyy"
+                    android:minWidth="120dp"
+                    android:minHeight="48dp"
+                    android:textSize="14sp"
+                    android:focusable="false"
+                    android:theme="@style/EditTextTheme" />
+
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/textFilterBeginTimeUpperboundTitle"
+                    android:layout_toRightOf="@+id/editFilterBeginTimeUpperBoundDate"
+                    android:layout_marginLeft="10dp"
+                    android:minWidth="120dp"
+                    android:minHeight="48dp"
+                    android:textSize="14sp"
+                    android:focusable="false"
+                    android:id="@+id/editFilterBeginTimeUpperBoundTime"
+                    android:hint="hh:mm am|pm"
+                    android:theme="@style/EditTextTheme" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/searchFilterButtons"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="15dp"
+                    android:layout_below="@id/editFilterBeginTimeUpperBoundDate">
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.MyApplication3.Button.OutlinedButton"
+                        android:text="clear"
+                        android:id="@+id/btnClearFilter" />
+
+                </LinearLayout>
+
+            </RelativeLayout>
+        </RelativeLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listAppointments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom|end"
+        android:contentDescription="button for creating new appointment"
+        android:text="create"
+        android:backgroundTint="@color/actionEmphesisColor"
+        app:icon="@android:drawable/ic_input_add"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
