@@ -9,6 +9,8 @@ import java.util.Date;
 
 import com.google.gson.Gson;
 
+import edu.pdx.cs410J.yl6.database.StorageException;
+
 public class BookAppointmentServlet extends HttpServletHelper {
 
   static final String OWNER_PARAMETER = "owner";

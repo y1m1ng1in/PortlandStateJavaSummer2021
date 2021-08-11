@@ -17,8 +17,8 @@ import java.util.TreeSet;
  */
 public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppointmentBook<T> {
 
-  private TreeSet<T> appts = new TreeSet<T>(new NonOverlappingConstrainter());
-  private String owner;
+  private final TreeSet<T> appts = new TreeSet<T>(new NonOverlappingConstrainter());
+  private final String owner;
 
   /**
    * Construct an empty appointment book with specified <code>owner</code>.
