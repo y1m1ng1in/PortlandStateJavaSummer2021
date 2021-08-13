@@ -44,7 +44,9 @@ public abstract class TableEntryDumper<T> {
         String[] appointmentFields = getStringFields(entry);
 
         for (int i = 0; i < appointmentFields.length; ++i) {
-            this.writer.write(addEscapeCharacter(appointmentFields[i]));
+            if (appointmentFields[i] != null) {
+                this.writer.write(addEscapeCharacter(appointmentFields[i]));
+            }
             if (i + 1 == appointmentFields.length) {
                 this.writer.write(this.entryDelimiter);
             } else {

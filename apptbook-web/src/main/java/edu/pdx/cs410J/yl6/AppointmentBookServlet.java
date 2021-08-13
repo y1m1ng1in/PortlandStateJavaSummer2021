@@ -238,7 +238,7 @@ public class AppointmentBookServlet extends HttpServletHelper {
         }
 
         Appointment appointment = null;
-        if ((appointment = this.appointmentValidator.createAppointmentFromString(begin, end, description)) == null) {
+        if ((appointment = this.appointmentValidator.createAppointmentFromString(owner, begin, end, description)) == null) {
             writeMessageAndSetStatus(response, this.appointmentValidator.getErrorMessage(),
                     HttpServletResponse.SC_BAD_REQUEST);
             return;

@@ -27,7 +27,15 @@ public abstract class AppointmentTableEntryDumper {
 
         @Override
         public String[] getStringFields(AppointmentSlot appointment) {
-            return new String[] { appointment.getBeginTimeString(), appointment.getEndTimeString(), appointment.getId() };
+            return new String[] {
+                    appointment.getOwner(),
+                    appointment.getId(),
+                    appointment.getBeginTimeString(),
+                    appointment.getEndTimeString(),
+                    appointment.getSlotType() == null ? null : appointment.getSlotType().toString(),
+                    appointment.getParticipatorType() == null ? null : appointment.getParticipatorType().toString(),
+                    appointment.getParticipatorIdentifier()
+            };
         }
     }
 

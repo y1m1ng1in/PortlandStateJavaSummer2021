@@ -34,7 +34,7 @@ public abstract class AppointmentTableEntryParser {
 
     public static class AppointmentSlotTableEntryParser extends TableEntryParser<AppointmentSlot> {
 
-        private static final int numberOfField = 3;
+        private static final int numberOfField = 7;
 
         public AppointmentSlotTableEntryParser(Reader reader) {
             this.reader = reader;
@@ -47,13 +47,23 @@ public abstract class AppointmentTableEntryParser {
 
         @Override
         public AppointmentSlot instantiate(String... fields) throws ParserException {
-            Date begin = Helper.validateAndParseDate(fields[0]);
-            Date end = Helper.validateAndParseDate(fields[1]);
+            String owner = fields[0];
+            String id = fields[1];
+
+            Date begin = Helper.validateAndParseDate(fields[2]);
+            Date end = Helper.validateAndParseDate(fields[3]);
+
             if (!Helper.validateAndGetDateInterval(begin, end, "begin time of appointment slot",
                     "end time of appointment slot")) {
                 throw new ParserException(Helper.getErrorMessage());
             }
-            return new AppointmentSlot(fields[2], begin, end);
+            AppointmentSlot.SlotType slotType =
+                    fields[4] == null ? null : AppointmentSlot.SlotType.valueOf(fields[4]);
+            AppointmentSlot.ParticipatorType participatorType =
+                    fields[5] == null ? null : AppointmentSlot.ParticipatorType.valueOf(fields[5]);
+            String participatorIdentifier = fields[6];
+            AppointmentSlot toReturn = new AppointmentSlot(owner, id, begin, end, slotType, participatorType, participatorIdentifier);
+            return toReturn;
         }
     }
 }

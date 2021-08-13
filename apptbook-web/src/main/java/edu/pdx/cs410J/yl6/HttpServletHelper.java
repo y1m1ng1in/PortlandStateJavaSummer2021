@@ -37,7 +37,7 @@ public abstract class HttpServletHelper extends HttpServlet {
      * @return <code>true</code> if authentication is not failed; <code>false</code>
      * otherwise
      * @throws IOException If an input or output exception occurs
-     * @implNote currently the server uses basic authentication, which is not
+     * <strong>Note</strong> currently the server uses basic authentication, which is not
      * enough. Still looking for more advanced method... then replace the
      * implementation in this method
      */

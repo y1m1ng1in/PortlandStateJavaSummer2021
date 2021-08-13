@@ -46,8 +46,12 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
             if (idToDescription.containsKey(id)) {
                 // appointment has a description, then it is not a bookable one
                 AppointmentSlot slot = idToslot.get(id);
-                Appointment appointment = this.validator.createAppointmentFromString(id, slot.getBeginTimeString(),
-                        slot.getEndTimeString(), idToDescription.get(id));
+//                Appointment appointment = this.validator.createAppointmentFromString(owner, id,
+//                        slot.getBeginTimeString(), slot.getEndTimeString(), slot.getSlotType(),
+//                        slot.getParticipatorType(), slot.getParticipatorIdentifier(), idToDescription.get(id));
+                Appointment appointment = new Appointment(owner, id, slot.getBeginTime(), slot.getEndTime(),
+                        slot.getSlotType(), slot.getParticipatorType(), slot.getParticipatorIdentifier(),
+                        idToDescription.get(id));
                 appointmentBook.addAppointment(appointment);
             }
         }

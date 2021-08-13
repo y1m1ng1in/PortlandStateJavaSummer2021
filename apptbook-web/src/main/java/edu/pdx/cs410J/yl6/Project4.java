@@ -129,7 +129,7 @@ public class Project4 {
             String end = String.join(" ", arguments[5], arguments[6], arguments[7]);
             AppointmentValidator appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
             Appointment appointment;
-            if ((appointment = appointmentValidator.createAppointmentFromString(begin, end, arguments[1])) == null) {
+            if ((appointment = appointmentValidator.createAppointmentFromString(arguments[0], begin, end, arguments[1])) == null) {
                 error(appointmentValidator.getErrorMessage());
             }
             try {

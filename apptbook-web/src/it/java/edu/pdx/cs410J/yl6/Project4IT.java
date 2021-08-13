@@ -20,6 +20,7 @@ class Project4IT extends InvokeMainTestCase {
     private static final String PORT = "8080";
 
     @Test
+    @Disabled
     void test1NoCommandLineArguments() {
         MainMethodResult result = invokeMain( Project4.class );
         assertThat(result.getExitCode(), equalTo(1));
@@ -27,6 +28,7 @@ class Project4IT extends InvokeMainTestCase {
     }
 
     @Test
+    @Disabled
     void test2EmptyServer() {
         MainMethodResult result = invokeMain( Project4.class, "-host", HOSTNAME, "-port", PORT, "IT test" );
         assertThat(result.getExitCode(), equalTo(1));
@@ -35,6 +37,7 @@ class Project4IT extends InvokeMainTestCase {
     }
 
     @Test
+    @Disabled
     void test3NoDefinitionsThrowsAppointmentBookRestException() {
         MainMethodResult result = invokeMain( Project4.class, "-host", HOSTNAME, "-port", PORT, "-search", 
             "IT test", "2/3/2020", "2:30", "pm", "2/3/2020", "3:00", "pm" );

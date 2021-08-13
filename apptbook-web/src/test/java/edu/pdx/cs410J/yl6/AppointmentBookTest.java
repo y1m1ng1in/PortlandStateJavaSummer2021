@@ -39,7 +39,7 @@ public class AppointmentBookTest {
   @Test
   void addOneAppointment() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
-    Appointment appointment = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment = new Appointment("a owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     book.addAppointment(appointment);
     TreeSet<Appointment> toCompare = new TreeSet();
     toCompare.add(appointment);
@@ -53,8 +53,8 @@ public class AppointmentBookTest {
   @Test
   void addTwoAppointments() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 5:29 pm"),getDate("3/14/2020 6:50 pm"),"dummy2");
+    Appointment appointment1 = new Appointment("a owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
+    Appointment appointment2 = new Appointment("a owner", getDate("3/14/2020 5:29 pm"),getDate("3/14/2020 6:50 pm"),"dummy2");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     TreeSet<Appointment> toCompare = new TreeSet();
@@ -70,9 +70,9 @@ public class AppointmentBookTest {
   @Test
   void addThreeAppointments() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
-    Appointment appointment2 = new Appointment(getDate("3/15/2020 4:29 pm"),getDate("3/15/2020 4:50 pm"),"dummy2");
-    Appointment appointment3 = new Appointment(getDate("3/16/2020 4:29 pm"),getDate("3/16/2020 4:50 pm"),"dummy3");
+    Appointment appointment1 = new Appointment("a owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
+    Appointment appointment2 = new Appointment("a owner", getDate("3/15/2020 4:29 pm"),getDate("3/15/2020 4:50 pm"),"dummy2");
+    Appointment appointment3 = new Appointment("a owner", getDate("3/16/2020 4:29 pm"),getDate("3/16/2020 4:50 pm"),"dummy3");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     book.addAppointment(appointment3);
@@ -90,9 +90,9 @@ public class AppointmentBookTest {
   @Test
   void addThreeAppointmentsWithOverlapping() throws ParseException {
     AppointmentBook book = new AppointmentBook("a owner");
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 3:29 pm"),getDate("3/14/2020 6:50 pm"),"dummy2");
-    Appointment appointment3 = new Appointment(getDate("3/14/2020 4:49 pm"),getDate("3/16/2020 4:55 pm"),"dummy3");
+    Appointment appointment1 = new Appointment("a owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy1");
+    Appointment appointment2 = new Appointment("a owner", getDate("3/14/2020 3:29 pm"),getDate("3/14/2020 6:50 pm"),"dummy2");
+    Appointment appointment3 = new Appointment("a owner", getDate("3/14/2020 4:49 pm"),getDate("3/16/2020 4:55 pm"),"dummy3");
     book.addAppointment(appointment1);
     book.addAppointment(appointment2);
     book.addAppointment(appointment3);

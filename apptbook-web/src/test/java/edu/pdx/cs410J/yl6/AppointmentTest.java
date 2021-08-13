@@ -29,7 +29,7 @@ public class AppointmentTest {
    */
   @Test
   void getBeginTimeStringNeedsToBeImplemented() throws ParseException {
-    Appointment appointment = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     assertThat(appointment.getBeginTimeString(), equalTo("3/14/2020 4:29 PM"));
   }
 
@@ -38,7 +38,7 @@ public class AppointmentTest {
    */
   @Test
   void getEndTimeStringNeedsToBeImplemented() throws ParseException {
-    Appointment appointment = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     assertThat(appointment.getEndTimeString(), equalTo("3/14/2020 4:50 PM"));
   }
 
@@ -47,7 +47,7 @@ public class AppointmentTest {
    */
   @Test
   void getDescription() throws ParseException {
-    Appointment appointment = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     assertThat(appointment.getDescription(), equalTo("dummy"));
   }
 
@@ -58,48 +58,48 @@ public class AppointmentTest {
   void forProject3ItIsOkayIfGetBeginTimeReturnsNull() throws ParseException {
     DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
     Date d = df.parse("3/14/2020 4:29 pm");
-    Appointment appointment = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     assertThat(appointment.getBeginTime(), equalTo(d));
   }
 
   @Test
   void testCompareToGivenSameAppointment() throws ParseException {
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment1 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment2 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     assertThat(appointment1.compareTo(appointment2), equalTo(0));
   }
 
   @Test
   void testCompareToGivenSameBeginAndSameEnd() throws ParseException {
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummya");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummyb");
+    Appointment appointment1 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummya");
+    Appointment appointment2 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummyb");
     assertThat(appointment1.compareTo(appointment2), equalTo(-1));
   }
 
   @Test
   void testCompareToGivenSameBegin() throws ParseException {
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummya");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:5 pm"),"dummyb");
+    Appointment appointment1 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummya");
+    Appointment appointment2 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:5 pm"),"dummyb");
     assertThat(appointment1.compareTo(appointment2), equalTo(1));
   }
 
   @Test
   void testCompareToWithDifferentBeginAndSameEndDescription() throws ParseException {
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 3:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment1 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment2 = new Appointment("owner", getDate("3/14/2020 3:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     assertThat(appointment1.compareTo(appointment2), equalTo(1));
   }
 
   @Test
   void testCompareToWithDifferentBegin() throws ParseException {
-    Appointment appointment1 = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
-    Appointment appointment2 = new Appointment(getDate("3/14/2020 3:29 am"),getDate("3/14/2020 6:50 pm"),"dum");
+    Appointment appointment1 = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
+    Appointment appointment2 = new Appointment("owner", getDate("3/14/2020 3:29 am"),getDate("3/14/2020 6:50 pm"),"dum");
     assertThat(appointment1.compareTo(appointment2), equalTo(1));
   }
 
   @Test
   void getBeginTimeTest() throws ParseException {
-    Appointment appointment = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:30 pm"),"dummy");
+    Appointment appointment = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:30 pm"),"dummy");
     Calendar myCalendar = new GregorianCalendar(2020, Calendar.MARCH, 14, 16, 29);
     Date myDate = myCalendar.getTime();
     assertThat(appointment.getBeginTime(), equalTo(myDate));
@@ -107,7 +107,7 @@ public class AppointmentTest {
 
   @Test
   void getEndTimeTest() throws ParseException {
-    Appointment appointment = new Appointment(getDate("3/14/2020 4:29 pm"),getDate("12/14/2020 7:30 pm"),"dummy");
+    Appointment appointment = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("12/14/2020 7:30 pm"),"dummy");
     Calendar myCalendar = new GregorianCalendar(2020, Calendar.DECEMBER, 14, 19, 30);
     Date myDate = myCalendar.getTime();
     assertThat(appointment.getEndTime(), equalTo(myDate));

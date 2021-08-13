@@ -131,7 +131,11 @@ public abstract class TableEntryParser<T> {
         if (this.currentArgIndex == expectedNumberOfField) {
             throw new ParserException(MORE_FIELD_THAN_NEEDED);
         }
-        this.argumentStrings[this.currentArgIndex] = this.sb.toString();
+        String parsedArg = this.sb.toString();
+        if (parsedArg.length() == 0) {
+            parsedArg = null;
+        }
+        this.argumentStrings[this.currentArgIndex] = parsedArg;
         this.sb.setLength(0);
     }
 }

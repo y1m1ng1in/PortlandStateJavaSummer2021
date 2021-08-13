@@ -215,26 +215,26 @@ public class AppointmentBookServletTest {
         u2 = new User("the 2nd user", "the_2nd_user_password", "second@email.com", "street 2");
         u3 = new User("the 3rd user", "the_3rd_user_password", "third@email.com", "street 3");
 
-        a11 = new Appointment(Helper.validateAndParseDate("7/30/2021 4:00 am"),
+        a11 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 4:00 am"),
                 Helper.validateAndParseDate("7/30/2021 5:00 am"), "a11");
-        a12 = new Appointment(Helper.validateAndParseDate("7/30/2021 5:01 am"),
+        a12 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 5:01 am"),
                 Helper.validateAndParseDate("7/30/2021 5:30 am"), "a12");
-        a13 = new Appointment(Helper.validateAndParseDate("7/30/2021 6:00 am"),
+        a13 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 6:00 am"),
                 Helper.validateAndParseDate("7/30/2021 7:00 am"), "a13");
-        a1_overlap1 = new Appointment(Helper.validateAndParseDate("7/30/2021 3:40 am"),
+        a1_overlap1 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 3:40 am"),
                 Helper.validateAndParseDate("7/30/2021 4:30 am"), "a1_overlap1");
-        a1_overlap2 = new Appointment(Helper.validateAndParseDate("7/30/2021 5:20 am"),
+        a1_overlap2 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 5:20 am"),
                 Helper.validateAndParseDate("7/30/2021 6:30 am"), "a1_overlap2");
 
-        a21 = new Appointment(Helper.validateAndParseDate("7/30/2021 4:00 am"),
+        a21 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 4:00 am"),
                 Helper.validateAndParseDate("7/30/2021 5:00 am"), "a21");
-        a22 = new Appointment(Helper.validateAndParseDate("7/30/2021 5:30 am"),
+        a22 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 5:30 am"),
                 Helper.validateAndParseDate("7/30/2021 6:30 am"), "a22");
-        a23 = new Appointment(Helper.validateAndParseDate("7/30/2021 8:00 am"),
+        a23 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 8:00 am"),
                 Helper.validateAndParseDate("7/30/2021 9:00 am"), "a23");
-        a2_overlap1 = new Appointment(Helper.validateAndParseDate("7/30/2021 3:40 am"),
+        a2_overlap1 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 3:40 am"),
                 Helper.validateAndParseDate("7/30/2021 5:29 am"), "a2_overlap1");
-        a2_overlap2 = new Appointment(Helper.validateAndParseDate("7/30/2021 5:20 am"),
+        a2_overlap2 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 5:20 am"),
                 Helper.validateAndParseDate("7/30/2021 8:30 am"), "a2_overlap2");
     }
 

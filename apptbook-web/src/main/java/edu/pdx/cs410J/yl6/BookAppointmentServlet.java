@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.google.gson.Gson;
 
+import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
 public class BookAppointmentServlet extends HttpServletHelper {
@@ -25,6 +26,12 @@ public class BookAppointmentServlet extends HttpServletHelper {
 
   public BookAppointmentServlet() {
     super();
+    this.ownerValidator = new NonemptyStringValidator("owner");
+    this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
+  }
+
+  public BookAppointmentServlet(AppointmentBookStorage storage) {
+    this.storage = storage;
     this.ownerValidator = new NonemptyStringValidator("owner");
     this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
   }
@@ -125,7 +132,7 @@ public class BookAppointmentServlet extends HttpServletHelper {
     }
     Date from = Helper.getLowerDate();
     Date to = Helper.getUpperDate();
-    AppointmentSlot slot = new AppointmentSlot(from, to);
+    AppointmentSlot slot = new AppointmentSlot(owner, from, to);
 
     // load appointment to persistent storage
     try {
@@ -150,7 +157,7 @@ public class BookAppointmentServlet extends HttpServletHelper {
     }
 
     Appointment appointment = null;
-    if ((appointment = this.appointmentValidator.createAppointmentFromString(id, begin, end, description)) == null) {
+    if ((appointment = this.appointmentValidator.createAppointmentFromString(owner, id, begin, end, description)) == null) {
       writeMessageAndSetStatus(response, this.appointmentValidator.getErrorMessage(),
           HttpServletResponse.SC_BAD_REQUEST);
       return;
@@ -169,16 +176,6 @@ public class BookAppointmentServlet extends HttpServletHelper {
     }
   }
 
-  /**
-   * Dump the whole <code>book</code> to the HTTP response, and set HTTP status to
-   * 200. The method uses <code>PrintWriter</code> instance obtained by
-   * {@link HttpServletResponse#getWriter} to dump content by
-   * {@link TextDumper#dump}.
-   * 
-   * @param response a {@link HttpServletResponse} instance
-   * @param book     the appointment book to be write to <code>response</code>
-   * @throws IOException If an input or output exception occurs
-   */
   private void writeAppointmentBookAndOkStatus(HttpServletResponse response, AppointmentBook<AppointmentSlot> book)
       throws IOException {
     response.setContentType("text/json");

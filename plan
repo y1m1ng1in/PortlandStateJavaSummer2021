@@ -75,19 +75,16 @@ User creates an appointment
       -> otherwise, fail
 
 
-PublicBookableSlots:
-  - username => array of slots, where slots are not overlapped
-    slot = start time + end time
+ApptId -> Description:
+    appointmentId, description1
+    appointmentId, description2
+    ...
 
-POST: /addPublicBookableSlots:
-  - lowerbound: Date
-  - upperbound: Date
-  - duration: int of mintues
-  - break: int of mintues
+ApptId -> Slot:
+    appointmentId, beginTime, EndTime, Owner, ParticipatorType, ParticipatorIdentifier
 
-store as an array of non-overlapped interval:
-  [lo_1, hi_1], [lo_2, hi_2], ..., [lo_n, hi_n]
 
-create an appointment [lo, hi] overlapped with above intervals:
-  within : [lo_i, hi_i] -> [lo_i, lo], [hi_i, hi]
-  one_side: [lo_i, hi_i] -> [lo_i, lo], [hi, hi_i+c]
+Participator?
+    - registered user
+    - unregistered user
+    type (1 registered, 2 unregistered), identifier (username registered, confirmationCode unregistered)

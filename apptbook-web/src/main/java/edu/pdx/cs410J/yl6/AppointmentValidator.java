@@ -63,18 +63,18 @@ public class AppointmentValidator {
    * @return an <code>Appointment</code> instance if arguments passed into this
    *         method are valid; <code>null</code> otherwise
    */
-  public Appointment createAppointmentFromString(String begin, String end, String description) {
+  public Appointment createAppointmentFromString(String owner, String begin, String end, String description) {
     if (!isValid(new String[] { begin, end, description })) {
       return null;
     }
-    return new Appointment(this.begin, this.end, this.description);
+    return new Appointment(owner, this.begin, this.end, this.description);
   }
 
-  public Appointment createAppointmentFromString(String id, String begin, String end, String description) {
+  public Appointment createAppointmentFromString(String owner, String id, String begin, String end, String description) {
     if (!isValid(new String[] { begin, end, description })) {
       return null;
     }
-    return new Appointment(id, this.begin, this.end, this.description);
+    return new Appointment(owner, id, this.begin, this.end, this.description);
   }
 
   /**
