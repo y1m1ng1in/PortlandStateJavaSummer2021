@@ -1,6 +1,7 @@
 package edu.pdx.cs410J.yl6;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -141,10 +143,19 @@ public class BookAppointmentServletTest {
 
         AppointmentSlot slot = new AppointmentSlot(owner, Helper.validateAndParseDate(begin),
                 Helper.validateAndParseDate(end));
-        String expected = generateStatusMessageJsonString("Add bookable appointment slot " + slot,
-                HttpServletResponse.SC_OK);
 
-        assertThat(stringWriter.toString().trim(), equalTo(expected));
+        JsonObject jobj = new Gson().fromJson(stringWriter.toString().trim(), JsonObject.class);
+        String jsonSlot = jobj.get("requestResult").toString();
+        Type appointmentType = new TypeToken<AppointmentSlot>() {
+        }.getType();
+        AppointmentSlot returned = new Gson().fromJson(jsonSlot, appointmentType);
+
+        assertThat(returned.getBeginTime(), equalTo(slot.getBeginTime()));
+        assertThat(returned.getEndTime(), equalTo(slot.getEndTime()));
+        assertThat(returned.getOwner(), equalTo(slot.getOwner()));
+        assertThat(returned.getSlotType(), equalTo(AppointmentSlot.SlotType.OPEN_TO_EVERYONE));
+        assertThat(returned.getParticipatorIdentifier(), equalTo(null));
+        assertThat(returned.getParticipatorType(), equalTo(null));
 
         recordBookAppointmentRequest(owner, slot);
 
@@ -175,6 +186,10 @@ public class BookAppointmentServletTest {
 
             assertThat(recordedslot.getBeginTime(), equalTo(returnedSlot.getBeginTime()));
             assertThat(recordedslot.getEndTime(), equalTo(returnedSlot.getEndTime()));
+            assertThat(returnedSlot.getOwner(), equalTo(owner));
+            assertThat(returnedSlot.getSlotType(), equalTo(AppointmentSlot.SlotType.OPEN_TO_EVERYONE));
+            assertThat(returnedSlot.getParticipatorIdentifier(), equalTo(null));
+            assertThat(returnedSlot.getParticipatorType(), equalTo(null));
         }
 
         ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
@@ -200,12 +215,20 @@ public class BookAppointmentServletTest {
                 fromReturnedSlots.getBeginTime(), fromReturnedSlots.getEndTime(), fromReturnedSlots.getSlotType(),
                 fromReturnedSlots.getParticipatorType(), fromReturnedSlots.getParticipatorIdentifier(), description);
 
-        String expected = generateStatusMessageJsonString("Book appointment " + appointmentBooked,
-                HttpServletResponse.SC_OK);
+        JsonObject jobj = new Gson().fromJson(stringWriter.toString().trim(), JsonObject.class);
+        String jsonSlot = jobj.get("requestResult").toString();
+        Type appointmentType = new TypeToken<Appointment>() {
+        }.getType();
+        Appointment returned = new Gson().fromJson(jsonSlot, appointmentType);
 
-        assertThat(stringWriter.toString().trim(), equalTo(expected));
+        assertThat(returned.getBeginTime(), equalTo(appointmentBooked.getBeginTime()));
+        assertThat(returned.getEndTime(), equalTo(appointmentBooked.getEndTime()));
+        assertThat(returned.getOwner(), equalTo(appointmentBooked.getOwner()));
+        assertThat(returned.getSlotType(), equalTo(AppointmentSlot.SlotType.PARTICIPATOR_BOOKED));
+        assertThat(returned.getParticipatorIdentifier(), not(equalTo(null)));
+        assertThat(returned.getParticipatorType(), equalTo(AppointmentSlot.ParticipatorType.UNREGISTERED));
 
-        updateRecordsAfterBooked(owner, indexAt, appointmentBooked);
+        updateRecordsAfterBooked(owner, indexAt, returned);
 
         ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
         verify(response).setStatus(statusCode.capture());

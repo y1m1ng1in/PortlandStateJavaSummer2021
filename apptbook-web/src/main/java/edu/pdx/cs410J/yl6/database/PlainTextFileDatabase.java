@@ -195,16 +195,33 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
     public void bookAppointment(String owner, Appointment appointment) throws StorageException {
         // appointment id -> appointment description
         Map<String, String> idToDescription = getAllAppointmentIdToDescriptionsByOwner(owner);
+        // appointment id -> appointment slot
+        Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
 
         if (idToDescription.containsKey(appointment.getId())) {
             throw new StorageException("appointment id already exists in file that maps appointment id to description");
         }
+        if (!idToslot.containsKey(appointment.getId())) {
+            throw new StorageException("appointment id does not exist in file that maps appointment id to slot");
+        }
+        idToslot.put(appointment.getId(), appointment.getAppointmentSlot());
 
         File descriptions = new File(this.dir, owner + "_descriptions.txt");
         try (Writer descriptionWriter = new FileWriter(descriptions, true)) {
             AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper descriptionDumper =
                     new AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper(descriptionWriter);
             descriptionDumper.dump(appointment);
+        } catch (IOException e) {
+            throw new StorageException("While writing new appointment description to storage, " + e.getMessage());
+        }
+
+        File slots = new File(this.dir, owner + "_slots.txt");
+        try (Writer slotWriter = new FileWriter(slots)) {
+            AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper slotTableEntryDumper =
+                    new AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper(slotWriter);
+            for (AppointmentSlot slot : idToslot.values()) {
+                slotTableEntryDumper.dump(slot);
+            }
         } catch (IOException e) {
             throw new StorageException("While writing new appointment slot to storage, " + e.getMessage());
         }
