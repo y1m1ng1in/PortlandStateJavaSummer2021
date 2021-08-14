@@ -51,7 +51,7 @@ public interface AppointmentBookStorage {
      * @param appointment the appointment to be stored persistently.
      * @throws StorageException If any error occurs during read/write with storage
      */
-    public void insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException;
+    public boolean insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException;
 
     /**
      * Get an appointment book that contains all bookable appointment slots belong
@@ -82,7 +82,11 @@ public interface AppointmentBookStorage {
      * @param slot  an {@link AppointmentSlot} the is bookable
      * @throws StorageException If any error occurs during read/write with storage
      */
-    public void insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException;
+    public boolean insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException;
+
+    int NOT_BOOKABLE = 0;
+    int CONFLICT_WITH_EXISTING_APPOINTMENT = 1;
+    int BOOK_SUCCESS = 2;
 
     /**
      * Book an public bookable appointment slot of <code>owner</code>
@@ -91,7 +95,7 @@ public interface AppointmentBookStorage {
      * @param appointment an {@link Appointment} instance to be booked
      * @throws StorageException If any error occurs during read/write with storage
      */
-    public void bookAppointment(String owner, Appointment appointment) throws StorageException;
+    public int bookAppointment(String owner, Appointment appointment, boolean authenticated) throws StorageException;
 
     /**
      * Insert a {@link User} instance to the storage
@@ -110,7 +114,4 @@ public interface AppointmentBookStorage {
      */
     public User getUserByUsername(String username) throws StorageException;
 
-    public boolean verifySlotIsCompatibleWithAll(String owner, AppointmentSlot slot) throws StorageException;
-
-    public boolean verifySlotIsBookable(String owner, AppointmentSlot appointment) throws StorageException;
 }

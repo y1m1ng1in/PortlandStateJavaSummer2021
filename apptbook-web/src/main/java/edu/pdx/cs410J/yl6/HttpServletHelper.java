@@ -19,12 +19,11 @@ import java.util.Base64;
 public abstract class HttpServletHelper extends HttpServlet {
 
     protected AppointmentBookStorage storage;
-    protected AppointmentBookStorage tryConnnect;
+    protected AppointmentBookStorage tryConnect;
 
     public HttpServletHelper() {
-//        this.storage = new PlainTextFileDatabase(new File("./plaintext_db/"));
         this.storage = PlainTextFileDatabase.getDatabase(new File("./plaintext_db/"));
-        this.tryConnnect = PostgresqlDatabase.getDatabase();
+//        this.tryConnect = PostgresqlDatabase.getDatabase();
     }
 
     /**

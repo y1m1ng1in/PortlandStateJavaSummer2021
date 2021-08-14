@@ -35,7 +35,7 @@ public class AppointmentBookServlet extends HttpServletHelper {
 
     public AppointmentBookServlet(AppointmentBookStorage storage) {
         this.storage = storage;
-        this.tryConnnect = PostgresqlDatabase.getDatabase();
+//        this.tryConnect = PostgresqlDatabase.getDatabase();
         this.ownerValidator = new NonemptyStringValidator("owner");
         this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
     }
@@ -246,14 +246,18 @@ public class AppointmentBookServlet extends HttpServletHelper {
 
         // load appointment to persistent storage
         try {
-            if (!this.storage.verifySlotIsCompatibleWithAll(owner, appointment)) {
-                writeMessageAndSetStatus(response,
-                        "appointment " + appointment + " conflicts with existing appointment",
-                        HttpServletResponse.SC_CONFLICT);
-                return;
+//            if (!this.storage.verifySlotIsCompatibleWithAll(owner, appointment)) {
+//                writeMessageAndSetStatus(response,
+//                        "appointment " + appointment + " conflicts with existing appointment",
+//                        HttpServletResponse.SC_CONFLICT);
+//                return;
+//            }
+            if (this.storage.insertAppointmentWithOwner(owner, appointment)) {
+                writeAppointmentAndOkStatus(response, appointment);
+            } else {
+                writeMessageAndSetStatus(response, "appointment " + appointment +
+                        " conflicts with existing appointment", HttpServletResponse.SC_CONFLICT);
             }
-            this.storage.insertAppointmentWithOwner(owner, appointment);
-            writeAppointmentAndOkStatus(response, appointment);
         } catch (StorageException e) {
             writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

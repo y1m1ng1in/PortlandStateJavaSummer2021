@@ -112,8 +112,8 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
     }
 
     @Override
-    public void insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException {
-
+    public boolean insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException {
+        return false;
     }
 
     @Override
@@ -127,13 +127,13 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
     }
 
     @Override
-    public void insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException {
-
+    public boolean insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException {
+        return false;
     }
 
     @Override
-    public void bookAppointment(String owner, Appointment appointment) throws StorageException {
-
+    public int bookAppointment(String owner, Appointment appointment, boolean authenticated) throws StorageException {
+        return 0;
     }
 
     @Override
@@ -146,13 +146,4 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         return null;
     }
 
-    @Override
-    public boolean verifySlotIsCompatibleWithAll(String owner, AppointmentSlot slot) throws StorageException {
-        return false;
-    }
-
-    @Override
-    public boolean verifySlotIsBookable(String owner, AppointmentSlot appointment) throws StorageException {
-        return false;
-    }
 }

@@ -10,7 +10,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class PlainTextFileDatabase implements AppointmentBookStorage {
+
     static final private String userdb = "db_user.txt";
+    private static volatile AppointmentBookStorage INSTANCE;
     private final File dir;
     private final AppointmentValidator validator = new AppointmentValidator("M/d/yyyy h:m a");
 
@@ -20,8 +22,6 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
             this.dir.mkdirs();
         }
     }
-
-    private static volatile AppointmentBookStorage INSTANCE;
 
     public static AppointmentBookStorage getDatabase(File dir) {
         if (INSTANCE == null) {
@@ -33,7 +33,6 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
         }
         return INSTANCE;
     }
-
 
     /**
      * Read all the appointments with <code>owner</code>, and create an appointment
@@ -60,9 +59,6 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
             if (idToDescription.containsKey(id)) {
                 // appointment has a description, then it is not a bookable one
                 AppointmentSlot slot = idToslot.get(id);
-//                Appointment appointment = this.validator.createAppointmentFromString(owner, id,
-//                        slot.getBeginTimeString(), slot.getEndTimeString(), slot.getSlotType(),
-//                        slot.getParticipatorType(), slot.getParticipatorIdentifier(), idToDescription.get(id));
                 Appointment appointment = new Appointment(slot.getOwner(), id, slot.getBeginTime(), slot.getEndTime(),
                         slot.getSlotType(), slot.getParticipatorType(), slot.getParticipatorIdentifier(),
                         idToDescription.get(id));
@@ -157,7 +153,7 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
      *                          performing on file
      */
     @Override
-    public void insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException {
+    public boolean insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException {
         // appointment id -> appointment slot
         Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
         // appointment id -> appointment description
@@ -170,24 +166,16 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
             throw new StorageException("appointment id already exists in file that maps appointment id to description");
         }
 
-        File slots = new File(this.dir, owner + "_slots.txt");
-        File descriptions = new File(this.dir, owner + "_descriptions.txt");
+        // check if appointment to add is compatible with all existing appointments
+        if (!verifySlotIsCompatibleWithAll(owner, appointment, idToslot)) return false;
 
-        try (Writer slotWrite = new FileWriter(slots, true);
-             Writer descriptionWriter = new FileWriter(descriptions, true)) {
-            AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper slotDumper =
-                    new AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper(slotWrite);
-            AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper descriptionDumper =
-                    new AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper(descriptionWriter);
-            slotDumper.dump(appointment.getAppointmentSlot());
-            descriptionDumper.dump(appointment);
-        } catch (IOException e) {
-            throw new StorageException("While writing new appointment to storage, " + e.getMessage());
-        }
+        appendSlot(owner, appointment);
+        appendDescription(owner, appointment);
+        return true;
     }
 
     @Override
-    public void insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException {
+    public boolean insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException {
         // appointment id -> appointment slot
         Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
 
@@ -195,18 +183,15 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
             throw new StorageException("appointment id alreay exists in file that maps appointment id to slot");
         }
 
-        File slots = new File(this.dir, owner + "_slots.txt");
-        try (Writer slotWrite = new FileWriter(slots, true)) {
-            AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper slotDumper =
-                    new AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper(slotWrite);
-            slotDumper.dump(slot);
-        } catch (IOException e) {
-            throw new StorageException("While writing new appointment slot to storage, " + e.getMessage());
-        }
+        // check if slot to add is compatible with all existing appointments
+        if (!verifySlotIsCompatibleWithAll(owner, slot, idToslot)) return false;
+
+        appendSlot(owner, slot);
+        return true;
     }
 
     @Override
-    public void bookAppointment(String owner, Appointment appointment) throws StorageException {
+    public int bookAppointment(String owner, Appointment appointment, boolean authenticated) throws StorageException {
         // appointment id -> appointment description
         Map<String, String> idToDescription = getAllAppointmentIdToDescriptionsByOwner(owner);
         // appointment id -> appointment slot
@@ -218,17 +203,54 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
         if (!idToslot.containsKey(appointment.getId())) {
             throw new StorageException("appointment id does not exist in file that maps appointment id to slot");
         }
-        idToslot.put(appointment.getId(), appointment.getAppointmentSlot());
 
-        File descriptions = new File(this.dir, owner + "_descriptions.txt");
-        try (Writer descriptionWriter = new FileWriter(descriptions, true)) {
-            AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper descriptionDumper =
-                    new AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper(descriptionWriter);
-            descriptionDumper.dump(appointment);
-        } catch (IOException e) {
-            throw new StorageException("While writing new appointment description to storage, " + e.getMessage());
+        if (!verifySlotIsBookable(appointment, idToDescription, idToslot)) return NOT_BOOKABLE;
+
+        // check if slot to add is compatible with all existing appointments when user is logged in
+        if (authenticated && !insertAppointmentWithOwner(appointment.getParticipatorIdentifier(), appointment)) {
+            return CONFLICT_WITH_EXISTING_APPOINTMENT;
         }
 
+        idToslot.put(appointment.getId(), appointment.getAppointmentSlot());
+
+        updateSlot(owner, idToslot);
+        appendDescription(owner, appointment);
+
+        return BOOK_SUCCESS;
+    }
+
+    private boolean verifySlotIsCompatibleWithAll(String owner, AppointmentSlot appointment,
+                                                  Map<String, AppointmentSlot> idToslot) {
+        AppointmentBook<AppointmentSlot> existingSlots = new AppointmentBook<>(owner);
+        for (AppointmentSlot existingSlot : idToslot.values()) {
+            existingSlots.addAppointment(existingSlot);
+        }
+        return !existingSlots.contains(appointment);
+    }
+
+    private boolean verifySlotIsBookable(Appointment appointment, Map<String, String> idToDescription, Map<String,
+            AppointmentSlot> idToslot) {
+        AppointmentSlot toCompare = idToslot.get(appointment.getId());
+
+        if (!idToslot.containsKey(appointment.getId()) || idToDescription.containsKey(appointment.getId())) {
+            return false;
+        }
+        return toCompare.getBeginTime().equals(appointment.getBeginTime())
+                && toCompare.getEndTime().equals(appointment.getEndTime());
+    }
+
+    private void appendSlot(String owner, AppointmentSlot slot) throws StorageException {
+        File slots = new File(this.dir, owner + "_slots.txt");
+        try (Writer slotWrite = new FileWriter(slots, true)) {
+            AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper slotDumper =
+                    new AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper(slotWrite);
+            slotDumper.dump(slot);
+        } catch (IOException e) {
+            throw new StorageException("While writing new appointment slot to storage, " + e.getMessage());
+        }
+    }
+
+    private void updateSlot(String owner, Map<String, AppointmentSlot> idToslot) throws StorageException {
         File slots = new File(this.dir, owner + "_slots.txt");
         try (Writer slotWriter = new FileWriter(slots)) {
             AppointmentTableEntryDumper.AppointmentSlotTableEntryDumper slotTableEntryDumper =
@@ -238,6 +260,17 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
             }
         } catch (IOException e) {
             throw new StorageException("While writing new appointment slot to storage, " + e.getMessage());
+        }
+    }
+
+    private void appendDescription(String owner, Appointment appointment) throws StorageException {
+        File descriptions = new File(this.dir, owner + "_descriptions.txt");
+        try (Writer descriptionWriter = new FileWriter(descriptions, true)) {
+            AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper descriptionDumper =
+                    new AppointmentTableEntryDumper.AppointmentDescriptionTableEntryDumper(descriptionWriter);
+            descriptionDumper.dump(appointment);
+        } catch (IOException e) {
+            throw new StorageException("While writing new appointment description to storage, " + e.getMessage());
         }
     }
 
@@ -292,32 +325,6 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
             throw new StorageException("While retrieving user to storage, " + e.getMessage());
         }
         return null;
-    }
-
-    @Override
-    public boolean verifySlotIsCompatibleWithAll(String owner, AppointmentSlot slot) throws StorageException {
-        AppointmentBook<AppointmentSlot> existingSlots = getAllExistingAppointmentSlotsByOwner(owner);
-        return existingSlots == null || !existingSlots.contains(slot);
-    }
-
-    @Override
-    public boolean verifySlotIsBookable(String owner, AppointmentSlot appointment) throws StorageException {
-        // appointment id -> appointment slot
-        Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
-        // appointment id -> appointment description
-        Map<String, String> idToDescription = getAllAppointmentIdToDescriptionsByOwner(owner);
-
-        if (!idToslot.containsKey(appointment.getId())) {
-            return false;
-        }
-
-        if (idToDescription.containsKey(appointment.getId())) {
-            return false;
-        }
-
-        AppointmentSlot toCompare = idToslot.get(appointment.getId());
-        return toCompare.getBeginTime().equals(appointment.getBeginTime())
-                && toCompare.getEndTime().equals(appointment.getEndTime());
     }
 
     private Map<String, AppointmentSlot> getAllAppointmentSlotsByOwner(String owner) throws StorageException {

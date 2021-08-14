@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
+import edu.pdx.cs410J.yl6.database.PlainTextFileDatabase;
 import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
@@ -43,7 +44,7 @@ public class BookAppointmentServlet extends HttpServletHelper {
 
     public BookAppointmentServlet(AppointmentBookStorage storage) {
         this.storage = storage;
-        this.tryConnnect = PostgresqlDatabase.getDatabase();
+//        this.tryConnect = PostgresqlDatabase.getDatabase();
         this.ownerValidator = new NonemptyStringValidator("owner");
         this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
     }
@@ -160,15 +161,12 @@ public class BookAppointmentServlet extends HttpServletHelper {
 
         // load appointment to persistent storage
         try {
-            if (!this.storage.verifySlotIsCompatibleWithAll(owner, slot)) {
+            if (this.storage.insertBookableAppointmentSlot(owner, slot)) {
+                writeBookedAppointmentAndOkStatus(response, slot, APPOINTMENT_SLOT_TYPE_TOKEN);
+            } else {
                 writeMessageAndSetStatus(response, "slot " + slot + " conflicts with existing appointment " +
-                                "slot",
-                        HttpServletResponse.SC_CONFLICT);
-                return;
+                        "slot", HttpServletResponse.SC_CONFLICT);
             }
-            this.storage.insertBookableAppointmentSlot(owner, slot);
-
-            writeBookedAppointmentAndOkStatus(response, slot, APPOINTMENT_SLOT_TYPE_TOKEN);
         } catch (StorageException e) {
             writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
@@ -198,22 +196,16 @@ public class BookAppointmentServlet extends HttpServletHelper {
         appointment.setParticipatorIdentifier(participator);
 
         try {
-            if (!this.storage.verifySlotIsBookable(owner, appointment)) {
+            int bookResult = this.storage.bookAppointment(owner, appointment, authenticated);
+            if (bookResult == AppointmentBookStorage.NOT_BOOKABLE) {
                 writeMessageAndSetStatus(response, "Appointment " + appointment + " is not bookable",
                         HttpServletResponse.SC_CONFLICT);
-                return;
-            }
-            if (authenticated && !this.storage.verifySlotIsCompatibleWithAll(participator, appointment)) {
+            } else if (bookResult == AppointmentBookStorage.CONFLICT_WITH_EXISTING_APPOINTMENT) {
                 writeMessageAndSetStatus(response, "appointment " + appointment + " conflicts with existing " +
                         "appointment", HttpServletResponse.SC_CONFLICT);
-                return;
+            } else if (bookResult == AppointmentBookStorage.BOOK_SUCCESS) {
+                writeBookedAppointmentAndOkStatus(response, appointment, APPOINTMENT_TYPE_TOKEN);
             }
-            if (authenticated) {
-                this.storage.insertAppointmentWithOwner(participator, appointment);
-            }
-            this.storage.bookAppointment(owner, appointment);
-
-            writeBookedAppointmentAndOkStatus(response, appointment, APPOINTMENT_TYPE_TOKEN);
         } catch (StorageException e) {
             writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
