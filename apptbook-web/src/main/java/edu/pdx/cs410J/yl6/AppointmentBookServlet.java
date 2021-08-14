@@ -2,6 +2,7 @@ package edu.pdx.cs410J.yl6;
 
 import com.google.gson.Gson;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
+import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
 import javax.servlet.ServletException;
@@ -34,6 +35,7 @@ public class AppointmentBookServlet extends HttpServletHelper {
 
     public AppointmentBookServlet(AppointmentBookStorage storage) {
         this.storage = storage;
+        this.tryConnnect = PostgresqlDatabase.getDatabase();
         this.ownerValidator = new NonemptyStringValidator("owner");
         this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
     }
@@ -98,11 +100,9 @@ public class AppointmentBookServlet extends HttpServletHelper {
             fields[i] = value;
         }
 
-        if (!authenticateUser(request, response, fields[0])) {
-            return;
+        if (authenticateUser(request, response, fields[0])) {
+            insertAppointmentWithOwner(response, fields[0], fields[3], fields[1], fields[2]);
         }
-
-        insertAppointmentWithOwner(response, fields[0], fields[3], fields[1], fields[2]);
     }
 
     /**

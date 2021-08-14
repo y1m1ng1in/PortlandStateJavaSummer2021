@@ -1,7 +1,6 @@
 package edu.pdx.cs410J.yl6;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
@@ -38,14 +37,15 @@ public class BookAppointmentServletTest {
     static final String END_PARAMETER = "end";
     static final String DURATION_PARAMETER = "duration";
     static final String ID_PARAMETER = "id";
+    static final String PARTICIPATOR_PARAMETER = "participator";
 
     static Map<String, AppointmentBook<Appointment>> bookedAppointments;
     static Map<String, ArrayList<AppointmentSlot>> recordedSlots;
     static Map<String, ArrayList<AppointmentSlot>> returnedSlots;
 
     File dir = new File("./unittest/");
-    AppointmentBookStorage storage = new PlainTextFileDatabase(dir);
-
+//    AppointmentBookStorage storage = new PlainTextFileDatabase(dir);
+    AppointmentBookStorage storage = PlainTextFileDatabase.getDatabase(dir);
 
     Cookie createAuthCookie(String username, String password) {
         String toEncode = username + ":" + password;
@@ -54,7 +54,7 @@ public class BookAppointmentServletTest {
     }
 
     HttpServletRequest createMockedRequest(String owner, String description, String begin, String end, String id,
-                                           Integer duration) {
+                                           Integer duration, String participator) {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
         if (owner != null)
@@ -69,6 +69,8 @@ public class BookAppointmentServletTest {
             when(request.getParameter(ID_PARAMETER)).thenReturn(id);
         if (duration != null)
             when(request.getParameter(DURATION_PARAMETER)).thenReturn(duration.toString());
+        if (participator != null)
+            when(request.getParameter(PARTICIPATOR_PARAMETER)).thenReturn(participator);
 
         return request;
     }
@@ -117,7 +119,7 @@ public class BookAppointmentServletTest {
         returnedSlots.put(owner, toAssign);
     }
 
-    void updateRecordsAfterBooked(String owner, int indexAt, Appointment bookedOne) {
+    void updateRecordsAfterBookedWithoutLogin(String owner, int indexAt, Appointment bookedOne) {
         returnedSlots.get(owner).remove(indexAt);
         recordedSlots.get(owner).remove(indexAt);
         if (bookedAppointments.containsKey(owner)) {
@@ -129,11 +131,30 @@ public class BookAppointmentServletTest {
         }
     }
 
+    void updateRecordsAfterBookedWithLogin(String owner, int indexAt, Appointment bookedOne, String participator) {
+        returnedSlots.get(owner).remove(indexAt);
+        recordedSlots.get(owner).remove(indexAt);
+        if (bookedAppointments.containsKey(owner)) {
+            bookedAppointments.get(owner).addAppointment(bookedOne);
+        } else {
+            bookedAppointments.put(owner, new AppointmentBook<>(owner) {{
+                addAppointment(bookedOne);
+            }});
+        }
+        if (bookedAppointments.containsKey(participator)) {
+            bookedAppointments.get(participator).addAppointment(bookedOne);
+        } else {
+            bookedAppointments.put(participator, new AppointmentBook<>(participator) {{
+                addAppointment(bookedOne);
+            }});
+        }
+    }
+
     void testAddBookableSlotWithValidArgument(String owner, String begin, String end, String username,
                                               String password) throws ServletException, IOException {
         BookAppointmentServlet servlet = new BookAppointmentServlet(storage);
 
-        HttpServletRequest request = createMockedRequest(owner, null, begin, end, null, null);
+        HttpServletRequest request = createMockedRequest(owner, null, begin, end, null, null, null);
         request = addMockedCookie(username, password, request);
 
         StringWriter stringWriter = new StringWriter();
@@ -166,7 +187,7 @@ public class BookAppointmentServletTest {
 
     void testGetAllBookableSlotWithValidArgument(String owner) throws ServletException, IOException {
         BookAppointmentServlet servlet = new BookAppointmentServlet(storage);
-        HttpServletRequest request = createMockedRequest(owner, null, null, null, null, null);
+        HttpServletRequest request = createMockedRequest(owner, null, null, null, null, null, null);
 
         StringWriter stringWriter = new StringWriter();
         HttpServletResponse response = createMockedResponse(stringWriter);
@@ -197,14 +218,18 @@ public class BookAppointmentServletTest {
         assertThat(statusCode.getValue(), equalTo(HttpServletResponse.SC_OK));
     }
 
-    void testBookBookableSlotWithoutLogin(String owner, String description, int indexAt) throws ServletException,
+    void testBookBookableSlot(String owner, String description, int indexAt, String participator,
+                                          String password) throws ServletException,
             IOException {
         BookAppointmentServlet servlet = new BookAppointmentServlet(storage);
 
         AppointmentSlot fromReturnedSlots = returnedSlots.get(owner).get(indexAt);
 
         HttpServletRequest request = createMockedRequest(owner, description, fromReturnedSlots.getBeginTimeString(),
-                fromReturnedSlots.getEndTimeString(), fromReturnedSlots.getId(), null);
+                fromReturnedSlots.getEndTimeString(), fromReturnedSlots.getId(), null, participator);
+        if (participator != null) {
+            request = addMockedCookie(participator, password, request);
+        }
 
         StringWriter stringWriter = new StringWriter();
         HttpServletResponse response = createMockedResponse(stringWriter);
@@ -225,10 +250,19 @@ public class BookAppointmentServletTest {
         assertThat(returned.getEndTime(), equalTo(appointmentBooked.getEndTime()));
         assertThat(returned.getOwner(), equalTo(appointmentBooked.getOwner()));
         assertThat(returned.getSlotType(), equalTo(AppointmentSlot.SlotType.PARTICIPATOR_BOOKED));
-        assertThat(returned.getParticipatorIdentifier(), not(equalTo(null)));
-        assertThat(returned.getParticipatorType(), equalTo(AppointmentSlot.ParticipatorType.UNREGISTERED));
+        if (participator != null) {
+            assertThat(returned.getParticipatorType(), equalTo(AppointmentSlot.ParticipatorType.REGISTERED));
+            assertThat(returned.getParticipatorIdentifier(), equalTo(participator));
+        } else {
+            assertThat(returned.getParticipatorType(), equalTo(AppointmentSlot.ParticipatorType.UNREGISTERED));
+            assertThat(returned.getParticipatorIdentifier(), not(equalTo(null)));
+        }
 
-        updateRecordsAfterBooked(owner, indexAt, returned);
+        if (participator != null) {
+            updateRecordsAfterBookedWithLogin(owner, indexAt, returned, participator);
+        } else {
+            updateRecordsAfterBookedWithoutLogin(owner, indexAt, returned);
+        }
 
         ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
         verify(response).setStatus(statusCode.capture());
@@ -239,7 +273,7 @@ public class BookAppointmentServletTest {
             IOException {
         AppointmentBookServlet servlet = new AppointmentBookServlet(storage);
 
-        HttpServletRequest request = createMockedRequest(owner, null, null, null, null, null);
+        HttpServletRequest request = createMockedRequest(owner, null, null, null, null, null, null);
         request = addMockedCookie(owner, password, request);
 
         StringWriter stringWriter = new StringWriter();
@@ -394,7 +428,7 @@ public class BookAppointmentServletTest {
     void testBookAnAppointmentWithU1() throws IOException, ServletException {
         String owner = "the fourth user";
         String description = "a book appointment test without login with the fourth user";
-        testBookBookableSlotWithoutLogin(owner, description, 1);
+        testBookBookableSlot(owner, description, 1, null, null);
     }
 
     @Test
@@ -402,7 +436,7 @@ public class BookAppointmentServletTest {
     void testBookAnAppointmentWithU2() throws IOException, ServletException {
         String owner = "the fifth user";
         String description = "a book appointment test without login with the fifth user";
-        testBookBookableSlotWithoutLogin(owner, description, 1);
+        testBookBookableSlot(owner, description, 1, null, null);
     }
 
     @Test
@@ -424,11 +458,11 @@ public class BookAppointmentServletTest {
     void testBookMoreValidAppointmentWithU1() throws IOException, ServletException {
         String owner = "the fourth user";
         String description = "more booking test without login with the fourth user";
-        testBookBookableSlotWithoutLogin(owner, description, 0);
-        testBookBookableSlotWithoutLogin(owner, description, 1);
-        testBookBookableSlotWithoutLogin(owner, description, 2);
-        testBookBookableSlotWithoutLogin(owner, description, 2);
-        testBookBookableSlotWithoutLogin(owner, description, 0);
+        testBookBookableSlot(owner, description, 0, null, null);
+        testBookBookableSlot(owner, description, 1, null, null);
+        testBookBookableSlot(owner, description, 2, "the sixth user", "the_sixth_user_password");
+        testBookBookableSlot(owner, description, 2, "the sixth user", "the_sixth_user_password");
+        testBookBookableSlot(owner, description, 0, "the sixth user", "the_sixth_user_password");
     }
 
     @Test
@@ -436,12 +470,12 @@ public class BookAppointmentServletTest {
     void testBookMoreValidAppointmentWithU2() throws IOException, ServletException {
         String owner = "the fifth user";
         String description = "more booking test without login with the fifth user";
-        testBookBookableSlotWithoutLogin(owner, description, 0);
-        testBookBookableSlotWithoutLogin(owner, description, 3);
-        testBookBookableSlotWithoutLogin(owner, description, 2);
-        testBookBookableSlotWithoutLogin(owner, description, 1);
-        testBookBookableSlotWithoutLogin(owner, description, 0);
-        testBookBookableSlotWithoutLogin(owner, description, 0);
+        testBookBookableSlot(owner, description, 0, "the sixth user", "the_sixth_user_password");
+        testBookBookableSlot(owner, description, 3, "the sixth user", "the_sixth_user_password");
+        testBookBookableSlot(owner, description, 2, null, null);
+        testBookBookableSlot(owner, description, 1, null, null);
+        testBookBookableSlot(owner, description, 0, null, null);
+        testBookBookableSlot(owner, description, 0, null, null);
     }
 
     @Test
@@ -472,6 +506,15 @@ public class BookAppointmentServletTest {
     void testAnotherOwnerGotBookedAppointments() throws IOException, ServletException {
         String owner = "the fifth user";
         String password = "the_fifth_user_password";
+
+        verifyBookedAppointmentsHaveBeenAddedToOwner(owner, password);
+    }
+
+    @Test
+    @Order(22)
+    void testTheThirdOwnerGotBookedAppointments() throws IOException, ServletException {
+        String owner = "the sixth user";
+        String password = "the_sixth_user_password";
 
         verifyBookedAppointmentsHaveBeenAddedToOwner(owner, password);
     }

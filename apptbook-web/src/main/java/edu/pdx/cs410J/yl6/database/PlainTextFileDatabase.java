@@ -14,12 +14,26 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
     private final File dir;
     private final AppointmentValidator validator = new AppointmentValidator("M/d/yyyy h:m a");
 
-    public PlainTextFileDatabase(File dir) {
+    private PlainTextFileDatabase(File dir) {
         this.dir = dir;
         if (!this.dir.exists() || !this.dir.isDirectory()) {
             this.dir.mkdirs();
         }
     }
+
+    private static volatile AppointmentBookStorage INSTANCE;
+
+    public static AppointmentBookStorage getDatabase(File dir) {
+        if (INSTANCE == null) {
+            synchronized (PlainTextFileDatabase.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new PlainTextFileDatabase(dir);
+                }
+            }
+        }
+        return INSTANCE;
+    }
+
 
     /**
      * Read all the appointments with <code>owner</code>, and create an appointment
@@ -49,7 +63,7 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
 //                Appointment appointment = this.validator.createAppointmentFromString(owner, id,
 //                        slot.getBeginTimeString(), slot.getEndTimeString(), slot.getSlotType(),
 //                        slot.getParticipatorType(), slot.getParticipatorIdentifier(), idToDescription.get(id));
-                Appointment appointment = new Appointment(owner, id, slot.getBeginTime(), slot.getEndTime(),
+                Appointment appointment = new Appointment(slot.getOwner(), id, slot.getBeginTime(), slot.getEndTime(),
                         slot.getSlotType(), slot.getParticipatorType(), slot.getParticipatorIdentifier(),
                         idToDescription.get(id));
                 appointmentBook.addAppointment(appointment);

@@ -37,7 +37,8 @@ public class AppointmentBookServletTest {
     static Appointment a11, a12, a13, a1_overlap1, a1_overlap2;
     static Appointment a21, a22, a23, a2_overlap1, a2_overlap2;
     File dir = new File("./unittest/");
-    AppointmentBookStorage storage = new PlainTextFileDatabase(dir);
+//    AppointmentBookStorage storage = new PlainTextFileDatabase(dir);
+    AppointmentBookStorage storage = PlainTextFileDatabase.getDatabase(dir);
 
     void createFileWithText(String content, String owner) throws IOException {
         File f = new File(dir, owner + "_slots.txt");

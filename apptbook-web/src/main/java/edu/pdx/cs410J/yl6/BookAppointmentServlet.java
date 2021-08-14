@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
+import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
 import javax.servlet.ServletException;
@@ -42,6 +43,7 @@ public class BookAppointmentServlet extends HttpServletHelper {
 
     public BookAppointmentServlet(AppointmentBookStorage storage) {
         this.storage = storage;
+        this.tryConnnect = PostgresqlDatabase.getDatabase();
         this.ownerValidator = new NonemptyStringValidator("owner");
         this.appointmentValidator = new AppointmentValidator("M/d/yyyy h:m a");
     }
@@ -98,19 +100,15 @@ public class BookAppointmentServlet extends HttpServletHelper {
                 }
                 return;
             }
-//            SecureRandom random = new SecureRandom();
-//            byte[] confirmationCode = new byte[20];
-//            random.nextBytes(confirmationCode);
             String confirmationCode = UUID.randomUUID().toString();
             bookAppointment(response, owner, id, begin, end, description, false, confirmationCode);
             return;
         }
 
         if (owner != null && begin != null && end != null) {
-            if (!authenticateUser(request, response, owner)) {
-                return;
+            if (authenticateUser(request, response, owner)) {
+                insertBookableAppointmentSlot(response, owner, begin, end);
             }
-            insertBookableAppointmentSlot(response, owner, begin, end);
             return;
         }
 

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
 import edu.pdx.cs410J.yl6.database.PlainTextFileDatabase;
+import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
 import javax.servlet.http.Cookie;
@@ -18,9 +19,12 @@ import java.util.Base64;
 public abstract class HttpServletHelper extends HttpServlet {
 
     protected AppointmentBookStorage storage;
+    protected AppointmentBookStorage tryConnnect;
 
     public HttpServletHelper() {
-        this.storage = new PlainTextFileDatabase(new File("./plaintext_db/"));
+//        this.storage = new PlainTextFileDatabase(new File("./plaintext_db/"));
+        this.storage = PlainTextFileDatabase.getDatabase(new File("./plaintext_db/"));
+        this.tryConnnect = PostgresqlDatabase.getDatabase();
     }
 
     /**
