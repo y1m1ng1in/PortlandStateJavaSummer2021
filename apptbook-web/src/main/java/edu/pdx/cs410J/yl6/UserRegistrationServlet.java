@@ -1,5 +1,6 @@
 package edu.pdx.cs410J.yl6;
 
+import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
 import javax.servlet.ServletException;
@@ -19,10 +20,8 @@ public class UserRegistrationServlet extends HttpServletHelper {
     }
 
     @Override
-    protected void doPost(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
+            IOException {
         response.setContentType("text/plain");
         String[] requiredFields = {USERNAME_PARAMETER, PASSWORD_PARAMETER, EMAIL_PARAMETER, ADDRESS_PARAMETER};
         String[] fields = new String[4];
@@ -39,23 +38,22 @@ public class UserRegistrationServlet extends HttpServletHelper {
         insertUser(response, fields[0], fields[1], fields[2], fields[3]);
     }
 
-    private void insertUser(
-            HttpServletResponse response,
-            String username,
-            String password,
-            String email,
-            String address
-    ) throws IOException {
+    private void insertUser(HttpServletResponse response, String username, String password, String email,
+                            String address) throws IOException {
         User user = new User(username, password, email, address);
 
         try {
-            if (this.storage.getUserByUsername(username) != null) {
+//            int result = this.storage.insertUser(user);
+            int result = this.tryConnect.insertUser(user);
+            if (result == AppointmentBookStorage.USERNAME_CONFLICT) {
                 writeMessageAndSetStatus(response, username + " has already been registered",
                         HttpServletResponse.SC_BAD_REQUEST);
-                return;
+            } else if (result == AppointmentBookStorage.EMAIL_CONFLICT) {
+                writeMessageAndSetStatus(response, email + " has already been registered",
+                        HttpServletResponse.SC_BAD_REQUEST);
+            } else {
+                writeMessageAndSetStatus(response, "Add appointment " + user, HttpServletResponse.SC_OK);
             }
-            this.storage.insertUser(user);
-            writeMessageAndSetStatus(response, "Add appointment " + user, HttpServletResponse.SC_OK);
         } catch (StorageException e) {
             writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

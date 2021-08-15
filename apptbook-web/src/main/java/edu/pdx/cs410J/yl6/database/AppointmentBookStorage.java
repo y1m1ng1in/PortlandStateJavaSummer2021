@@ -64,18 +64,6 @@ public interface AppointmentBookStorage {
     public AppointmentBook<AppointmentSlot> getAllBookableAppointmentSlotsByOwner(String owner) throws StorageException;
 
     /**
-     * Get an appointment book that contains all appointment slots belong to
-     * <code>owner</code> in the storage, include both bookable and non-bookable
-     * slots.
-     *
-     * @param owner the name of the owner
-     * @return an appointment book that contains all appointment slots belong to
-     *         <code>owner</code>
-     * @throws StorageException If any error occurs during read/write with storage
-     */
-    public AppointmentBook<AppointmentSlot> getAllExistingAppointmentSlotsByOwner(String owner) throws StorageException;
-
-    /**
      * Add an appointment slot that is public bookable to <code>owner</code>
      *
      * @param owner the name of the owner
@@ -87,6 +75,9 @@ public interface AppointmentBookStorage {
     int NOT_BOOKABLE = 0;
     int CONFLICT_WITH_EXISTING_APPOINTMENT = 1;
     int BOOK_SUCCESS = 2;
+    int USERNAME_CONFLICT = 3;
+    int EMAIL_CONFLICT = 4;
+    int REGISTER_USER_SUCCESS = 5;
 
     /**
      * Book an public bookable appointment slot of <code>owner</code>
@@ -103,7 +94,7 @@ public interface AppointmentBookStorage {
      * @param user
      * @throws StorageException
      */
-    public void insertUser(User user) throws StorageException;
+    public int insertUser(User user) throws StorageException;
 
     /**
      * Retrieve a {@link User} by its username from the storage

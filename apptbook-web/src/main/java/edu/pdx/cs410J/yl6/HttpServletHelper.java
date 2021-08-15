@@ -23,7 +23,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 
     public HttpServletHelper() {
         this.storage = PlainTextFileDatabase.getDatabase(new File("./plaintext_db/"));
-//        this.tryConnect = PostgresqlDatabase.getDatabase();
+        this.tryConnect = PostgresqlDatabase.getDatabase();
     }
 
     /**
@@ -64,7 +64,8 @@ public abstract class HttpServletHelper extends HttpServlet {
         }
 
         try {
-            User user = this.storage.getUserByUsername(username);
+//            User user = this.storage.getUserByUsername(username);
+            User user = this.tryConnect.getUserByUsername(username);
             if (user == null) {
                 writeMessageAndSetStatus(response, "User \"" + username + "\" is not a registered user",
                         HttpServletResponse.SC_FORBIDDEN);

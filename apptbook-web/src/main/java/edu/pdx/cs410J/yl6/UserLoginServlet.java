@@ -39,7 +39,8 @@ public class UserLoginServlet extends HttpServletHelper {
 
     private void loginUser(HttpServletResponse response, String username, String password) throws IOException {
         try {
-            User user = this.storage.getUserByUsername(username);
+//            User user = this.storage.getUserByUsername(username);
+            User user = this.tryConnect.getUserByUsername(username);
             if (user == null) {
                 // cannot find user
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, username + " is not an registered user");

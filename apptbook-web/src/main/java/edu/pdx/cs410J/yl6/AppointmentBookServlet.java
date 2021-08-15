@@ -131,7 +131,8 @@ public class AppointmentBookServlet extends HttpServletHelper {
         }
         AppointmentBook<Appointment> book = null;
         try {
-            book = this.storage.getAllAppointmentsByOwner(owner);
+//            book = this.storage.getAllAppointmentsByOwner(owner);
+            book = this.tryConnect.getAllAppointmentsByOwner(owner);
         } catch (StorageException e) {
             writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return;
@@ -188,7 +189,8 @@ public class AppointmentBookServlet extends HttpServletHelper {
         // load appointments satisified from persistent storage
         AppointmentBook<Appointment> book = null;
         try {
-            book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
+//            book = this.storage.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
+            book = this.tryConnect.getAppointmentsByOwnerWithBeginInterval(owner, from, to);
         } catch (StorageException e) {
             writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return;
@@ -246,13 +248,8 @@ public class AppointmentBookServlet extends HttpServletHelper {
 
         // load appointment to persistent storage
         try {
-//            if (!this.storage.verifySlotIsCompatibleWithAll(owner, appointment)) {
-//                writeMessageAndSetStatus(response,
-//                        "appointment " + appointment + " conflicts with existing appointment",
-//                        HttpServletResponse.SC_CONFLICT);
-//                return;
-//            }
-            if (this.storage.insertAppointmentWithOwner(owner, appointment)) {
+//            if (this.storage.insertAppointmentWithOwner(owner, appointment)) {
+            if (this.tryConnect.insertAppointmentWithOwner(owner, appointment)) {
                 writeAppointmentAndOkStatus(response, appointment);
             } else {
                 writeMessageAndSetStatus(response, "appointment " + appointment +

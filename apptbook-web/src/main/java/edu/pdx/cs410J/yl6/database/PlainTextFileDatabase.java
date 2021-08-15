@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class PlainTextFileDatabase implements AppointmentBookStorage {
 
@@ -87,22 +89,6 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
                 AppointmentSlot slot = idToslot.get(id);
                 appointmentBook.addAppointment(slot);
             }
-        }
-
-        if (appointmentBook.getAppointments().isEmpty()) {
-            return null;
-        }
-        return appointmentBook;
-    }
-
-    @Override
-    public AppointmentBook<AppointmentSlot> getAllExistingAppointmentSlotsByOwner(String owner) throws StorageException {
-        // appointment id -> appointment slot
-        Map<String, AppointmentSlot> idToslot = getAllAppointmentSlotsByOwner(owner);
-        AppointmentBook<AppointmentSlot> appointmentBook = new AppointmentBook<>(owner);
-
-        for (AppointmentSlot slot : idToslot.values()) {
-            appointmentBook.addAppointment(slot);
         }
 
         if (appointmentBook.getAppointments().isEmpty()) {
@@ -281,7 +267,12 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
      * @throws StorageException If any read/write with file occurs
      */
     @Override
-    public void insertUser(User user) throws StorageException {
+    public int insertUser(User user) throws StorageException {
+        if (getFirstOccurrenceUserSatisfied(user1 -> user1.getUsername().equals(user.getUsername())) != null) {
+            return USERNAME_CONFLICT;
+        } else if (getFirstOccurrenceUserSatisfied(user1 -> user1.getEmail().equals(user.getEmail())) != null) {
+            return EMAIL_CONFLICT;
+        }
         try (FileWriter fw = new FileWriter(new File(this.dir, userdb), true); BufferedWriter bw =
                 new BufferedWriter(fw)) {
             UserTableEntryDumper.UserProfilerTableEntryDumper dumper =
@@ -291,7 +282,7 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
         } catch (IOException e) {
             throw new StorageException("While storing user to storage, " + e.getMessage());
         }
-
+        return REGISTER_USER_SUCCESS;
     }
 
     /**
@@ -303,6 +294,10 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
      */
     @Override
     public User getUserByUsername(String username) throws StorageException {
+        return getFirstOccurrenceUserSatisfied(user -> user.getUsername().equals(username));
+    }
+
+    private User getFirstOccurrenceUserSatisfied(Function<User, Boolean> condition) throws StorageException {
         File f = new File(this.dir, userdb);
         if (!f.exists()) {
             try {
@@ -317,7 +312,7 @@ public class PlainTextFileDatabase implements AppointmentBookStorage {
                             new UserTableEntryParser.UserProfilerTableEntryParser(reader));
             while (iterator.hasNext()) {
                 User user = iterator.next();
-                if (user.getUsername().equals(username)) {
+                if (condition.apply(user)) {
                     return user;
                 }
             }

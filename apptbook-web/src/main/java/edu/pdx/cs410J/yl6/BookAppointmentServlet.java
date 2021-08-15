@@ -124,7 +124,8 @@ public class BookAppointmentServlet extends HttpServletHelper {
         }
         AppointmentBook<AppointmentSlot> book = null;
         try {
-            book = this.storage.getAllBookableAppointmentSlotsByOwner(owner);
+//            book = this.storage.getAllBookableAppointmentSlotsByOwner(owner);
+            book = this.tryConnect.getAllBookableAppointmentSlotsByOwner(owner);
         } catch (StorageException e) {
             writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return;
@@ -161,7 +162,8 @@ public class BookAppointmentServlet extends HttpServletHelper {
 
         // load appointment to persistent storage
         try {
-            if (this.storage.insertBookableAppointmentSlot(owner, slot)) {
+//            if (this.storage.insertBookableAppointmentSlot(owner, slot)) {
+            if (this.tryConnect.insertBookableAppointmentSlot(owner, slot)) {
                 writeBookedAppointmentAndOkStatus(response, slot, APPOINTMENT_SLOT_TYPE_TOKEN);
             } else {
                 writeMessageAndSetStatus(response, "slot " + slot + " conflicts with existing appointment " +
@@ -196,7 +198,8 @@ public class BookAppointmentServlet extends HttpServletHelper {
         appointment.setParticipatorIdentifier(participator);
 
         try {
-            int bookResult = this.storage.bookAppointment(owner, appointment, authenticated);
+//            int bookResult = this.storage.bookAppointment(owner, appointment, authenticated);
+            int bookResult = this.tryConnect.bookAppointment(owner, appointment, authenticated);
             if (bookResult == AppointmentBookStorage.NOT_BOOKABLE) {
                 writeMessageAndSetStatus(response, "Appointment " + appointment + " is not bookable",
                         HttpServletResponse.SC_CONFLICT);
