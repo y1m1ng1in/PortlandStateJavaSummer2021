@@ -2,9 +2,8 @@ package edu.pdx.cs410J.yl6;
 
 import com.google.gson.Gson;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
-import edu.pdx.cs410J.yl6.database.PlainTextFileDatabase;
-import edu.pdx.cs410J.yl6.database.plaintextoperator.UserTableEntryDumper;
-import org.junit.jupiter.api.Disabled;
+import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
+import edu.pdx.cs410J.yl6.database.StorageException;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -37,8 +36,8 @@ public class AppointmentBookServletTest {
     static Appointment a11, a12, a13, a1_overlap1, a1_overlap2;
     static Appointment a21, a22, a23, a2_overlap1, a2_overlap2;
     File dir = new File("./unittest/");
-//    AppointmentBookStorage storage = new PlainTextFileDatabase(dir);
-    AppointmentBookStorage storage = PlainTextFileDatabase.getDatabase(dir);
+
+    AppointmentBookStorage storage = PostgresqlDatabase.getDatabase("jdbc:postgresql://localhost:5432/tester", "tester", "tester");
 
     void createFileWithText(String content, String owner) throws IOException {
         File f = new File(dir, owner + "_slots.txt");
@@ -241,21 +240,16 @@ public class AppointmentBookServletTest {
 
     @Test
     @Order(1)
-    void addSomeUserFirst() throws IOException {
+    void addSomeUserFirst() throws IOException, StorageException {
         addSomeInstance();
-        File f = new File(dir, "db_user.txt");
-        Writer writer = new FileWriter(f);
+
         User user1 = new User("unittest", "unittest_password", "unittest@email.com", "unittest st.");
         User user2 = new User("another unittest", "another unittest_password", "another unittest@email.com",
                 "another unittest st.");
-        UserTableEntryDumper.UserProfilerTableEntryDumper dumper = new UserTableEntryDumper.UserProfilerTableEntryDumper(writer);
-        dumper.dump(user1);
-        dumper.dump(user2);
-        dumper.dump(u1);
-        dumper.dump(u2);
-        dumper.dump(u3);
-        writer.flush();
-        writer.close();
+
+        storage.insertUser(u1);
+        storage.insertUser(u2);
+        storage.insertUser(u3);
     }
 
     /**
@@ -729,19 +723,5 @@ public class AppointmentBookServletTest {
                 "the 2nd user", "the_2nd_user_password");
     }
 
-    /**
-     * More test on invalid argument for searching
-     */
-    @Test
-    @Disabled
-    @Order(36)
-    void testWithMalformattedFile() throws ServletException, IOException {
-        String owner = "the 3rd user";
-        createFileWithText("sdfkljsadhflakshdfsd", owner);
-
-        testGetNonExistingAppointments(owner, null, null, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                "File in storage is malformatted: " + "End of file reached before the field been parsed completely",
-                "the 3rd user", "the_3rd_user_password");
-    }
 
 }

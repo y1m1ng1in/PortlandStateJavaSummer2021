@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Base64;
 
+/**
+ * UserLoginServlet is the class that processes HTTP requests for logging in users.
+ */
 public class UserLoginServlet extends HttpServletHelper {
 
     static final String USERNAME_PARAMETER = "username";
@@ -19,8 +22,7 @@ public class UserLoginServlet extends HttpServletHelper {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/plain");
         String[] requiredFields = {USERNAME_PARAMETER, PASSWORD_PARAMETER};
         String[] fields = new String[2];
@@ -39,8 +41,7 @@ public class UserLoginServlet extends HttpServletHelper {
 
     private void loginUser(HttpServletResponse response, String username, String password) throws IOException {
         try {
-//            User user = this.storage.getUserByUsername(username);
-            User user = this.tryConnect.getUserByUsername(username);
+            User user = this.storage.getUserByUsername(username);
             if (user == null) {
                 // cannot find user
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, username + " is not an registered user");

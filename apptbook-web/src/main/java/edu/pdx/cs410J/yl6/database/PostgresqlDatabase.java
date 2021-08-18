@@ -12,16 +12,32 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * PostgresqlDatabase is the class that realizes the interface {@link AppointmentBookStorage} such that the
+ * server can read/write data in a Postgre database server.
+ */
 public class PostgresqlDatabase implements AppointmentBookStorage {
 
-    private static final String connectionUrl = "jdbc:postgresql://localhost:5432/postgres";
     private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("M/d/yyyy h:m a");
     private static volatile AppointmentBookStorage INSTANCE;
     private final PoolingDataSource<PoolableConnection> dataSource;
 
-    private PostgresqlDatabase() {
-        ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(connectionUrl, "postgres",
-                "replaceme");
+    /**
+     * Private constructor which is used to instantiate {@link PostgresqlDatabase#INSTANCE} as a singleton.
+     *
+     * @param url      the url of the server connection
+     * @param username the login name of the database
+     * @param password the password of the login database user
+     */
+    private PostgresqlDatabase(String url, String username, String password) {
+        ConnectionFactory connectionFactory;
+
+        if (username == null && password == null) {
+            connectionFactory = new DriverManagerConnectionFactory(url);
+        } else {
+            connectionFactory = new DriverManagerConnectionFactory(url, username, password);
+        }
+
         PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
         ObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnectionFactory);
         poolableConnectionFactory.setPool(connectionPool);
@@ -93,17 +109,50 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         }
     }
 
+    /**
+     * Get the singleton PostgresqlDatabase instance. If constructor is invoked, using default parameter
+     *
+     * @return singleton instance of PostgresqlDatabase
+     */
     public static AppointmentBookStorage getDatabase() {
         if (INSTANCE == null) {
             synchronized (PostgresqlDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new PostgresqlDatabase();
+                    INSTANCE = new PostgresqlDatabase("jdbc:postgresql://localhost:5432/postgres", "postgres",
+                            "971013970206Lym");
                 }
             }
         }
         return INSTANCE;
     }
 
+    /**
+     * Get the singleton PostgresqlDatabase instance. If constructor is invoked, parameters passed in will be used.
+     *
+     * @param url      the url of the database connection
+     * @param username the login name to access the database
+     * @param password the password to login
+     * @return
+     */
+    public static AppointmentBookStorage getDatabase(String url, String username, String password) {
+        if (INSTANCE == null) {
+            synchronized (PostgresqlDatabase.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new PostgresqlDatabase(url, username, password);
+                }
+            }
+        }
+        return INSTANCE;
+    }
+
+    /**
+     * Get an appointment book that contains all appointments belong to <code>owner</code> in the storage.
+     *
+     * @param owner the owner name
+     * @return an appointment book that contains all appointments with
+     * <code>owner</code>
+     * @throws StorageException If any error occurs during read/write with storage
+     */
     @Override
     public AppointmentBook<Appointment> getAllAppointmentsByOwner(String owner) throws StorageException {
         String getAppointmentsStatement = "select * " +
@@ -167,6 +216,17 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         }
     }
 
+    /**
+     * Retrieve the storage to get a collection of appointments that begin between <code>from</code> to <code>to</code>.
+     * If no appointment found that falls into this interval, then this method returns <code>null</code>
+     *
+     * @param owner the owner name of the appointments to be retrieved
+     * @param from  the earliest begin time of appointments to be retrieved
+     * @param to    the latest begin time of appointments to be retrieved
+     * @return an appointment book <code>T</code> that contains all the appointments
+     * whose begin time is between <code>from</code> to <code>to</code>.
+     * @throws StorageException If any error occurs during read/write with storage
+     */
     @Override
     public AppointmentBook<Appointment> getAppointmentsByOwnerWithBeginInterval(String owner, Date from, Date to) throws StorageException {
         String getAppointmentsStatement = "select * " +
@@ -174,7 +234,7 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
                 "on appointment_slots.id = appointment_descriptions.id " +
                 "where (appointment_slots.owner = ? or appointment_slots.participator_identifier = ?) " +
                 "and appointment_descriptions.description is not null " +
-                "and appointment_slots <> ? and begin_time > ? and begin_time < ?";
+                "and appointment_slots.slot_type <> ? and begin_time > ? and begin_time < ?";
         AppointmentBook<Appointment> result = new AppointmentBook<>(owner);
 
         try (Connection conn = dataSource.getConnection();
@@ -198,6 +258,13 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         return result;
     }
 
+    /**
+     * Insert <code>appointment</code> to the storage.
+     *
+     * @param owner       the owner of <code>appointment</code>
+     * @param appointment the appointment to be stored persistently.
+     * @throws StorageException If any error occurs during read/write with storage
+     */
     @Override
     public boolean insertAppointmentWithOwner(String owner, Appointment appointment) throws StorageException {
         String compatibility = "select not exists (select 1 from appointment_slots " +
@@ -240,6 +307,13 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         return isCompatible;
     }
 
+    /**
+     * Get an appointment book that contains all bookable appointment slots belong to <code>owner</code> in the storage.
+     *
+     * @param owner the appointment owner
+     * @return an appointment book that contains all bookable appointment slots
+     * @throws StorageException If any error occurs during read/write with storage
+     */
     @Override
     public AppointmentBook<AppointmentSlot> getAllBookableAppointmentSlotsByOwner(String owner) throws StorageException {
         String getAppointmentsSlots = "select * " +
@@ -266,6 +340,15 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         return result;
     }
 
+    /**
+     * Add an appointment slot that is public bookable to <code>owner</code>
+     *
+     * @param owner the name of the owner
+     * @param slot  an {@link AppointmentSlot} the is bookable
+     * @return <code>true</code> if slot is added; <code>false</code> if slot to be added conflicts with existing
+     * appointment slots owned by <code>owner</code>, thus cannot be added.
+     * @throws StorageException If any error occurs during read/write with storage
+     */
     @Override
     public boolean insertBookableAppointmentSlot(String owner, AppointmentSlot slot) throws StorageException {
         String compatibility = "select not exists (select 1 from appointment_slots " +
@@ -298,9 +381,16 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
             throw new StorageException(throwables.getMessage());
         }
 
-        return false;
+        return true;
     }
 
+    /**
+     * Add actual values to SQL statement used to insert a new appointment slot <code>slot</code>.
+     *
+     * @param slot the {@link AppointmentSlot} instance contains data to be insert into sql statement
+     * @param insertSlotStmt the {@link PreparedStatement} instance
+     * @throws SQLException any exception occurred when invoking method of {@link PreparedStatement}
+     */
     private void assignValuesToSlotTableInsertionStatement(AppointmentSlot slot, PreparedStatement insertSlotStmt) throws SQLException {
         insertSlotStmt.setString(1, slot.getId());
         insertSlotStmt.setString(2, slot.getOwner());
@@ -312,6 +402,17 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         insertSlotStmt.setString(7, slot.getParticipatorIdentifier());
     }
 
+    /**
+     * Book an public bookable appointment slot of <code>owner</code>
+     *
+     * @param owner         the name of the owner
+     * @param appointment   an {@link Appointment} instance to be booked
+     * @param authenticated indicates if the booker is authenticated
+     * @return {@link AppointmentBookStorage#NOT_BOOKABLE} if the appointment slot cannot be booked;
+     * {@link AppointmentBookStorage#CONFLICT_WITH_EXISTING_APPOINTMENT} if the appointment slot conflicts with
+     * existing appointment of authenticated user; otherwise, {@link AppointmentBookStorage#BOOK_SUCCESS}
+     * @throws StorageException any exception occurred when invoking method of {@link PreparedStatement}
+     */
     @Override
     public int bookAppointment(String owner, Appointment appointment, boolean authenticated) throws StorageException {
         String bookability = "select exists (select 1 from appointment_slots where " +
@@ -391,6 +492,14 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         return BOOK_SUCCESS;
     }
 
+    /**
+     * Insert a {@link User} instance to the storage
+     *
+     * @param user an <code>User</code> instance
+     * @return {@link AppointmentBookStorage#USERNAME_CONFLICT} or {@link AppointmentBookStorage#EMAIL_CONFLICT} if
+     * username or email address has been registered; {@link AppointmentBookStorage#REGISTER_USER_SUCCESS} otherwise
+     * @throws StorageException If any error occurs during read/write with storage
+     */
     @Override
     public int insertUser(User user) throws StorageException {
         String compatibility = "select " +
@@ -433,6 +542,13 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         return compatibleCheck;
     }
 
+    /**
+     * Retrieve a {@link User} by its username from the storage
+     *
+     * @param username the name of the user to retrieve
+     * @return an <code>User</code> instance if found, <code>null</code> otherwise
+     * @throws StorageException If any error occurs during read/write with storage
+     */
     @Override
     public User getUserByUsername(String username) throws StorageException {
         String findUserByUsername = "select * from user_profile where username = ?";

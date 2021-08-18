@@ -5,6 +5,10 @@ import edu.pdx.cs410J.ParserException;
 import java.io.IOException;
 import java.io.Reader;
 
+/**
+ * TableEntryParser is the class that encapsulates a template method of parsing a <code>T</code> given a
+ * {@link Reader}.
+ */
 public abstract class TableEntryParser<T> {
 
     static final String EOF_REACHED_PARSE_ARG = "End of file reached before the field been parsed completely";

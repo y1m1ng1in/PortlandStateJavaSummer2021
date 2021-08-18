@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
-import edu.pdx.cs410J.yl6.database.PlainTextFileDatabase;
-import edu.pdx.cs410J.yl6.database.plaintextoperator.UserTableEntryDumper;
+import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
+import edu.pdx.cs410J.yl6.database.StorageException;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -44,8 +47,9 @@ public class BookAppointmentServletTest {
     static Map<String, ArrayList<AppointmentSlot>> returnedSlots;
 
     File dir = new File("./unittest/");
-//    AppointmentBookStorage storage = new PlainTextFileDatabase(dir);
-    AppointmentBookStorage storage = PlainTextFileDatabase.getDatabase(dir);
+
+    AppointmentBookStorage storage = PostgresqlDatabase.getDatabase("jdbc:postgresql://localhost:5432/tester",
+            "tester", "tester");
 
     Cookie createAuthCookie(String username, String password) {
         String toEncode = username + ":" + password;
@@ -219,7 +223,7 @@ public class BookAppointmentServletTest {
     }
 
     void testBookBookableSlot(String owner, String description, int indexAt, String participator,
-                                          String password) throws ServletException,
+                              String password) throws ServletException,
             IOException {
         BookAppointmentServlet servlet = new BookAppointmentServlet(storage);
 
@@ -297,24 +301,18 @@ public class BookAppointmentServletTest {
 
     @Test
     @Order(1)
-    void addSomeUserFirst() throws IOException {
+    void addSomeUserFirst() throws IOException, StorageException {
         User u1 = new User("the fourth user", "the_fourth_user_password", "fourth@email.com", "street 4");
         User u2 = new User("the fifth user", "the_fifth_user_password", "fifth@email.com", "street 5");
         User u3 = new User("the sixth user", "the_sixth_user_password", "sixth@email.com", "street 6");
-        File f = new File(dir, "db_user.txt");
 
         bookedAppointments = new HashMap<>();
         recordedSlots = new HashMap<>();
         returnedSlots = new HashMap<>();
 
-        Writer writer = new FileWriter(f, true);
-        UserTableEntryDumper.UserProfilerTableEntryDumper dumper =
-                new UserTableEntryDumper.UserProfilerTableEntryDumper(writer);
-        dumper.dump(u1);
-        dumper.dump(u2);
-        dumper.dump(u3);
-        writer.flush();
-        writer.close();
+        storage.insertUser(u1);
+        storage.insertUser(u2);
+        storage.insertUser(u3);
     }
 
     @Test

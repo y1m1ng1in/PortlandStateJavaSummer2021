@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
- * Dumper is the interface that classes implement when functionality of dumper
- * an instance of type <code>T</code> is required. The instance of
- * <code>T</code> is dumped via some {@link java.io.Writer}.
+ * Dumper is the interface that classes implement when functionality of dumper an instance of type <code>T</code> is
+ * required. The instance of <code>T</code> is dumped via some {@link java.io.Writer}.
  */
 public abstract class TableEntryDumper<T> {
 

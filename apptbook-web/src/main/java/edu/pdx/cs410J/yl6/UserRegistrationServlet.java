@@ -3,11 +3,13 @@ package edu.pdx.cs410J.yl6;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * UserRegistrationServlet is the class that processes incoming HTTP requests for user new registration.
+ */
 public class UserRegistrationServlet extends HttpServletHelper {
 
     static final String USERNAME_PARAMETER = "username";
@@ -20,8 +22,7 @@ public class UserRegistrationServlet extends HttpServletHelper {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/plain");
         String[] requiredFields = {USERNAME_PARAMETER, PASSWORD_PARAMETER, EMAIL_PARAMETER, ADDRESS_PARAMETER};
         String[] fields = new String[4];
@@ -43,8 +44,7 @@ public class UserRegistrationServlet extends HttpServletHelper {
         User user = new User(username, password, email, address);
 
         try {
-//            int result = this.storage.insertUser(user);
-            int result = this.tryConnect.insertUser(user);
+            int result = this.storage.insertUser(user);
             if (result == AppointmentBookStorage.USERNAME_CONFLICT) {
                 writeMessageAndSetStatus(response, username + " has already been registered",
                         HttpServletResponse.SC_BAD_REQUEST);

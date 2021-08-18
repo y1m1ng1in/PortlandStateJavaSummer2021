@@ -3,7 +3,6 @@ package edu.pdx.cs410J.yl6;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
-import edu.pdx.cs410J.yl6.database.PlainTextFileDatabase;
 import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
 import edu.pdx.cs410J.yl6.database.StorageException;
 
@@ -11,19 +10,19 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Base64;
 
+/**
+ * HttpServletHelper class collects common methods used in its derived servlets.
+ */
 public abstract class HttpServletHelper extends HttpServlet {
 
     protected AppointmentBookStorage storage;
-    protected AppointmentBookStorage tryConnect;
 
     public HttpServletHelper() {
-        this.storage = PlainTextFileDatabase.getDatabase(new File("./plaintext_db/"));
-        this.tryConnect = PostgresqlDatabase.getDatabase();
+        this.storage = PostgresqlDatabase.getDatabase();
     }
 
     /**
@@ -40,9 +39,9 @@ public abstract class HttpServletHelper extends HttpServlet {
      * @return <code>true</code> if authentication is not failed; <code>false</code>
      * otherwise
      * @throws IOException If an input or output exception occurs
-     * <strong>Note</strong> currently the server uses basic authentication, which is not
-     * enough. Still looking for more advanced method... then replace the
-     * implementation in this method
+     *                     <strong>Note</strong> currently the server uses basic authentication, which is not
+     *                     enough. Still looking for more advanced method... then replace the
+     *                     implementation in this method
      */
     protected boolean authenticateUser(HttpServletRequest request, HttpServletResponse response, String username)
             throws IOException {
@@ -64,8 +63,7 @@ public abstract class HttpServletHelper extends HttpServlet {
         }
 
         try {
-//            User user = this.storage.getUserByUsername(username);
-            User user = this.tryConnect.getUserByUsername(username);
+            User user = this.storage.getUserByUsername(username);
             if (user == null) {
                 writeMessageAndSetStatus(response, "User \"" + username + "\" is not a registered user",
                         HttpServletResponse.SC_FORBIDDEN);
