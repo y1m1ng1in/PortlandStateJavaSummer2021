@@ -37,23 +37,14 @@ public class AppointmentBookRestClient extends HttpRequestHelper {
    * {@link AppointmentBook}
    * 
    * @param response a <code>Response</code> instance
-   * @return an <code>AppointmentBook</code> instance that contains parsed
-   *         appointments and appointment book data.
+   * @return a json string contains appointments
    * @throws ParserException If content of <code>response</code> cannot be parsed
    *                         completely and successfully
    * @throws IOException     If an input or output exception occurs
    */
-  private AppointmentBook<Appointment> parseAppointmentBookFromResponse(Response response)
+  private String parseAppointmentBookFromResponse(Response response)
       throws ParserException, IOException {
-    String toParse = response.getContent();
-    Reader reader = new StringReader(toParse);
-    TextAppointmentBookParser bookParser = new TextAppointmentBookParser(reader);
-    TextAppointmentParser appointmentParser = new TextAppointmentParser(reader,
-        new AppointmentValidator("M/d/yyyy h:m a"));
-    TextParser parser = new TextParser(bookParser, appointmentParser);
-    AppointmentBook<Appointment> parsed = parser.parse();
-    reader.close();
-    return parsed;
+    return response.getContent();
   }
 
   /**
@@ -61,13 +52,13 @@ public class AppointmentBookRestClient extends HttpRequestHelper {
    * the appointments with <code>owner</code>
    * 
    * @param owner the owner name of the appointment book
-   * @return an appointment book contains all the appointments <code>owner</code>
+   * @return a json string contains appointments
    * @throws IOException     HTTP request exception occurs during communicating
    *                         with server
    * @throws ParserException Cannot successfully parse an appointment book from
    *                         what is returned from the server
    */
-  public AppointmentBook<Appointment> getAppointmentBookByOwner(String owner) throws IOException, ParserException {
+  public String getAppointmentBookByOwner(String owner) throws IOException, ParserException {
     Response response = get(this.url, Map.of("owner", owner));
     throwExceptionIfNotOkayHttpStatus(response);
     return parseAppointmentBookFromResponse(response);
@@ -82,13 +73,12 @@ public class AppointmentBookRestClient extends HttpRequestHelper {
    * @param owner the name of owner
    * @param from  the lowerbound of time interval for appointment's begin time
    * @param to    the upperbound of time interval for appointment's begin time
-   * @return an <code>AppointmentBook</code> instance with appointments satisfied
-   *         above time interval
+   * @return a json string contains appointments
    * @throws IOException     If an input or output exception occurs
    * @throws ParserException If content of <code>response</code> cannot be parsed
    *                         completely and successfully
    */
-  public AppointmentBook<Appointment> getAppointmentsByOwnerWithBeginInterval(String owner, String from, String to)
+  public String getAppointmentsByOwnerWithBeginInterval(String owner, String from, String to)
       throws IOException, ParserException {
     Response response = get(this.url, Map.of("owner", owner, "start", from, "end", to));
     throwExceptionIfNotOkayHttpStatus(response);

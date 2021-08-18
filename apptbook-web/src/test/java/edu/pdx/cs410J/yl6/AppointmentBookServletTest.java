@@ -1,5 +1,9 @@
 package edu.pdx.cs410J.yl6;
 
+import com.google.gson.Gson;
+import edu.pdx.cs410J.yl6.database.AppointmentBookStorage;
+import edu.pdx.cs410J.yl6.database.PostgresqlDatabase;
+import edu.pdx.cs410J.yl6.database.StorageException;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -7,19 +11,16 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.ArgumentCaptor;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.File;
-import java.io.Writer;
-import java.io.FileWriter;
-
-import edu.pdx.cs410J.ParserException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.*;
 
@@ -30,553 +31,697 @@ import static org.mockito.Mockito.*;
 @TestMethodOrder(OrderAnnotation.class)
 public class AppointmentBookServletTest {
 
-  void createFileWithText(String content, String owner) throws IOException {
-    File f = new File(owner + ".txt");
-    Writer writer = new FileWriter(f);
-    writer.write(content);
-    writer.flush();
-    writer.close();
-  }
+    static Map<String, ArrayList<Appointment>> validAppointments = new HashMap<>();
+    static User u1, u2, u3;
+    static Appointment a11, a12, a13, a1_overlap1, a1_overlap2;
+    static Appointment a21, a22, a23, a2_overlap1, a2_overlap2;
+    File dir = new File("./unittest/");
 
-  void testAddAppointmentWithValidArgument(String owner, String description, String begin, String end)
-      throws ServletException, IOException {
-    AppointmentBookServlet servlet = new AppointmentBookServlet();
+    AppointmentBookStorage storage = PostgresqlDatabase.getDatabase("jdbc:postgresql://localhost:5432/tester", "tester", "tester");
 
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getParameter("owner")).thenReturn(owner);
-    when(request.getParameter("description")).thenReturn(description);
-    when(request.getParameter("start")).thenReturn(begin);
-    when(request.getParameter("end")).thenReturn(end);
-
-    HttpServletResponse response = mock(HttpServletResponse.class);
-
-    // Use a StringWriter to gather the text from multiple calls to println()
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter pw = new PrintWriter(stringWriter, true);
-
-    when(response.getWriter()).thenReturn(pw);
-
-    servlet.doPost(request, response);
-
-    assertThat(stringWriter.toString(), containsString("Add appointment "));
-
-    // Use an ArgumentCaptor when you want to make multiple assertions against the
-    // value passed to the mock
-    ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
-    verify(response).setStatus(statusCode.capture());
-
-    assertThat(statusCode.getValue(), equalTo(HttpServletResponse.SC_OK));
-  }
-
-  void testAddAppointmentWithInvalidArgument(String owner, String description, String begin, String end, int sc,
-      String errorMessage) throws ServletException, IOException {
-    AppointmentBookServlet servlet = new AppointmentBookServlet();
-
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    if (owner != null)
-      when(request.getParameter("owner")).thenReturn(owner);
-    if (description != null)
-      when(request.getParameter("description")).thenReturn(description);
-    if (begin != null)
-      when(request.getParameter("start")).thenReturn(begin);
-    if (end != null)
-      when(request.getParameter("end")).thenReturn(end);
-
-    HttpServletResponse response = mock(HttpServletResponse.class);
-
-    // Use a StringWriter to gather the text from multiple calls to println()
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter pw = new PrintWriter(stringWriter, true);
-
-    when(response.getWriter()).thenReturn(pw);
-
-    servlet.doPost(request, response);
-
-    verify(response).sendError(sc, errorMessage);
-  }
-
-  void testGetExistingAppointments(String owner, String start, String end, String expected)
-      throws ServletException, IOException {
-    AppointmentBookServlet servlet = new AppointmentBookServlet();
-
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getParameter("owner")).thenReturn(owner);
-    if (start != null && end != null) {
-      when(request.getParameter("start")).thenReturn(start);
-      when(request.getParameter("end")).thenReturn(end);
+    void createFileWithText(String content, String owner) throws IOException {
+        File f = new File(dir, owner + "_slots.txt");
+        Writer writer = new FileWriter(f);
+        writer.write(content);
+        writer.flush();
+        writer.close();
     }
 
-    HttpServletResponse response = mock(HttpServletResponse.class);
-
-    // Use a StringWriter to gather the text from multiple calls to println()
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter pw = new PrintWriter(stringWriter, true);
-
-    when(response.getWriter()).thenReturn(pw);
-
-    servlet.doGet(request, response);
-    assertThat(stringWriter.toString(), equalTo(expected));
-
-    // Use an ArgumentCaptor when you want to make multiple assertions against the
-    // value passed to the mock
-    ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
-    verify(response).setStatus(statusCode.capture());
-
-    assertThat(statusCode.getValue(), equalTo(HttpServletResponse.SC_OK));
-  }
-
-  void testGetNonExistingAppointments(String owner, String start, String end, int sc, String expected)
-      throws ServletException, IOException {
-    AppointmentBookServlet servlet = new AppointmentBookServlet();
-
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getParameter("owner")).thenReturn(owner);
-    if (start != null && end != null) {
-      when(request.getParameter("start")).thenReturn(start);
-      when(request.getParameter("end")).thenReturn(end);
+    /**
+     * Create a cookie for authentication using basic strategy to be used for
+     * mocking request. This method can be changed for future testing when
+     * authentication method is changed.
+     *
+     * @param username username
+     * @param password password
+     * @return a cookie instance
+     */
+    Cookie createAuthCookie(String username, String password) {
+        String toEncode = username + ":" + password;
+        Cookie cookie = new Cookie("Authentication", Base64.getEncoder().encodeToString(toEncode.getBytes()));
+        return cookie;
     }
 
-    HttpServletResponse response = mock(HttpServletResponse.class);
+    /**
+     * Create a mocked HttpServletRequest object, query for "owner", "description",
+     * "start", "end", then mocked object return given argument specified in
+     * parameters.
+     */
+    HttpServletRequest createMockedRequest(String owner, String description, String begin, String end, String username,
+                                           String password) {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        if (owner != null)
+            when(request.getParameter("owner")).thenReturn(owner);
+        if (description != null)
+            when(request.getParameter("description")).thenReturn(description);
+        if (begin != null)
+            when(request.getParameter("start")).thenReturn(begin);
+        if (end != null)
+            when(request.getParameter("end")).thenReturn(end);
 
-    // Use a StringWriter to gather the text from multiple calls to println()
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter pw = new PrintWriter(stringWriter, true);
+        Cookie cookie = createAuthCookie(username, password);
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
 
-    when(response.getWriter()).thenReturn(pw);
+        return request;
+    }
 
-    servlet.doGet(request, response);
+    /**
+     * Create a mocked HttpServletResponse, using <code>stringWriter</code> to
+     * capture what is written to response
+     */
+    HttpServletResponse createMockedResponse(StringWriter stringWriter) throws IOException {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        PrintWriter pw = new PrintWriter(stringWriter, true);
+        when(response.getWriter()).thenReturn(pw);
+        return response;
+    }
 
-    verify(response).sendError(sc, expected);
-  }
+    /**
+     * The method to be called in test method to add an appointment with
+     * <strong>valid</strong> argument, and valid username and password.
+     */
+    void testAddAppointmentWithValidArgument(String owner, String description, String begin, String end,
+                                             String username,
+                                             String password) throws ServletException, IOException {
+        AppointmentBookServlet servlet = new AppointmentBookServlet(storage);
 
-  /**
-   * Add appointments with valid arguments.
-   */
-  @Test
-  @Order(1)
-  void addOneWordToDictionary() throws ServletException, IOException {
-    String owner = "unittest";
-    String description = "test description";
-    String begin = "7/18/2021 9:00 pm";
-    String end = "7/18/2021 10:00 pm";
+        HttpServletRequest request = createMockedRequest(owner, description, begin, end, username, password);
 
-    testAddAppointmentWithValidArgument(owner, description, begin, end);
-  }
+        // Use a StringWriter to gather the text from multiple calls to println()
+        StringWriter stringWriter = new StringWriter();
 
-  /**
-   * Add appointments with valid arguments.
-   */
-  @Test
-  @Order(2)
-  void addAnotherWordToDictionary() throws ServletException, IOException {
-    String owner = "unittest";
-    String description = "another test description";
-    String begin = "7/18/2021 9:00 pm";
-    String end = "7/18/2021 11:59 pm";
+        HttpServletResponse response = createMockedResponse(stringWriter);
 
-    testAddAppointmentWithValidArgument(owner, description, begin, end);
-  }
+        servlet.doPost(request, response);
+        Gson gson = new Gson();
+        Appointment appointmentReturned = gson.fromJson(stringWriter.toString(), Appointment.class);
 
-  /**
-   * Add appointments with valid arguments to another owner
-   */
-  @Test
-  @Order(3)
-  void addAppointmentWithAnotherOwner() throws ServletException, IOException {
-    String owner = "another unittest";
-    String description = "test description for another unittest";
-    String begin = "6/18/2021 9:00 pm";
-    String end = "6/18/2021 11:59 pm";
+        assertThat(description, equalTo(appointmentReturned.getDescription()));
+        assertThat(Helper.validateAndParseDate(begin),
+                equalTo(appointmentReturned.getBeginTime()));
+        assertThat(Helper.validateAndParseDate(end),
+                equalTo(appointmentReturned.getEndTime()));
 
-    testAddAppointmentWithValidArgument(owner, description, begin, end);
-  }
+        if (validAppointments.containsKey(owner)) {
+            validAppointments.get(owner).add(appointmentReturned);
+        } else {
+            validAppointments.put(owner, new ArrayList<Appointment>() {{
+                add(appointmentReturned);
+            }});
+        }
 
-  /**
-   * Add appointments with valid arguments to another owner
-   */
-  @Test
-  @Order(4)
-  void addAnotherAppointmentWithAnotherOwner() throws ServletException, IOException {
-    String owner = "another unittest";
-    String description = "another test description for another unittest";
-    String begin = "6/28/2021 3:00 pm";
-    String end = "6/28/2021 5:00 pm";
+        ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
+        verify(response).setStatus(statusCode.capture());
+        assertThat(statusCode.getValue(), equalTo(HttpServletResponse.SC_OK));
+    }
 
-    testAddAppointmentWithValidArgument(owner, description, begin, end);
-  }
+    /**
+     * The method to be called in test method to add an appointment with
+     * <strong>invalid</strong> argument, and valid username and password.
+     */
+    void testAddAppointmentWithInvalidArgument(String owner, String description, String begin, String end, int sc,
+                                               String errorMessage, String username, String password) throws ServletException, IOException {
+        AppointmentBookServlet servlet = new AppointmentBookServlet(storage);
 
-  /**
-   * Get all appointment with existing owner
-   */
-  @Test
-  @Order(5)
-  void getAllWithFirstOwner() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", null, null,
-        "unittest&7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
-  }
+        HttpServletRequest request = createMockedRequest(owner, description, begin, end, username, password);
 
-  /**
-   * Get all appointment with existing owner
-   */
-  @Test
-  @Order(6)
-  void getAllWithSecondOwner() throws ServletException, IOException {
-    testGetExistingAppointments("another unittest", null, null,
-        "another unittest&6/18/2021 9:00 pm#6/18/2021 11:59 pm#test description for another unittest&6/28/2021 3:00 pm#6/28/2021 5:00 pm#another test description for another unittest&");
-  }
+        StringWriter stringWriter = new StringWriter();
 
-  /**
-   * Create an appointment with invalid arguments
-   */
-  @Test
-  @Order(7)
-  void addAppointmentWithInvalidField() throws ServletException, IOException {
-    String owner = "another unittest";
-    String description = "    ";
-    String begin = "6/28/2021 3:00 pm";
-    String end = "6/28/2021 5:00 pm";
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Field description should not be empty");
-  }
+        HttpServletResponse response = createMockedResponse(stringWriter);
 
-  @Test
-  @Order(8)
-  void addAppointmentWithInvalidFieldCase2() throws ServletException, IOException {
-    String owner = "  ";
-    String description = "ffsdfwe";
-    String begin = "6/28/2021 3:00 pm";
-    String end = "6/28/2021 5:00 pm";
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Field owner should not be empty");
-  }
+        servlet.doPost(request, response);
 
-  @Test
-  @Order(9)
-  void addAppointmentWithInvalidFieldCase3() throws ServletException, IOException {
-    String owner = "another unittest";
-    String description = "ffsdfwe";
-    String begin = "6-28-2021 3:00 pm";
-    String end = "6/28/2021 5:00 pm";
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Unparseable date: \"6-28-2021 3:00 pm\"");
-  }
+        verify(response).setStatus(sc);
+    }
 
-  @Test
-  @Order(10)
-  void addAppointmentWithInvalidFieldCase4() throws ServletException, IOException {
-    String owner = "another unittest";
-    String description = "ffsdfwe";
-    String begin = "6/28/2021 3:00 pm";
-    String end = "6/28/XXXX 5:00 pm";
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Unparseable date: \"6/28/XXXX 5:00 pm\"");
-  }
+    /**
+     * The method to be called in test method to get an appointment with
+     * <strong>valid</strong> owner and time interval, but valid username and
+     * password.
+     */
+    void testGetExistingAppointments(String owner, String start, String end, String username, String password,
+                                     int... expectedAt) throws ServletException, IOException {
+        AppointmentBookServlet servlet = new AppointmentBookServlet(storage);
 
-  @Test
-  @Order(11)
-  void addAppointmentWithInvalidFieldCase5() throws ServletException, IOException {
-    String owner = "another unittest";
-    String description = "ffsdfwe";
-    String begin = "6/28/2021 3:00 pm";
-    String end = "6/28/2021 5:00pm";
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Unparseable date: \"6/28/2021 5:00pm\"");
-  }
+        HttpServletRequest request = createMockedRequest(owner, null, start, end, username, password);
 
-  @Test
-  @Order(12)
-  void addAppointmentWithInvalidFieldCase6() throws ServletException, IOException {
-    String owner = "another unittest";
-    String description = "ffsdfwe";
-    String end = "6/28/2021 3:00 pm";
-    String begin = "6/28/2021 5:00 pm";
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Begin time is not early than end time of appointment, begin at 6/28/2021 5:00 pm, but end at 6/28/2021 3:00 pm");
-  }
+        StringWriter stringWriter = new StringWriter();
 
-  /**
-   * Data should be affected after request with invalid arguments.
-   */
-  @Test
-  @Order(13)
-  void dataShouldNotBeAffectedAfterError() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", null, null,
-        "unittest&7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
-  }
+        HttpServletResponse response = createMockedResponse(stringWriter);
 
-  /**
-   * Data should be affected after request with invalid arguments.
-   */
-  @Test
-  @Order(14)
-  void dataShouldNotBeAffectedAfterErrorCase2() throws ServletException, IOException {
-    testGetExistingAppointments("another unittest", null, null,
-        "another unittest&6/18/2021 9:00 pm#6/18/2021 11:59 pm#test description for another unittest&6/28/2021 3:00 pm#6/28/2021 5:00 pm#another test description for another unittest&");
-  }
+        servlet.doGet(request, response);
 
-  @Test
-  @Order(15)
-  void canStillAddAppointmentsAfterError() throws ServletException, IOException {
-    String owner = "unittest";
-    String description = "this is the description for test15";
-    String begin = "6/28/2021 4:00 pm";
-    String end = "6/28/2021 6:00 pm";
+        String s = stringWriter.toString();
 
-    testAddAppointmentWithValidArgument(owner, description, begin, end);
-  }
+        AppointmentBook<Appointment> apptbook = new AppointmentBook<>(owner);
+        for (int index : expectedAt) {
+            apptbook.addAppointment(validAppointments.get(owner).get(index));
+        }
 
-  @Test
-  @Order(16)
-  void canStillAddAppointmentsAfterErrorCase2() throws ServletException, IOException {
-    String owner = "unittest";
-    String description = "this is the description for test16";
-    String begin = "6/28/2021 4:30 pm";
-    String end = "6/28/2021 8:00 pm";
+        Gson gson = new Gson();
+        String json = gson.toJson(apptbook);
 
-    testAddAppointmentWithValidArgument(owner, description, begin, end);
-  }
+        assertThat(s, equalTo(json));
 
-  @Test
-  @Order(17)
-  void getAllAgain() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", null, null,
-        "unittest&" + "6/28/2021 4:00 pm#6/28/2021 6:00 pm#this is the description for test15&"
-            + "6/28/2021 4:30 pm#6/28/2021 8:00 pm#this is the description for test16&"
-            + "7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&"
-            + "7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
-  }
+        ArgumentCaptor<Integer> statusCode = ArgumentCaptor.forClass(Integer.class);
+        verify(response).setStatus(statusCode.capture());
+        assertThat(statusCode.getValue(), equalTo(HttpServletResponse.SC_OK));
+    }
 
-  @Test
-  @Order(17)
-  void getSearchBeginWithinIntervalCase1() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", "6/28/2021 4:20 pm", "7/18/2021 9:05 pm",
-        "unittest&" + "6/28/2021 4:30 pm#6/28/2021 8:00 pm#this is the description for test16&"
-            + "7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&"
-            + "7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
-  }
+    /**
+     * The method to be called in test method to get an appointment with
+     * <strong>invalid</strong> owner or time interval, but valid username and
+     * password.
+     */
+    void testGetNonExistingAppointments(String owner, String start, String end, int sc, String expected,
+                                        String username,
+                                        String password) throws ServletException, IOException {
+        AppointmentBookServlet servlet = new AppointmentBookServlet(storage);
 
-  @Test
-  @Order(18)
-  void getSearchBeginWithinIntervalCase2() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", "7/18/2021 4:20 am", "7/18/2021 11:00 pm",
-        "unittest&" + "7/18/2021 9:00 pm#7/18/2021 10:00 pm#test description&"
-            + "7/18/2021 9:00 pm#7/18/2021 11:59 pm#another test description&");
-  }
+        HttpServletRequest request = createMockedRequest(owner, null, start, end, username, password);
 
-  @Test
-  @Order(18)
-  void getSearchBeginWithinIntervalCase3() throws ServletException, IOException {
-    testGetExistingAppointments("unittest", "6/28/2021 4:20 am", "6/28/2021 11:00 pm",
-        "unittest&" + "6/28/2021 4:00 pm#6/28/2021 6:00 pm#this is the description for test15&"
-            + "6/28/2021 4:30 pm#6/28/2021 8:00 pm#this is the description for test16&");
-  }
+        StringWriter stringWriter = new StringWriter();
 
-  /**
-   * An interval with existing owner, but non-existing appts
-   */
-  @Test
-  @Order(19)
-  void getSearchNonexistingCase1() throws ServletException, IOException {
-    String begin = "6/27/2021 4:20 am";
-    String end = "6/27/2021 9:20 am";
-    String owner = "unittest";
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_NOT_FOUND,
-        "No appointment found with owner " + owner + " that begins between " + begin + " and " + end);
-  }
+        HttpServletResponse response = createMockedResponse(stringWriter);
 
-  /**
-   * A non-existing owner with interval
-   */
-  @Test
-  @Order(20)
-  void getSearchNonexistingCase2() throws ServletException, IOException {
-    String begin = "6/28/2021 4:20 am";
-    String end = "6/28/2021 11:00 pm";
-    String owner = "unittest1";
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_NOT_FOUND,
-        "No appointment found with owner " + owner + " that begins between " + begin + " and " + end);
-  }
+        servlet.doGet(request, response);
 
-  /**
-   * A non-existing owner without interval
-   */
-  @Test
-  @Order(21)
-  void getSearchNonexistingCase3() throws ServletException, IOException {
-    String owner = "unittest1";
-    testGetNonExistingAppointments(owner, null, null, HttpServletResponse.SC_NOT_FOUND,
-        "No appointment found with owner " + owner);
-  }
+        verify(response).setStatus(sc);
+    }
+    // Appointment a31, a32, a33;
 
-  /**
-   * Invalid argument for searching
-   */
-  @Test
-  @Order(22)
-  void getSearchNonexistingCase4() throws ServletException, IOException {
-    String end = "6/27/2021 4:20 am";
-    String begin = "6/27/2021 9:20 am";
-    String owner = "unittest";
-    
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The lowerbound of the time that appointments begin at to search, " + begin + " is after the upperbound, "
-            + end);
-  }
+    void addSomeInstance() {
+        u1 = new User("the first user", "the_first_user_password", "first@email.com", "street 1");
+        u2 = new User("the 2nd user", "the_2nd_user_password", "second@email.com", "street 2");
+        u3 = new User("the 3rd user", "the_3rd_user_password", "third@email.com", "street 3");
 
-  /**
-   * Invalid argument for searching
-   */
-  @Test
-  @Order(23)
-  void getSearchNonexistingCase5() throws ServletException, IOException {
-    String end = "6-27-2021 4:20 am";
-    String begin = "6/27/2021 9:20 am";
-    String owner = "unittest";
-    
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Unparseable date: \"6-27-2021 4:20 am\"");
-  }
+        a11 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 4:00 am"),
+                Helper.validateAndParseDate("7/30/2021 5:00 am"), "a11");
+        a12 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 5:01 am"),
+                Helper.validateAndParseDate("7/30/2021 5:30 am"), "a12");
+        a13 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 6:00 am"),
+                Helper.validateAndParseDate("7/30/2021 7:00 am"), "a13");
+        a1_overlap1 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 3:40 am"),
+                Helper.validateAndParseDate("7/30/2021 4:30 am"), "a1_overlap1");
+        a1_overlap2 = new Appointment("the first user", Helper.validateAndParseDate("7/30/2021 5:20 am"),
+                Helper.validateAndParseDate("7/30/2021 6:30 am"), "a1_overlap2");
 
-  /**
-   * Missing end
-   */
-  @Test
-  @Order(24)
-  void getSearchNonexistingCase6() throws ServletException, IOException {
-    String end = "";
-    String begin = "6/27/2021 9:20 am";
-    String owner = "unittest";
-    
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The required parameter \"end\" is missing");
-  }
+        a21 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 4:00 am"),
+                Helper.validateAndParseDate("7/30/2021 5:00 am"), "a21");
+        a22 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 5:30 am"),
+                Helper.validateAndParseDate("7/30/2021 6:30 am"), "a22");
+        a23 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 8:00 am"),
+                Helper.validateAndParseDate("7/30/2021 9:00 am"), "a23");
+        a2_overlap1 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 3:40 am"),
+                Helper.validateAndParseDate("7/30/2021 5:29 am"), "a2_overlap1");
+        a2_overlap2 = new Appointment("the 2nd user", Helper.validateAndParseDate("7/30/2021 5:20 am"),
+                Helper.validateAndParseDate("7/30/2021 8:30 am"), "a2_overlap2");
+    }
 
-  /**
-   * Missing begin
-   */
-  @Test
-  @Order(25)
-  void getSearchNonexistingCase7() throws ServletException, IOException {
-    String begin = "";
-    String end = "6/27/2021 9:20 am";
-    String owner = "unittest";
-    
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The required parameter \"start\" is missing");
-  }
+    @Test
+    @Order(1)
+    void addSomeUserFirst() throws IOException, StorageException {
+        addSomeInstance();
 
-  /**
-   * Missing owner
-   */
-  @Test
-  @Order(26)
-  void getSearchNonexistingCase8() throws ServletException, IOException {
-    String begin = "";
-    String end = "";
-    String owner = "";
-    
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The required parameter \"owner\" is missing");
-  }
-  
-  /**
-   * Missing owner 
-   */
-  @Test
-  @Order(27)
-  void addNonexistingCase1() throws ServletException, IOException {
-    String end = "6/27/2021 4:20 am";
-    String begin = "6/27/2021 9:20 am";
-    String description = "ddd";
-    String owner = null;
-    
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The required parameter \"owner\" is missing");
-  }
+        User user1 = new User("unittest", "unittest_password", "unittest@email.com", "unittest st.");
+        User user2 = new User("another unittest", "another unittest_password", "another unittest@email.com",
+                "another unittest st.");
 
-  /**
-   * Missing description 
-   */
-  @Test
-  @Order(28)
-  void addNonexistingCase2() throws ServletException, IOException {
-    String end = "6/27/2021 4:20 am";
-    String begin = "6/27/2021 9:20 am";
-    String description = null;
-    String owner = "unittest";
-    
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The required parameter \"description\" is missing");
-  }
+        storage.insertUser(u1);
+        storage.insertUser(u2);
+        storage.insertUser(u3);
+    }
 
-  /**
-   * Missing description 
-   */
-  @Test
-  @Order(29)
-  void addNonexistingCase3() throws ServletException, IOException {
-    String end = "6/27/2021 4:20 am";
-    String begin = null;
-    String description = "ddd";
-    String owner = "unittest";
-    
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The required parameter \"start\" is missing");
-  }
+    /**
+     * Add appointments with valid arguments.
+     * <p>
+     * a11 = new Appointment(Helper.validateAndParseDate("7/30/2021 4:00 am"),
+     * Helper.validateAndParseDate("7/30/2021 5:00 am"), "a11");
+     */
+    @Test
+    @Order(2)
+    void addOneWordToDictionary() throws ServletException, IOException {
+        String owner = "the first user";
+        String description = "a11";
+        String begin = "7/30/2021 4:00 am";
+        String end = "7/30/2021 5:00 am";
 
-  /**
-   * Missing description 
-   */
-  @Test
-  @Order(30)
-  void addNonexistingCase4() throws ServletException, IOException {
-    String end = null;
-    String begin = "6/27/2021 4:20 am";
-    String description = "ddd";
-    String owner = "unittest";
-    
-    testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "The required parameter \"end\" is missing");
-  }
+        testAddAppointmentWithValidArgument(owner, description, begin, end, "the first user",
+                "the_first_user_password");
+    }
 
-  /**
-   * More test on invalid argument for searching
-   */
-  @Test
-  @Order(31)
-  void invalidArgsForSearchingCase1() throws ServletException, IOException {
-    String begin= "6-27-2021 4:20 am";
-    String end = "6/27/2021 9:20 am";
-    String owner = "    ";
-    
-    testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
-        "Field owner should not be empty");
-  }
+    /**
+     * Add appointments with valid arguments.
+     * <p>
+     * a12 = new Appointment(Helper.validateAndParseDate("7/30/2021 5:01 am"),
+     * Helper.validateAndParseDate("7/30/2021 5:30 am"), "a12");
+     */
+    @Test
+    @Order(3)
+    void addAnotherWordToDictionary() throws ServletException, IOException {
+        String owner = "the first user";
+        String description = "a12";
+        String begin = "7/30/2021 5:01 am";
+        String end = "7/30/2021 5:30 am";
 
-  /**
-   * More test on invalid argument for searching
-   */
-  @Test
-  @Order(32)
-  void invalidArgsForSearchingCase2() throws ServletException, IOException {
-    String owner = "    ";
-    
-    testGetNonExistingAppointments(owner, null, null, HttpServletResponse.SC_BAD_REQUEST,
-        "Field owner should not be empty");
-  }
+        testAddAppointmentWithValidArgument(owner, description, begin, end, "the first user",
+                "the_first_user_password");
+    }
 
-  /**
-   * More test on invalid argument for searching
-   */
-  @Test
-  @Order(33)
-  void testWithMalformattedFile() throws ServletException, IOException {
-    String owner = "unittest";
-    createFileWithText("sdfkljsadhflakshdfsd", owner);
-    
-    testGetNonExistingAppointments(owner, null, null, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-        "File in storage is malformatted: " + "End of file reached before owner been parsed completely");
-  }
+    /**
+     * Add appointments with valid arguments to another owner
+     * <p>
+     * a21 = new Appointment(Helper.validateAndParseDate("7/30/2021 4:00 am"),
+     * Helper.validateAndParseDate("7/30/2021 5:00 am"), "a21");
+     */
+    @Test
+    @Order(4)
+    void addAppointmentWithAnotherOwner() throws ServletException, IOException {
+        String owner = "the 2nd user";
+        String description = "a21";
+        String begin = "7/30/2021 4:00 am";
+        String end = "7/30/2021 5:00 am";
+
+        testAddAppointmentWithValidArgument(owner, description, begin, end, "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Add appointments with valid arguments to another owner
+     * <p>
+     * a22 = new Appointment(Helper.validateAndParseDate("7/30/2021 5:30 am"),
+     * Helper.validateAndParseDate("7/30/2021 6:30 am"), "a22");
+     */
+    @Test
+    @Order(5)
+    void addAnotherAppointmentWithAnotherOwner() throws ServletException, IOException {
+        String owner = "the 2nd user";
+        String description = "a22";
+        String begin = "7/30/2021 5:30 am";
+        String end = "7/30/2021 6:30 am";
+
+        testAddAppointmentWithValidArgument(owner, description, begin, end, "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Get all appointment with "the first user"
+     */
+    @Test
+    @Order(6)
+    void getAllWithFirstOwner() throws ServletException, IOException {
+        testGetExistingAppointments("the first user", null, null, "the first user", "the_first_user_password", 0, 1);
+    }
+
+    /**
+     * Get all appointment with "the 2nd user"
+     */
+    @Test
+    @Order(7)
+    void getAllWithSecondOwner() throws ServletException, IOException {
+        testGetExistingAppointments("the 2nd user", null, null, "the 2nd user", "the_2nd_user_password", 0, 1);
+    }
+
+    /**
+     * Create an appointment with invalid arguments -- an empty description
+     */
+    @Test
+    @Order(8)
+    void addAppointmentWithInvalidField() throws ServletException, IOException {
+        String owner = "the 2nd user";
+        String description = "    ";
+        String begin = "6/28/2021 3:00 pm";
+        String end = "6/28/2021 5:00 pm";
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "Field description should not be empty", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Create an appointment with invalid arguments -- an empty owner name
+     */
+    @Test
+    @Order(9)
+    void addAppointmentWithInvalidFieldCase2() throws ServletException, IOException {
+        String owner = "  ";
+        String description = "ffsdfwe";
+        String begin = "6/28/2021 3:00 pm";
+        String end = "6/28/2021 5:00 pm";
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, 401,
+                "Invalid credential for user \"" + owner + "\"", "the first user", "the_first_user_password");
+    }
+
+    /**
+     * Create an appointment with invalid arguments -- an unparseable begin time
+     */
+    @Test
+    @Order(10)
+    void addAppointmentWithInvalidFieldCase3() throws ServletException, IOException {
+        String owner = "the 2nd user";
+        String description = "ffsdfwe";
+        String begin = "6-28-2021 3:00 pm";
+        String end = "6/28/2021 5:00 pm";
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "Unparseable date: \"6-28-2021 3:00 pm\"", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Create an appointment with invalid arguments -- an unparseable end time
+     * <p>
+     * add it to u3
+     */
+    @Test
+    @Order(11)
+    void addAppointmentWithInvalidFieldCase4() throws ServletException, IOException {
+        String owner = "the 3rd user";
+        String description = "ffsdfwe";
+        String begin = "6/28/2021 3:00 pm";
+        String end = "6/28/XXXX 5:00 pm";
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "Unparseable date: \"6/28/XXXX 5:00 pm\"", "the 3rd user", "the_3rd_user_password");
+    }
+
+    /**
+     * Create an appointment with invalid arguments -- an unparseable end time
+     * <p>
+     * add it to u3
+     */
+    @Test
+    @Order(12)
+    void addAppointmentWithInvalidFieldCase5() throws ServletException, IOException {
+        String owner = "the 3rd user";
+        String description = "ffsdfwe";
+        String begin = "6/28/2021 3:00 pm";
+        String end = "6/28/2021 5:00pm";
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "Unparseable date: \"6/28/2021 5:00pm\"", "the 3rd user", "the_3rd_user_password");
+    }
+
+    /**
+     * Create an appointment with invalid arguments -- begin time is later than end
+     * time
+     * <p>
+     * add it to u3
+     */
+    @Test
+    @Order(13)
+    void addAppointmentWithInvalidFieldCase6() throws ServletException, IOException {
+        String owner = "the 3rd user";
+        String description = "ffsdfwe";
+        String end = "6/28/2021 3:00 pm";
+        String begin = "6/28/2021 5:00 pm";
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "Begin time is not early than end time of appointment, begin at 6/28/2021 5:00 pm, but end at " +
+                        "6/28/2021 3:00 pm",
+                "the 3rd user", "the_3rd_user_password");
+    }
+
+    /**
+     * For "the first user", data should be affected after request with invalid
+     * arguments.
+     */
+    @Test
+    @Order(14)
+    void dataShouldNotBeAffectedAfterError() throws ServletException, IOException {
+        testGetExistingAppointments("the first user", null, null, "the first user", "the_first_user_password", 0, 1);
+    }
+
+    /**
+     * For "the second user", data should be affected after request with invalid
+     * arguments.
+     */
+    @Test
+    @Order(15)
+    void dataShouldNotBeAffectedAfterErrorCase2() throws ServletException, IOException {
+        testGetExistingAppointments("the 2nd user", null, null, "the 2nd user", "the_2nd_user_password", 0, 1);
+    }
+
+    /**
+     * After some error handling, the insertion still functions well for
+     * well-formatted input. Add appointments with valid arguments to "the first
+     * user"
+     * <p>
+     * a13 = new Appointment(Helper.validateAndParseDate("7/30/2021 6:00 am"),
+     * Helper.validateAndParseDate("7/30/2021 7:00 am"), "a13");
+     */
+    @Test
+    @Order(16)
+    void canStillAddAppointmentsAfterError() throws ServletException, IOException {
+        String owner = "the first user";
+        String description = "a13";
+        String begin = "7/30/2021 6:00 am";
+        String end = "7/30/2021 7:00 am";
+
+        testAddAppointmentWithValidArgument(owner, description, begin, end, "the first user",
+                "the_first_user_password");
+    }
+
+    /**
+     * After some error handling, the insertion still functions well for
+     * well-formatted input. Add appointments with valid arguments to "the 2nd user"
+     * <p>
+     * a23 = new Appointment(Helper.validateAndParseDate("7/30/2021 8:00 am"),
+     * Helper.validateAndParseDate("7/30/2021 9:00 am"), "a23");
+     */
+    @Test
+    @Order(17)
+    void canStillAddAppointmentsAfterErrorCase2() throws ServletException, IOException {
+        String owner = "the 2nd user";
+        String description = "a23";
+        String begin = "7/30/2021 8:00 am";
+        String end = "7/30/2021 9:00 am";
+
+        testAddAppointmentWithValidArgument(owner, description, begin, end, "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Get all appointments for "the first user"
+     */
+    @Test
+    @Order(18)
+    void getAllAgain() throws ServletException, IOException {
+        testGetExistingAppointments("the first user", null, null, "the first user", "the_first_user_password", 0, 1, 2);
+    }
+
+    /**
+     * Searching interval covers all appointments added to "the first user" so far.
+     */
+    @Test
+    @Order(19)
+    void getSearchBeginWithinIntervalCase1() throws ServletException, IOException {
+        testGetExistingAppointments("the first user", "7/29/2021 4:20 pm", "7/31/2021 9:05 pm", "the first user",
+                "the_first_user_password", 0, 1, 2);
+    }
+
+    @Test
+    @Order(20)
+    void getSearchBeginWithinIntervalCase2() throws ServletException, IOException {
+        testGetExistingAppointments("the first user", "7/30/2021 3:50 am", "7/30/2021 5:20 am", "the first user",
+                "the_first_user_password", 0, 1);
+    }
+
+    @Test
+    @Order(21)
+    void getSearchBeginWithinIntervalCase3() throws ServletException, IOException {
+        testGetExistingAppointments("the first user", "7/30/2021 5:50 am", "7/30/2021 6:20 am", "the first user",
+                "the_first_user_password", 2);
+    }
+
+    /**
+     * An interval with existing owner, but non-existing appts
+     */
+    @Test
+    @Order(22)
+    void getSearchNonexistingCase1() throws ServletException, IOException {
+        String begin = "6/27/2021 4:20 am";
+        String end = "6/27/2021 9:20 am";
+        String owner = "the first user";
+        testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_NOT_FOUND,
+                "No appointment found with owner " + owner + " that begins between " + begin + " and " + end, "the " +
+                        "first user",
+                "the_first_user_password");
+    }
+
+    /**
+     * A non-existing owner with interval
+     */
+    @Test
+    @Order(23)
+    void getSearchNonexistingCase2() throws ServletException, IOException {
+        String begin = "6/28/2021 4:20 am";
+        String end = "6/28/2021 11:00 pm";
+        String owner = "unittest1";
+        testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_FORBIDDEN,
+                "User \"" + owner + "\" is not a registered user", "unittest1", "unittest1_password");
+    }
+
+    /**
+     * A non-existing owner without interval
+     */
+    @Test
+    @Order(24)
+    void getSearchNonexistingCase3() throws ServletException, IOException {
+        String owner = "unittest1";
+        testGetNonExistingAppointments(owner, null, null, HttpServletResponse.SC_FORBIDDEN,
+                "User \"" + owner + "\" is not a registered user", "unittest1", "unittest1_password");
+    }
+
+    /**
+     * Invalid argument for searching -- the lower bound is later than higher bound
+     * for time interval
+     */
+    @Test
+    @Order(25)
+    void getSearchNonexistingCase4() throws ServletException, IOException {
+        String end = "6/27/2021 4:20 am";
+        String begin = "6/27/2021 9:20 am";
+        String owner = "the 2nd user";
+
+        testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The lowerbound of the time that appointments begin at to search, " + begin + " is after the " +
+                        "upperbound, "
+                        + end,
+                "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Invalid argument for searching -- unparseable date
+     */
+    @Test
+    @Order(26)
+    void getSearchNonexistingCase5() throws ServletException, IOException {
+        String end = "6-27-2021 4:20 am";
+        String begin = "6/27/2021 9:20 am";
+        String owner = "the 2nd user";
+
+        testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "Unparseable date: \"6-27-2021 4:20 am\"", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Missing end
+     */
+    @Test
+    @Order(27)
+    void getSearchNonexistingCase6() throws ServletException, IOException {
+        String end = "";
+        String begin = "6/27/2021 9:20 am";
+        String owner = "the 2nd user";
+
+        testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The required parameter \"end\" is missing", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Missing begin
+     */
+    @Test
+    @Order(28)
+    void getSearchNonexistingCase7() throws ServletException, IOException {
+        String begin = "";
+        String end = "6/27/2021 9:20 am";
+        String owner = "the 2nd user";
+
+        testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The required parameter \"start\" is missing", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Missing owner
+     */
+    @Test
+    @Order(29)
+    void getSearchNonexistingCase8() throws ServletException, IOException {
+        String begin = "";
+        String end = "";
+        String owner = "";
+
+        testGetNonExistingAppointments(owner, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The required parameter \"owner\" is missing", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Missing owner
+     */
+    @Test
+    @Order(30)
+    void addNonexistingCase1() throws ServletException, IOException {
+        String end = "6/27/2021 4:20 am";
+        String begin = "6/27/2021 9:20 am";
+        String description = "ddd";
+        String owner = null;
+
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The required parameter \"owner\" is missing", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Missing description
+     */
+    @Test
+    @Order(31)
+    void addNonexistingCase2() throws ServletException, IOException {
+        String end = "6/27/2021 4:20 am";
+        String begin = "6/27/2021 9:20 am";
+        String description = null;
+        String owner = "the 2nd user";
+
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The required parameter \"description\" is missing", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Missing start
+     */
+    @Test
+    @Order(32)
+    void addNonexistingCase3() throws ServletException, IOException {
+        String end = "6/27/2021 4:20 am";
+        String begin = null;
+        String description = "ddd";
+        String owner = "the 2nd user";
+
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The required parameter \"start\" is missing", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * Missing end
+     */
+    @Test
+    @Order(33)
+    void addNonexistingCase4() throws ServletException, IOException {
+        String end = null;
+        String begin = "6/27/2021 4:20 am";
+        String description = "ddd";
+        String owner = "the 2nd user";
+
+        testAddAppointmentWithInvalidArgument(owner, description, begin, end, HttpServletResponse.SC_BAD_REQUEST,
+                "The required parameter \"end\" is missing", "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * The username does not match login credential for searching
+     */
+    @Test
+    @Order(34)
+    void invalidArgsForSearchingCase1() throws ServletException, IOException {
+        String begin = "6-27-2021 4:20 am";
+        String end = "6/27/2021 9:20 am";
+        String owner = "the 3rd user";
+
+        testGetNonExistingAppointments(owner, begin, end, 401, "Invalid credential for user \"" + owner + "\"",
+                "the 2nd user", "the_2nd_user_password");
+    }
+
+    /**
+     * The username does not match login credential for get all appointments
+     */
+    @Test
+    @Order(35)
+    void invalidArgsForSearchingCase2() throws ServletException, IOException {
+        String owner = "the 3rd user";
+
+        testGetNonExistingAppointments(owner, null, null, 401, "Invalid credential for user \"" + owner + "\"",
+                "the 2nd user", "the_2nd_user_password");
+    }
 
 
 }

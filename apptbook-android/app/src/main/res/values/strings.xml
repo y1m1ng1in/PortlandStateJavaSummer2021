@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="first_fragment_label">Create Appointment</string>
+    <string name="second_fragment_label">Search Appointment</string>
+</resources>
