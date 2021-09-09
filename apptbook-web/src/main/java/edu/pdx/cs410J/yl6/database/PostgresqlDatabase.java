@@ -118,7 +118,7 @@ public class PostgresqlDatabase implements AppointmentBookStorage {
         if (INSTANCE == null) {
             synchronized (PostgresqlDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new PostgresqlDatabase("jdbc:postgresql://localhost:5432/postgres", "postgres",
+                    INSTANCE = new PostgresqlDatabase("jdbc:postgresql://localhost:5432/postgres", "yiminglin",
                             "971013970206Lym");
                 }
             }

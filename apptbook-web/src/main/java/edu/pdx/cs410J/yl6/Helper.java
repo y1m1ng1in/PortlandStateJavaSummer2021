@@ -4,6 +4,7 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Locale;
 
 public class Helper {
 
@@ -15,12 +16,12 @@ public class Helper {
   public static final String datePattern = "M/d/yyyy h:m a";
 
   public static String getDateString(Date d) {
-    SimpleDateFormat outputDateFormat = new SimpleDateFormat(datePattern);
+    SimpleDateFormat outputDateFormat = new SimpleDateFormat(datePattern, Locale.US);
     return outputDateFormat.format(d);
   }
 
   public static Date validateAndParseDate(String s) {
-    DateFormat df = new SimpleDateFormat(datePattern);
+    DateFormat df = new SimpleDateFormat(datePattern, Locale.US);
     df.setLenient(false);
     Date d = null;
     try {
@@ -54,7 +55,7 @@ public class Helper {
   }
 
   public static boolean validateAndGetDateInterval(Date d1, Date d2, String mark1, String mark2) {
-    DateFormat df = new SimpleDateFormat(datePattern);
+    DateFormat df = new SimpleDateFormat(datePattern, Locale.US);
     df.setLenient(false);
     if (!d1.before(d2)) {
       errorMessage = String.format("%s %s is later than %s %s", mark1, df.format(d1), mark2, df.format(d2));

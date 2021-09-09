@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.text.DateFormat;
+import java.util.Locale;
 import java.util.TreeSet;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,7 +19,7 @@ import java.text.SimpleDateFormat;
 public class AppointmentBookTest {
 
   Date getDate(String s) throws ParseException {
-    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a", Locale.US);
     df.setLenient(false);
     return df.parse(s);
   }

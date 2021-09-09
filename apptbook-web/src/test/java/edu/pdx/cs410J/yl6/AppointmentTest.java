@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
 import edu.pdx.cs410J.ParserException;
 
@@ -19,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class AppointmentTest {
 
   Date getDate(String s) throws ParseException {
-    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a", Locale.US);
     df.setLenient(false);
     return df.parse(s);
   }
@@ -56,7 +57,7 @@ public class AppointmentTest {
    */
   @Test
   void forProject3ItIsOkayIfGetBeginTimeReturnsNull() throws ParseException {
-    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a");
+    DateFormat df = new SimpleDateFormat("M/d/yyyy h:m a", Locale.US);
     Date d = df.parse("3/14/2020 4:29 pm");
     Appointment appointment = new Appointment("owner", getDate("3/14/2020 4:29 pm"),getDate("3/14/2020 4:50 pm"),"dummy");
     assertThat(appointment.getBeginTime(), equalTo(d));

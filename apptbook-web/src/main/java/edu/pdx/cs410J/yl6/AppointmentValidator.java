@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -102,7 +103,7 @@ public class AppointmentValidator {
 
         this.description = fields[2];
 
-        DateFormat df = new SimpleDateFormat(this.dateStringPattern);
+        DateFormat df = new SimpleDateFormat(this.dateStringPattern, Locale.US);
         df.setLenient(false);
         try {
             Date begin = df.parse(fields[0]);
