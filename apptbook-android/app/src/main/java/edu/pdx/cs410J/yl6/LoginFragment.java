@@ -12,6 +12,9 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import edu.pdx.cs410J.yl6.databinding.FragmentLoginBinding;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LoginFragment extends Fragment {
 
@@ -40,8 +43,38 @@ public class LoginFragment extends Fragment {
 
         binding.btnLogin.setOnClickListener(view1 -> {
             // if login success
-            Intent intent = new Intent(getContext(), MainActivity.class);
-            startActivity(intent);
+            String username = binding.editLoginUsername.getEditText().getText().toString().trim();
+            String password = binding.editLoginPassword.getEditText().getText().toString().trim();
+
+            AppointmentRestApi appointmentRestApi = RetrofitAppointmentWebService.getInstance().getAppointmentRestApi();
+            Call<ApiResponseMessage> call = appointmentRestApi.login(username, password);
+
+            call.enqueue(new Callback<ApiResponseMessage>() {
+                @Override
+                public void onResponse(Call<ApiResponseMessage> call, Response<ApiResponseMessage> response) {
+                    if (!response.isSuccessful()) {
+                        ApiResponseMessage responseMessage = response.body();
+                        if (responseMessage.getStatus() == 403) {
+                            // unregistered user
+                            binding.textLoginMessage.setText("Unregistered user");
+                        } else if (responseMessage.getStatus() == 401) {
+                            // wrong password
+                            binding.textLoginMessage.setText("error password");
+                        } else {
+                            // server internal error
+                            binding.textLoginMessage.setText(responseMessage.getMessage());
+                        }
+                    } else {
+                        Intent intent = new Intent(getContext(), MainActivity.class);
+                        startActivity(intent);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ApiResponseMessage> call, Throwable t) {
+                    binding.textLoginMessage.setText(t.getMessage());
+                }
+            });
         });
     }
 }

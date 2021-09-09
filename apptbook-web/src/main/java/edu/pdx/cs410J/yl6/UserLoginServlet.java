@@ -44,10 +44,10 @@ public class UserLoginServlet extends HttpServletHelper {
             User user = this.storage.getUserByUsername(username);
             if (user == null) {
                 // cannot find user
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, username + " is not an registered user");
+                writeMessageAndSetStatus(response, username + " is not an registered user", HttpServletResponse.SC_FORBIDDEN);
             } else if (!user.getPassword().equals(password)) {
                 // password is not correct
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "password is wrong");
+                writeMessageAndSetStatus(response, "password is wrong", HttpServletResponse.SC_UNAUTHORIZED);
             } else {
                 // registered user with correct password
                 String toEncode = username + ":" + password;
@@ -57,7 +57,7 @@ public class UserLoginServlet extends HttpServletHelper {
                 writeMessageAndSetStatus(response, "Login successfully", HttpServletResponse.SC_OK);
             }
         } catch (StorageException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            writeMessageAndSetStatus(response, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
