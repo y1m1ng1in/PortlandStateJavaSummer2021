@@ -4,6 +4,8 @@ import android.widget.EditText;
 
 import androidx.fragment.app.FragmentManager;
 
+import com.google.android.material.textfield.TextInputLayout;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -50,5 +52,18 @@ public class EditTextHelper {
             timePickerFragment.show(fragmentManager, tag);
         });
 
+    }
+
+    public static boolean validateFieldIsNotEmpty(TextInputLayout field, String fieldName) {
+        String input = field.getEditText().getText().toString().trim();
+
+        if (input.equals("")) {
+            field.setErrorEnabled(true);
+            field.setError(fieldName + " should not be empty");
+            return false;
+        }
+        field.setError(null);
+        field.setErrorEnabled(false);
+        return true;
     }
 }
