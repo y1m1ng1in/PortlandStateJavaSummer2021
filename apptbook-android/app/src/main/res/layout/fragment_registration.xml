@@ -27,6 +27,7 @@
         android:layout_marginTop="64dp"
         android:layout_marginHorizontal="32dp"
         android:hint="username"
+        app:endIconMode="clear_text"
         app:layout_constraintTop_toBottomOf="@+id/registration_title"
         tools:layout_editor_absoluteX="0dp">
 
@@ -45,11 +46,13 @@
         android:layout_marginTop="24dp"
         android:layout_marginHorizontal="32dp"
         android:hint="password"
+        app:passwordToggleEnabled="true"
         app:layout_constraintTop_toBottomOf="@+id/editRegistrationUsername">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPassword"
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -61,11 +64,13 @@
         android:layout_marginTop="24dp"
         android:layout_marginHorizontal="32dp"
         android:hint="confirm password"
+        app:passwordToggleEnabled="true"
         app:layout_constraintTop_toBottomOf="@+id/editRegistrationPassword">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPassword"
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -77,6 +82,7 @@
         android:layout_marginTop="24dp"
         android:layout_marginHorizontal="32dp"
         android:hint="email"
+        app:endIconMode="clear_text"
         app:layout_constraintTop_toBottomOf="@+id/editRegistrationVerifiedPassword">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -93,6 +99,7 @@
         android:layout_marginTop="24dp"
         android:layout_marginHorizontal="32dp"
         android:hint="address"
+        app:endIconMode="clear_text"
         app:layout_constraintTop_toBottomOf="@+id/editRegistrationEmail">
 
         <com.google.android.material.textfield.TextInputEditText

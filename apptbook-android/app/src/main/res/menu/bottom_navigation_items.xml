@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/SecondFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_appointment_24"
+        android:title="appointments"/>
+    <item
+        android:id="@+id/pageAvailability"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_event_available_24"
+        android:title="availability"/>
+    <item
+        android:id="@+id/pageSearch"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_search_24"
+        android:title="search"/>
+    <item
+        android:id="@+id/AccountFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_account_circle_24"
+        android:title="me"/>
+</menu>

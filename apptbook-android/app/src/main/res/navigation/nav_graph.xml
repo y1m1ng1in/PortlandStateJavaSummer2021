@@ -31,4 +31,9 @@
         android:label="Readme"
         tools:layout="@layout/fragment_readme"/>
     <action android:id="@+id/action_global_ThirdFragment" app:destination="@id/ThirdFragment"/>
+    <fragment
+        android:id="@+id/AccountFragment"
+        android:name="edu.pdx.cs410J.yl6.AccountFragment"
+        android:label="Account"
+        tools:layout="@layout/fragment_account"></fragment>
 </navigation>
