@@ -1,5 +1,8 @@
 package edu.pdx.cs410J.yl6;
 
+import android.util.Log;
+
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
@@ -10,6 +13,8 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Locale;
+import java.util.UUID;
 
 import edu.pdx.cs410J.AbstractAppointment;
 
@@ -21,11 +26,12 @@ import edu.pdx.cs410J.AbstractAppointment;
  */
 @Entity(tableName = "appointments")
 @TypeConverters(Converters.class)
-public class Appointment extends AbstractAppointment
-        implements Comparable<Appointment> {
+public class Appointment extends AbstractAppointment implements Comparable<Appointment> {
 
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(name = "appointment_id")
+    private final UUID appointmentId;
 
     @ColumnInfo(name = "owner")
     private final String owner;
@@ -36,43 +42,43 @@ public class Appointment extends AbstractAppointment
     @ColumnInfo(name = "end")
     private final Date end;
 
+    @ColumnInfo(name = "slot_type")
+    private final SlotType slotType;
+
+    @ColumnInfo(name = "participator_type")
+    private final ParticipatorType participatorType;
+
+    @ColumnInfo(name = "participator_identifier")
+    private final String participatorIdentifier;
+
     @ColumnInfo(name = "description")
     private final String description;
 
     @Ignore
-    private final String beginString;
-
-    @Ignore
-    private final String endString;
-
-    @Ignore
     static final String dateStringPattern = "M/d/yyyy h:m a";
 
-    /**
-     * Create an appointment instance, where {@link SimpleDateFormat} is used to
-     * parse string <code>begin</code> and <code>end</code> as begin and end time of
-     * the appointment.
-     *
-     * @param owner       the name of the owner
-     * @param begin       a string that is parseable by
-     *                    <code>SimpleDateFormat</code> in pattern
-     *                    <code>"M/d/yyyy h:m a"</code> and before <code>end</code>
-     * @param end         a string that is parsable by <code>SimpleDateFormat</code>
-     *                    in pattern <code>"M/d/yyyy h:m a"</code> and after
-     *                    <code>before</code>
-     * @param description a nonempty string that describes the appointment
-     * @throws ParseException the <code>begin</code> and <code>end</code> cannot be
-     *                        parsed by <code>SimpleDateFormat</code> successfully.
-     */
-    public Appointment(String owner, Date begin, Date end, String description) {
+    public Appointment(UUID appointmentId, String owner, Date begin, Date end, SlotType slotType,
+                       ParticipatorType participatorType, String participatorIdentifier, String description) {
+        this.appointmentId = appointmentId;
         this.owner = owner;
         this.begin = begin;
         this.end = end;
+        this.slotType = slotType;
+        this.participatorType = participatorType;
+        this.participatorIdentifier = participatorIdentifier;
         this.description = description;
+    }
 
-        SimpleDateFormat outputDateFormat = new SimpleDateFormat(dateStringPattern);
-        this.beginString = outputDateFormat.format(this.begin);
-        this.endString = outputDateFormat.format(this.end);
+    @Ignore
+    public Appointment(String owner, Date begin, Date end, String description) {
+        this.appointmentId = null;
+        this.owner = owner;
+        this.begin = begin;
+        this.end = end;
+        this.slotType = SlotType.OWNER_SELF_ADDED;
+        this.participatorType = null;
+        this.participatorIdentifier = null;
+        this.description = description;
     }
 
     /**
@@ -82,7 +88,8 @@ public class Appointment extends AbstractAppointment
      */
     @Override
     public String getBeginTimeString() {
-        return this.beginString;
+        SimpleDateFormat outputDateFormat = new SimpleDateFormat(dateStringPattern, Locale.US);
+        return outputDateFormat.format(this.begin);
     }
 
     /**
@@ -92,7 +99,8 @@ public class Appointment extends AbstractAppointment
      */
     @Override
     public String getEndTimeString() {
-        return this.endString;
+        SimpleDateFormat outputDateFormat = new SimpleDateFormat(dateStringPattern, Locale.US);
+        return outputDateFormat.format(this.end);
     }
 
     /**
@@ -127,12 +135,20 @@ public class Appointment extends AbstractAppointment
         return this.owner;
     }
 
-    public int getId() {
-        return this.id;
+    public UUID getAppointmentId() {
+        return this.appointmentId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public SlotType getSlotType() {
+        return this.slotType;
+    }
+
+    public ParticipatorType getParticipatorType() {
+        return this.participatorType;
+    }
+
+    public String getParticipatorIdentifier() {
+        return this.participatorIdentifier;
     }
 
     /**
@@ -264,4 +280,14 @@ public class Appointment extends AbstractAppointment
         }
     }
 
+    public enum ParticipatorType {
+        REGISTERED,
+        UNREGISTERED
+    }
+
+    public enum SlotType {
+        OWNER_SELF_ADDED,
+        PARTICIPATOR_BOOKED,
+        OPEN_TO_EVERYONE
+    }
 }

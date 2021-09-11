@@ -46,6 +46,7 @@ public class SecondFragment extends Fragment {
         viewModel = new ViewModelProvider(requireActivity(), viewModelFactory).get(AppointmentBookViewModel.class);
 
         adaptor = new AppointmentBookAdaptor();
+        viewModel.getAllAppointments();
         viewModel.getSearchedResults().observe(getViewLifecycleOwner(), list -> {
             adaptor.setAppointments(list);
         });
@@ -123,7 +124,8 @@ public class SecondFragment extends Fragment {
 
         if (lowerBoundDate.equals("") && lowerBoundTime.equals("") &&
                 upperBoundDate.equals("") && upperBoundTime.equals("")) {
-            viewModel.searchAllAppointmentsByOwner(owner);
+//            viewModel.searchAllAppointmentsByOwner(owner);
+            viewModel.getAllAppointments(); // simulate refresh
             return;
         }
 

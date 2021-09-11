@@ -1,6 +1,7 @@
 package edu.pdx.cs410J.yl6;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -18,10 +19,13 @@ public class SingletonDataRepository {
     public Handler mainThreadHandler;
 
     private SingletonDataRepository(final Context context) {
-        roomDatabase = Room.databaseBuilder(context, AppointmentRoomDatabase.class,
-                "appointment_database").build();
+        roomDatabase = Room.databaseBuilder(context, AppointmentRoomDatabase.class, "appointment_database").build();
         mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper());
-        repository = new AppointmentBookRepository(roomDatabase, mainThreadHandler);
+
+        SharedPreferences sharedPreferences = context.getSharedPreferences("login", Context.MODE_PRIVATE);
+        String username = sharedPreferences.getString("username", null);
+        String loginCookie = sharedPreferences.getString("login_cookie", null);
+        repository = new AppointmentBookRepository(roomDatabase, mainThreadHandler, username, loginCookie);
     }
 
     public static SingletonDataRepository getInstance(final Context context) {

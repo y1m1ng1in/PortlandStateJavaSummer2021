@@ -1,6 +1,8 @@
 package edu.pdx.cs410J.yl6;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,7 +43,8 @@ public class LoginFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         binding.btnLogin.setOnClickListener(view1 -> login());
         binding.btnRegistration.setOnClickListener(view1 -> {
-            NavHostFragment.findNavController(this).navigate(R.id.action_LoginFragment_to_RegistrationFragment);
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_LoginFragment_to_RegistrationFragment);
         });
     }
 
@@ -53,31 +56,17 @@ public class LoginFragment extends Fragment {
         String username = binding.editLoginUsername.getEditText().getText().toString().trim();
         String password = binding.editLoginPassword.getEditText().getText().toString().trim();
 
-        AppointmentRestApi appointmentRestApi = RetrofitAppointmentWebService.getInstance().getAppointmentRestApi();
+        AppointmentRestApi appointmentRestApi = RetrofitAppointmentWebService.getInstance()
+                .getAppointmentRestApi();
         Call<ApiResponseMessage> call = appointmentRestApi.login(username, password);
 
         call.enqueue(new Callback<ApiResponseMessage>() {
             @Override
             public void onResponse(Call<ApiResponseMessage> call, Response<ApiResponseMessage> response) {
                 if (!response.isSuccessful()) {
-                    Gson gson = new Gson();
-                    ApiResponseMessage responseMessage = gson.fromJson(response.errorBody().charStream(),
-                            ApiResponseMessage.class);
-                    if (responseMessage.getStatus() == 403) {
-                        // unregistered user
-                        binding.editLoginUsername.setErrorEnabled(true);
-                        binding.editLoginUsername.setError("Unregistered user");
-                    } else if (responseMessage.getStatus() == 401) {
-                        // wrong password
-                        binding.editLoginPassword.setErrorEnabled(true);
-                        binding.editLoginPassword.setError("error password");
-                    } else {
-                        // server internal error
-                        binding.textLoginMessage.setText(responseMessage.getMessage());
-                    }
+                    doUnsuccessfulLogin(response);
                 } else {
-                    Intent intent = new Intent(getContext(), MainActivity.class);
-                    startActivity(intent);
+                    doSuccessfulLogin(response, username);
                 }
             }
 
@@ -86,6 +75,38 @@ public class LoginFragment extends Fragment {
                 binding.textLoginMessage.setText(t.getMessage());
             }
         });
+    }
+
+    private void doSuccessfulLogin(Response<ApiResponseMessage> response, String username) {
+        SharedPreferences sharedPreferences = getActivity()
+                .getSharedPreferences("login", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        String cookie = response.headers().get("Set-Cookie");
+
+        editor.putString("username", username);
+        editor.putString("login_cookie", cookie);
+        editor.apply();
+
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        startActivity(intent);
+    }
+
+    private void doUnsuccessfulLogin(Response<ApiResponseMessage> response) {
+        Gson gson = new Gson();
+        ApiResponseMessage responseMessage = gson.fromJson(response.errorBody().charStream(),
+                ApiResponseMessage.class);
+        if (responseMessage.getStatus() == 403) {
+            // unregistered user
+            binding.editLoginUsername.setErrorEnabled(true);
+            binding.editLoginUsername.setError("Unregistered user");
+        } else if (responseMessage.getStatus() == 401) {
+            // wrong password
+            binding.editLoginPassword.setErrorEnabled(true);
+            binding.editLoginPassword.setError("error password");
+        } else {
+            // server internal error
+            binding.textLoginMessage.setText(responseMessage.getMessage());
+        }
     }
 
     private boolean validateForm() {

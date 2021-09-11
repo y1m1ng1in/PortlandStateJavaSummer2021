@@ -35,6 +35,10 @@ public class AppointmentBookViewModel extends ViewModel {
         storage.insertAppointmentWithOwner(appointment);
     }
 
+    public void getAllAppointments() {
+        storage.getAllAppointments(appointmentInDisplay::postValue);
+    }
+
     public LiveData<List<Appointment>> getSearchedResults() {
         return appointmentInDisplay;
     }

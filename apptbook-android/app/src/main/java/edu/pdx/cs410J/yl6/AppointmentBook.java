@@ -14,7 +14,7 @@ import java.util.TreeSet;
  */
 public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppointmentBook<T> {
 
-    private final TreeSet<T> appointments = new TreeSet<T>();
+    private final TreeSet<T> appts = new TreeSet<T>();
     private final String owner;
 
     /**
@@ -33,7 +33,7 @@ public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppo
      */
     @Override
     public void addAppointment(T appointment) {
-        this.appointments.add(appointment);
+        this.appts.add(appointment);
     }
 
     /**
@@ -44,7 +44,7 @@ public class AppointmentBook<T extends AbstractAppointment> extends AbstractAppo
      */
     @Override
     public TreeSet<T> getAppointments() {
-        return this.appointments;
+        return this.appts;
     }
 
     /**

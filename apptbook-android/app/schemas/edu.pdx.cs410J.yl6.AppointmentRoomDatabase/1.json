@@ -2,16 +2,16 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "57db66591ac2de0d65ebfb6648858c09",
+    "identityHash": "70531e5fae8639abdda9d48b5ab47388",
     "entities": [
       {
         "tableName": "appointments",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `owner` TEXT, `begin` INTEGER, `end` INTEGER, `description` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`appointment_id` TEXT NOT NULL, `owner` TEXT, `begin` INTEGER, `end` INTEGER, `slot_type` TEXT, `participator_type` TEXT, `participator_identifier` TEXT, `description` TEXT, PRIMARY KEY(`appointment_id`))",
         "fields": [
           {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
+            "fieldPath": "appointmentId",
+            "columnName": "appointment_id",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -33,6 +33,24 @@
             "notNull": false
           },
           {
+            "fieldPath": "slotType",
+            "columnName": "slot_type",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "participatorType",
+            "columnName": "participator_type",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "participatorIdentifier",
+            "columnName": "participator_identifier",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "description",
             "columnName": "description",
             "affinity": "TEXT",
@@ -41,9 +59,9 @@
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "appointment_id"
           ],
-          "autoGenerate": true
+          "autoGenerate": false
         },
         "indices": [],
         "foreignKeys": []
@@ -52,7 +70,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '57db66591ac2de0d65ebfb6648858c09')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '70531e5fae8639abdda9d48b5ab47388')"
     ]
   }
 }
